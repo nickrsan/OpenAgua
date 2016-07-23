@@ -5,7 +5,7 @@ import requests
 
 #import json
 
-from HydraLib.PluginLib import JsonConnection
+from connection import connection
 
 from OpenAgua import app
 
@@ -13,10 +13,14 @@ from OpenAgua import app
 # connect - this should be done through the interface
 #
 
-conn = JsonConnection()
-conn.login(username = 'root', password = '')
+url = app.config['URL']
+hydra_username = app.config['HYDRA_USERNAME']
+hydra_password = app.config['HYDRA_PASSWORD']
+
+conn = connection(url = url)
+conn.login(username = hydra_username, password = hydra_password)
 session_id = conn.session_id
-user = conn.call('get_user_by_name', {'username':'root'})
+user = conn.call('get_user_by_name', {'username':hydra_username})
 projects = conn.call('get_projects',{'user_id':user.id})
 project_name = 'Monterrey'
 network_name = 'base_network'
@@ -186,7 +190,8 @@ activated = conn.call('activate_network', {'network_id':network.id})
 
 app.secret_key = app.config['SECRET_KEY']
 
-username = 'admin'
+username = app.config['USERNAME']
+password = app.config['PASSWORD']
 
 def login_required(f):
     @wraps(f)
@@ -197,11 +202,15 @@ def login_required(f):
             return redirect(url_for('login'))
     return decorated_function
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
     if request.method == 'POST':
-        if request.form['username'] != username or request.form['password'] != 'admin':
+        if request.form['username'] != username or request.form['password'] != password:
             error = 'Invalid Credentials. Please try again.'
         else:
             session['logged_in'] = True
