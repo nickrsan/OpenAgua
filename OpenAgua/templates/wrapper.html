@@ -7,13 +7,13 @@
   
   <title>OpenAgua Decision Support System{% block title %}{% endblock %}</title>
   
-  {% include 'head.html' %}
+  {% include 'head_wrapper.html' %}
+
+  {% block head %}{% endblock %}
 
   </head>
   
   <body  {% block load %}{% endblock %}>
-  
-    {% include 'navbar.html' %}
     
     {% block main %}{% endblock %}
     
