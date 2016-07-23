@@ -221,7 +221,7 @@ def login():
 @login_required
 def logout():
     session.pop('logged_in', None)
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
 @app.route('/home')
 @login_required
