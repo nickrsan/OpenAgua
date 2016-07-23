@@ -30,6 +30,11 @@ HYDRA_USERNAME
 HYDRA_PASSWORD
 
 ## Documentation
-For web API calls see:
--- API functions: http://umwrg.github.io/HydraPlatform/devdocs/HydraServer/index.html#api-functions
--- Example usage with JSON: http://umwrg.github.io/HydraPlatform/tutorials/plug-in/tutorial_json.html
+
+### OpenAguaDSS
+OpenAguaDSS is in the beginning stages of development. Documentation forthcoming.
+
+### Hydra web service API
+Documentation for Hydra Platform is under development. However, the following seem to be reliable:
+* API functions: http://umwrg.github.io/HydraPlatform/devdocs/HydraServer/index.html#api-functions
+* Example usage with JSON: http://umwrg.github.io/HydraPlatform/tutorials/plug-in/tutorial_json.html
