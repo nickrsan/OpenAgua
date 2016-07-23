@@ -12,6 +12,7 @@ See [project info and documentation] (http://centrodelagua-decisiones.github.io/
     
 3. Run run.py (or run.bat on Windows)
 4. Go to 127.0.0.1:5000 in your web browser.
+5. Log in with "admin@gmail.com" and "password".
 
 ## Setup
 
