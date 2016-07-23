@@ -1,10 +1,7 @@
 # OpenAguaDSS
 
-<<<<<<< HEAD
-=======
 See [project info and documentation] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 
->>>>>>> refs/remotes/origin/master
 ## How to run on your local machine for development / testing
 
 1. See below to set up OpenAguaDSS in your github folder.
