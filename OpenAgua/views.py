@@ -124,7 +124,7 @@ def save_network():
         network = get_network(conn, network.id) # get updated network
         features = get_features(network) # get updated features
         status_code = 1
-        status_message = 'Edits saved'
+        status_message = 'Edits saved!'
     else:
         status_code = 2
         status_message = 'No edits detected'
