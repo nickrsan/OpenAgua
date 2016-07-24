@@ -1,21 +1,8 @@
-import random
-
-def get_project_by_name(conn, project_name):
-    return conn.call('get_project_by_name', {'project_name':project_name})
-
-def get_network_by_name(conn, project_name, network_name):
-    project = get_project_by_name(conn, project_name)
-    return conn.call('get_network_by_name', {'project_id':project.id, 'network_name':network_name})
-
-def get_network(conn, network_id):
-    return conn.call('get_network', {'network_id':network_id})    
+import random    
 
 # get shapes of type ftype
 def get_shapes(shapes, ftype):
     return [s for s in shapes if s['geometry']['type']==ftype]
-
-def add_network(conn, project_name):
-    network = conn.call('add_network', {'net':{'nodes':[], 'links':[]}})    
 
 def get_coords(network):
     coords = {}
@@ -125,7 +112,7 @@ def add_features(conn, network_id, shapes):
         if nodes:
             nodes = conn.call('add_nodes', {'network_id': network_id, 'nodes': nodes})
     if polylines:
-        network = get_network(conn, network_id)
+        network = conn.get_network(network_id)
         coords = get_coords(network)                   
         links = make_links(polylines, coords)
         if links:                         

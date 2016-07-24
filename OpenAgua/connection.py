@@ -28,14 +28,14 @@ class connection(object):
             except:                
                 log.debug('Something went wrong. Check command sent.')
                 log.debug("URL: %s"%self.url)
-                log.debug("Call: %s" % json.dumps(call))             
+                log.debug("Call: %s" % json.dumps(call_json))             
 
                 if response.content != '':
                     err = response.content
                 else:
                     err = "Something went wrong. An unknown server has occurred."
 
-            raise RequestError(err)
+            # need to figure out how to raise errors
         
         log.info('Finished communicating with Hydra Platform.')
 
@@ -44,15 +44,40 @@ class connection(object):
 
     def login(self, username=None, password=None):
         if username is None:
-            err = 'Error. No username supplied.'
-            raise RequestError(err)
+            err = 'Error. Username not provided.'
+            # raise error
         response = self.call('login', {'username': username, 'password': password})
-
         self.session_id = response.session_id
-
         log.info("Session ID: %s", self.session_id)
-
         return self.session_id
+
+    # specific methods
+    def get_user_by_name(self, username=None):
+        if username is None:
+            err = 'Error. Username not provided.'
+        resp = self.call('get_user_by_name', {'username': username})        
+        return resp  
+    
+    def get_project_by_name(self, project_name=None):
+        if project_name is None:
+            err = 'Error. Project name not provided'
+        resp = self.call('get_project_by_name', {'project_name':project_name})  
+        return resp
+    
+    def get_network_by_name(self, project_id=None, network_name=None):
+        if project_id is None:
+            err = 'Error. Project ID not provided'
+        if network_name is None:
+            err = 'Error. Network name not provided'
+        resp = self.call('get_network_by_name', {'project_id':project_id, 'network_name':network_name})
+        return resp
+    
+    def add_project(self, project_data=None):
+        return self.call('add_project', project_data)
+    
+    def get_network(self, network_id=None):
+        return self.call('get_network', {'network_id':network_id})
+    
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
