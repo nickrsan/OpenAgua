@@ -7,6 +7,10 @@ from OpenAgua import app
 from connection import connection
 from conversions import *
 
+url = app.config['HYDRA_URL']
+hydra_username = app.config['HYDRA_USERNAME']
+hydra_password = app.config['HYDRA_PASSWORD']
+
 app.secret_key = app.config['SECRET_KEY']
 
 # this needs to be done properly through a user management system
@@ -48,14 +52,9 @@ def logout():
 def home():
 
     # FUTURE: for all of this, add post methods or auto-load from user settings
-    urls = [app.config['HYDRA_URL']]
-    url = urls[0]
-    hydra_username = app.config['HYDRA_USERNAME']
-    hydra_password = app.config['HYDRA_PASSWORD']
         
     # connect
-    global conn
-    conn = connection(url = url)
+    conn = connection(url=url)
     conn.login(username = hydra_username, password = hydra_password)
     session['session_id'] = conn.session_id
     session['user_id'] = conn.get_user_by_name(hydra_username)
@@ -101,6 +100,7 @@ def network_editor():
 
 @app.route('/_load_network')
 def load_network():
+    conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
     features = get_features(network)
 
@@ -114,7 +114,7 @@ def load_network():
 
 @app.route('/_save_network')
 def save_network():
-
+    conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
     features = get_features(network)
 
