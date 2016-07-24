@@ -13,6 +13,7 @@ See [project info and documentation] (http://centrodelagua-decisiones.github.io/
 ## Setup
 
 ### Set up Hydra Platform
+<<<<<<< HEAD
 
 * [general Hydra Platform information] (www.hydraplatform.org),
 * [download from GitHub] (https://github.com/UMWRG/HydraPlatform), or
@@ -31,6 +32,27 @@ See [project info and documentation] (http://centrodelagua-decisiones.github.io/
 * PASSWORD
 * HYDRA_USERNAME
 * HYDRA_PASSWORD
+=======
+    * [general Hydra Platform information] (www.hydraplatform.org),
+    * [download from GitHub] (https://github.com/UMWRG/HydraPlatform), or
+    * [set up on Windows] (http://umwrg.github.io/HydraPlatform/tutorials/getting-started/server.html)
+
+### Set up OpenAguaDSS (for running on your own machine). Technically, you can run OpenAgua on your local machine as is, without further configuration. However, you can change some local configuration settings thus:
+1. Create an "/instance" folder.
+2. In "/instance", create config.py
+3. In the new config.py, you can now add the following, specified as, e.g. `DEBUG=True`:
+    * SECRET_KEY. This can be created in Python with the following code:
+    ```
+    import os
+    secret_key = os.urandom(24)
+    ```
+    * DEBUG
+    * HYDRA_URL
+    * USERNAME
+    * PASSWORD
+    * HYDRA_USERNAME
+    * HYDRA_PASSWORD
+>>>>>>> refs/remotes/origin/development
 
 ## Documentation
 
