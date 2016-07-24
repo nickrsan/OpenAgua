@@ -2,14 +2,28 @@
 
 {% block head %}
 {% include 'navbar_index.html' %} 
-{% endblock %}> 
+{% endblock %}
+
+{% block main %}
 
 <div class="container-fluid">
   <div class="row">
       
-    <div class="col-sm-3 col-md-2">
+    <div class="col-col-md-6">
+      
+      <div class="jumbotron">
+        <h1>Welcome to OpenAgua!</h1>
+        <p>OpenAgua is a new concept for water resources planning and management.</p>
+        <p>
+          <a class="btn btn-primary btn-lg label-primary" href="#" role="button">Learn more</a>
+          <a class="btn btn-primary btn-lg label-danger" href="/register" role="button">Sign up</a>        
+          <a class="btn btn-primary btn-lg label-success" href="/login" role="button">Log in</a>        
+        </p>
+      </div>
     
     </div>
-        
+
   </div>
 </div>
+
+{% endblock %}
