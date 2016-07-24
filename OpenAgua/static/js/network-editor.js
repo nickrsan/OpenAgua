@@ -41,7 +41,10 @@ map.addControl(fullScreenButton);
 // see https://github.com/Leaflet/Leaflet.draw/issues/265 and http://jsfiddle.net/jacobtoye/xgdV4/2/
 var drawControl = new L.Control.Draw({
     draw: {
-        position: 'topleft'
+        position: 'topleft',
+        polygon: false,
+        circle: false,
+        rectangle: false,
     },
     edit: {
         featureGroup: newItems // to edit we should add also currentItems
