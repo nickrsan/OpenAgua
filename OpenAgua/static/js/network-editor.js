@@ -81,54 +81,58 @@ map.on('draw:created', function (e) {
     $("#save_status").text('EDITS NOT SAVED!');
 });
 
-//map.on('draw:edited', function (e) {
-    //var layers = e.layers;
-    //var countOfEditedLayers = 0;
-    //layers.eachLayer(function(layer) {
-        //countOfEditedLayers++;
-    //});
-    //console.log("Edited " + countOfEditedLayers + " layers");
-//});
+map.on('draw:edited', function (e) {
+    var layers = e.layers;
+    var countOfEditedLayers = 0;
+    layers.eachLayer(function(layer) {
+        countOfEditedLayers++;
+    });
+    console.log("Edited " + countOfEditedLayers + " layers");
+});
 
-//// button - save edits
-//// if successful, need to update map with data.result.network_data
-//$('button#save_edits').bind('click', function() {
-  //var new_features = getJson(newItems);
-  //if (new_features.length > 0) {
-    //$.getJSON($SCRIPT_ROOT + '/_save_network', {new_features: new_features}, function(data) {
-      //var currentItems_geoJson = JSON.parse(data.result.features);
-      //currentItems.clearLayers();
-      //newItems.clearLayers();
-      //currentItems.addData(currentItems_geoJson);
-      //status_message = data.result.status_message;
-    //}
-    //else {
-      //status_message = 'No edits detected. Nothing saved.'
-    //};
-    //$("#save_status").text(status_method);
-  //});
-//});
-
-//// button - clear edits
-//$('button#clear_edits').bind('click', function() {
-  //newItems.eachLayer(function(layer) {
-    //newItems.removeLayer(layer);
-    //guideLayers.pop(layer);
-    //$("#save_status").text('Edits cleared.');
-  //});
-//});
-
-//// get shapes to add
-//var getJson = function(items) {
-    //var shapes = [];
-    //var layerJson;
+// button - save edits
+// if successful, need to update map with data.result.network_data
+$('button#save_edits').bind('click', function() {
+    newLayers = newItems.getLayers();
+    cnt = newLayers.length;
+    if (cnt > 0) {
+        map.spin(true);
+        new_features = getJson(newItems);
+        $.getJSON($SCRIPT_ROOT + '/_save_network', {new_features: new_features}, function(data) {
+          currentItems_geoJson = JSON.parse(data.result.features);
+          currentItems.clearLayers();
+          newItems.clearLayers();
+          currentItems.addData(currentItems_geoJson);
+          status_message = 'Edits saved!';
+          $("#save_status").text('Edits saved!');
+          });
+        map.spin(false);
+    } else {
+        $("#save_status").text('No edits detected. Nothing saved.')
+    };
     
-    //items.eachLayer(function(layer) {
-        //layerJson = layer.toGeoJSON();
-        //shapes.push(layerJson);
-    //});
+  });
 
-    //var jsonshapes = JSON.stringify({shapes: shapes});
+// button - clear edits
+$('button#clear_edits').bind('click', function() {
+  newItems.eachLayer(function(layer) {
+    newItems.removeLayer(layer);
+    guideLayers.pop(layer);
+    $("#save_status").text('Edits cleared.');
+  });
+});
 
-    //return jsonshapes;
-//};
+// get shapes to add
+var getJson = function(items) {
+    var shapes = [];
+    var layerJson;
+    
+    items.eachLayer(function(layer) {
+        layerJson = layer.toGeoJSON();
+        shapes.push(layerJson);
+    });
+
+    var jsonshapes = JSON.stringify({shapes: shapes});
+
+    return jsonshapes;
+};

@@ -1,3 +1,15 @@
+import random    
+
+# get shapes of type ftype
+def get_shapes(shapes, ftype):
+    return [s for s in shapes if s['geometry']['type']==ftype]
+
+def get_coords(network):
+    coords = {}
+    for n in network['nodes']:
+        coords[n.id] = [float(n.x), float(n.y)] 
+    return coords
+
 # convert hydra nodes to geoJson for Leaflet
 def nodes_geojson(nodes, coords):
     gj = []
@@ -85,3 +97,30 @@ def make_links(polylines, coords):
         )
         links.append(l)
     return links
+
+# use this to add shapes from Leaflet to Hydra
+def add_features(conn, network_id, shapes):
+
+    # modify to account for possibly no network... create network instead of add node
+
+    # convert geoJson to Hydra features & write to Hydra
+    points = get_shapes(shapes, 'Point')
+    polylines = get_shapes(shapes, 'LineString')    
+
+    if points:
+        nodes = make_nodes(points)
+        if nodes:
+            nodes = conn.call('add_nodes', {'network_id': network_id, 'nodes': nodes})
+    if polylines:
+        network = conn.get_network(network_id)
+        coords = get_coords(network)                   
+        links = make_links(polylines, coords)
+        if links:                         
+            links = conn.call('add_links', {'network_id': network_id, 'links': links})
+
+def get_features(network):
+    coords = get_coords(network)
+    nodes = nodes_geojson(network.nodes, coords)
+    links = links_geojson(network.links, coords)
+    features = nodes + links
+    return features

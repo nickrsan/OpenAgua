@@ -28,14 +28,14 @@ class connection(object):
             except:                
                 log.debug('Something went wrong. Check command sent.')
                 log.debug("URL: %s"%self.url)
-                log.debug("Call: %s" % json.dumps(call))             
+                log.debug("Call: %s" % json.dumps(call_json))             
 
                 if response.content != '':
                     err = response.content
                 else:
                     err = "Something went wrong. An unknown server has occurred."
 
-            raise RequestError(err)
+            # need to figure out how to raise errors
         
         log.info('Finished communicating with Hydra Platform.')
 
@@ -44,15 +44,40 @@ class connection(object):
 
     def login(self, username=None, password=None):
         if username is None:
-            err = 'Error. No username supplied.'
-            raise RequestError(err)
+            err = 'Error. Username not provided.'
+            # raise error
         response = self.call('login', {'username': username, 'password': password})
-
         self.session_id = response.session_id
-
         log.info("Session ID: %s", self.session_id)
-
         return self.session_id
+
+    # specific methods
+    def get_user_by_name(self, username=None):
+        if username is None:
+            err = 'Error. Username not provided.'
+        resp = self.call('get_user_by_name', {'username': username})        
+        return resp  
+    
+    def get_project_by_name(self, project_name=None):
+        if project_name is None:
+            err = 'Error. Project name not provided'
+        resp = self.call('get_project_by_name', {'project_name':project_name})  
+        return resp
+    
+    def get_network_by_name(self, project_id=None, network_name=None):
+        if project_id is None:
+            err = 'Error. Project ID not provided'
+        if network_name is None:
+            err = 'Error. Network name not provided'
+        resp = self.call('get_network_by_name', {'project_id':project_id, 'network_name':network_name})
+        return resp
+    
+    def add_project(self, project_data=None):
+        return self.call('add_project', project_data)
+    
+    def get_network(self, network_id=None):
+        return self.call('get_network', {'network_id':network_id})
+    
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
@@ -60,52 +85,4 @@ class JSONObject(dict):
             self[k] = v
             setattr(self, k, v)
             
-def get_project_by_name(conn, project_name):
-    return conn.call('get_project_by_name', {'project_name':project_name})
-
-def get_network_by_name(conn, project_name, network_name):
-    project = get_project_by_name(conn, project_name)
-    return conn.call('get_network_by_name', {'project_id':project.id, 'network_name':network_name})
-
-def get_network(conn, network_id):
-    return conn.call('get_network', {'network_id':network_id})    
-
-def get_coords(network):
-    coords = {}
-    for n in network['nodes']:
-        coords[n.id] = [float(n.x), float(n.y)] 
-    return coords
-
-# get shapes of type ftype
-def get_shapes(shapes, ftype):
-    return [s for s in shapes if s['geometry']['type']==ftype]
-
-def add_network(conn, project_name):
-    network = conn.call('add_network', {'net':{'nodes':[], 'links':[]}})       
-
-# use this to add shapes from Leaflet to Hydra
-def add_features(conn, network_id, shapes):
-
-    # modify to account for possibly no network... create network instead of add node
-
-    # convert geoJson to Hydra features & write to Hydra
-    points = get_shapes(shapes, 'Point')
-    polylines = get_shapes(shapes, 'LineString')    
-
-    if points:
-        nodes = make_nodes(points)
-        if nodes:
-            nodes = conn.call('add_nodes', {'network_id': network_id, 'nodes': nodes})
-    if polylines:
-        network = get_network(conn, network_id)
-        coords = get_coords(network)                   
-        links = make_links(polylines, coords)
-        if links:                         
-            links = conn.call('add_links', {'network_id': network_id, 'links': links})
-
-def get_features(network):
-    coords = get_coords(network)
-    nodes = nodes_geojson(network.nodes, coords)
-    links = links_geojson(network.links, coords)
-    features = nodes + links
-    return features
+   
