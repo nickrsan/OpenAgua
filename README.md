@@ -22,13 +22,13 @@ See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 1. Create an "/instance" folder.
 2. In "/instance", create config.py
 3. In the new config.py, you can now add the following, specified as, e.g. `DEBUG=True`.
-* SECRET_KEY. This can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`.
-* DEBUG
-* HYDRA_URL
-* USERNAME
-* PASSWORD
-* HYDRA_USERNAME
-* HYDRA_PASSWORD
+  * SECRET_KEY. This can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`.
+  * DEBUG
+  * HYDRA_URL
+  * USERNAME
+  * PASSWORD
+  * HYDRA_USERNAME
+  * HYDRA_PASSWORD
 
 ## Documentation
 
