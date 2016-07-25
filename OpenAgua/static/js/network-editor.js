@@ -15,26 +15,26 @@ map.addLayer(currentItems);
 var newItems = new L.FeatureGroup();
 map.addLayer(newItems);
 
-//// add zoom buttons
-//L.control.zoom({position:'topright'}).addTo(map);
-//var zoomboxControl = new L.Control.boxzoom({ position:'topright' });
-//map.addControl(zoomboxControl);
+// add zoom buttons
+L.control.zoom({position:'topright'}).addTo(map);
+var zoomboxControl = new L.Control.boxzoom({ position:'topright' });
+map.addControl(zoomboxControl);
 
-//// add locate button
-//var locateControl = new L.control.locate(options={
-    //position: 'bottomright',
-    //drawCircle: false,
-    //drawMarker: false,
-    //icon: 'fa fa-location-arrow',
-    //keepCurrentZoomLevel: true,
-    //setView: false,
-    //strings: {title: "Go to my location"}
-//});
-//map.addControl(locateControl);
+// add locate button
+var locateControl = new L.control.locate(options={
+    position: 'bottomright',
+    drawCircle: false,
+    drawMarker: false,
+    icon: 'fa fa-location-arrow',
+    keepCurrentZoomLevel: true,
+    setView: false,
+    strings: {title: "Go to my location"}
+});
+map.addControl(locateControl);
 
-//// full screen button
-//var fullScreenButton = new L.Control.Fullscreen({position: 'topright'});
-//map.addControl(fullScreenButton);
+// full screen button
+var fullScreenButton = new L.Control.Fullscreen({position: 'topright'});
+map.addControl(fullScreenButton);
 
 // feature creation & editing toolbar
 // need to revise this for multiple feature types
@@ -75,10 +75,10 @@ map.on('draw:created', function (e) {
     var type = e.layerType,
         layer = e.layer;
     newItems.addLayer(layer);
-    $('#modal_add_node').modal('show');
+    $('#modal_add_feature').modal('show');
     
     status_message = "Saved!"
-    //guideLayers.push(layer); // snapping
+    guideLayers.push(layer); // snapping
     $("#save_status").text(status_message);
 });
 
@@ -89,6 +89,15 @@ map.on('draw:edited', function (e) {
         countOfEditedLayers++;
     });
     console.log("Edited " + countOfEditedLayers + " layers");
+});
+
+map.on('draw:deleted', function (e) {
+    var layers = e.layers;
+    $('#modal_delete_feature').modal('show');
+    //newItems.addLayer(layer);
+    status_message = "Deleted!"
+    //guideLayers.push(layer); // snapping
+    $("#save_status").text(status_message);
 });
 
 //// button - save edits

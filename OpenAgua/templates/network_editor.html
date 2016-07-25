@@ -10,14 +10,28 @@
   <h3>Network Editor</h3>
 </div>
 
+<!--template selector-->
+  <form role="form">
+    <div class="form-inline">
+      <label for="sel1"></label>
+      <select class="form-control input-sm" id="sel1">
+        <option>Select a template...</option>
+        {% for type in types %}
+          <option value="{{ type.template_id }}">{{ type.template_name }}</a></option>
+        {% endfor %}
+      </select>
+      <button type="button" class="btn btn-default btn-sm" id="select_template">Load</button>
+    </div>
+  </form>
+
 <!--network editor-->
 <div id="map-edit" style="width: 800px; height: 400px; border: thin solid black"></div>
-<button type="button" class="btn btn-success" id="save_edits">Save</button>
-<button type="button" class="btn btn-danger" id="clear_edits">Clear edits</button>
+<!--<button type="button" class="btn btn-success" id="save_edits">Save</button>-->
+<!--<button type="button" class="btn btn-danger" id="clear_edits">Clear edits</button>-->
 <div id="load_status" class="label label-success"></div>
 <div id="save_status" class="label label-danger"></div>
 
-{% include "modal_add_feature.html" %}
+{% include "modals_network.html" %}
 <script src="{{ url_for('static', filename='js/network-editor.js') }}"></script>
 
 {% endblock %}

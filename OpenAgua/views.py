@@ -86,44 +86,37 @@ def home():
     activated = conn.call('activate_network', {'network_id':session['network_id']})
 
     return render_template('home.html',
-                           username = username,
-                           project_name = session['project_name'],
-                           network_name = session['network_name'])
+                           username = username)
 
 @app.route('/network_editor')
 @login_required
 def network_editor():   
     
-    popup_html_node = '<form>it\'s a node!<input type="text"name="lastname"></form>'
-    
-    popup_html_link = 'test'
-    
     return render_template('network_editor.html',
-                           username=username,
-                           session_id=session['session_id'],
-                           project_name=session['project_name'],
-                           network_name=session['network_name'],
-                           popup_html_node=Markup(popup_html_node),
-                           popup_html_link=Markup(popup_html_link))    
+                           username=username)    
 
 @app.route('/_load_network')
 def load_network():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
-    features = get_features(network)
+    templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
+    
+    features = get_features(network, template)
 
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
 
     features = json.dumps(features)
-    result = dict( status_code = status_code, status_message = status_message, features = features )
+    
+    result = dict( status_code = status_code, status_message = status_message, features = features,
+                   types = network.types, templates = templates)
     result_json = jsonify(result=result)
     return result_json
 
 @app.route('/_save_network')
 def save_network():
     conn = connection(url=url, session_id=session['session_id'])
-    network = conn.get_network(session['network_id'])
+    network = conn.get_network(session['network_id'])    
     features = get_features(network)
 
     new_features = request.args.get('new_features')

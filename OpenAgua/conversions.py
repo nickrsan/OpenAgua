@@ -118,7 +118,7 @@ def add_features(conn, network_id, shapes):
         if links:                         
             links = conn.call('add_links', {'network_id': network_id, 'links': links})
 
-def get_features(network):
+def get_features(network, template):
     coords = get_coords(network)
     nodes = nodes_geojson(network.nodes, coords)
     links = links_geojson(network.links, coords)
