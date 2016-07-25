@@ -9,18 +9,18 @@
       <div class="modal-body">
           <form role="form">
             <div class="form-group">
-              <label for="name">Name:</label>
-              <input type="text" class="form-control" id="name">
+              <label for="feature_name">Name:</label>
+              <input type="text" class="form-control" id="feature_name">
             </div>
             <div class="form-group">
-              <label for="desc">Description:</label>
-              <input type="comment" class="form-control" rows="3" id="desc">
+              <label for="feature_description">Description:</label>
+              <input type="comment" class="form-control" rows="3" id="feature_description">
             </div>
         </form>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="submit" class="btn btn-primary">Add</button>
+        <button id="add_feature_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="add_feature_confirm" type="button" class="btn btn-primary">Add</button>
         <!--<button type="button" class="btn btn-primary">Save changes</button>-->
       </div>
     </div>
@@ -36,7 +36,7 @@
         <h4 class="modal-title" id="myModalLabel">Delete feature</h4>
       </div>
       <div class="modal-body">
-        <p>Are you sure you want to delete? This cannot be undone. All data associated with this feature will also be deleted.</p>
+        <p>Are you sure you want to do this? This cannot be undone. All data associated with the feature(s) will also be deleted.</p>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>

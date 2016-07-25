@@ -75,11 +75,40 @@ map.on('draw:created', function (e) {
     var type = e.layerType,
         layer = e.layer;
     newItems.addLayer(layer);
+    var gj = layer.toGeoJSON();
+    var node_added = false;
     $('#modal_add_feature').modal('show');
-    
-    status_message = "Saved!"
-    guideLayers.push(layer); // snapping
-    $("#save_status").text(status_message);
+    do {
+        $('button#add_feature_confirm').bind('click', function() {
+            gj.properties['name'] = $('#feature_name').val();
+            gj.properties['description'] = $('#feature_description').val();
+            var request = {new_feature: layer.toGeoJSON()};
+            $.getJSON($SCRIPT_ROOT + '/_add_feature', request, function(data) {
+                var new_id = 10;
+                $('#modal_add_feature').modal('hide');
+                //var new_id = JSON.parse(data.result.new_id);
+                if (new_id > 0) {
+                    gj.properties['id'] = new_id;
+                    newItems.removeLayer(layer);
+                    currentItems.addLayer(gj);
+                    $('#feature_name').val('');
+                    //guideLayers.push(layer); // snapping
+                    $('#modal_add_feature').modal('hide');
+                    $("#save_status").text('Feature added!');
+                } else {
+                    $("#save_status").text('Name already in use. Please try again.');
+                };
+            });
+        });
+        $('button#add_feature_cancel').bind('click', function() {
+            newItems.removeLayer(layer)
+            var new_id = 0;
+            $('#feature_name').val('');
+            $('#feature_description').val('');
+            $("#save_status").text('Action cancelled.');
+        });
+    }
+    while (new_id < 0);
 });
 
 map.on('draw:edited', function (e) {
@@ -132,17 +161,17 @@ map.on('draw:deleted', function (e) {
   //});
 //});
 
-//// get shapes to add
-//var getJson = function(items) {
-    //var shapes = [];
-    //var layerJson;
+// get shapes to add
+var getJson = function(items) {
+    var shapes = [];
+    var layerJson;
     
-    //items.eachLayer(function(layer) {
-        //layerJson = layer.toGeoJSON();
-        //shapes.push(layerJson);
-    //});
+    items.eachLayer(function(layer) {
+        layerJson = layer.toGeoJSON();
+        shapes.push(layerJson);
+    });
 
-    //var jsonshapes = JSON.stringify({shapes: shapes});
+    var jsonshapes = JSON.stringify({shapes: shapes});
 
-    //return jsonshapes;
-//};
+    return jsonshapes;
+};

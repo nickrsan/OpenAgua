@@ -1,0 +1,56 @@
+{% extends "layout.html" %} 
+
+{% block head_master %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
+{% endblock %}    
+    
+{% block main %}    
+
+<div class="container-fluid">
+  
+  <div class="row">
+    
+    
+    <!--select project-->
+    
+    <!--select network-->
+    
+    <!--select template-->
+    
+    
+    
+    <!--scripts-->
+    
+    <!--create project-->
+    
+    <!--create network-->
+    
+    <!--select template-->
+    
+
+    <!--upload template-->
+    
+<div class="col sm-8 col-md-4">
+  <div class="panel panel-default">
+    <div class="panel-heading">Manage templates</div>
+    <div class="panel-body">
+
+    <label class="control-label">Upload new template</label>
+    <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
+    <script>
+      $(document).on('ready', function() {
+          $("#upload-template").fileinput({showCaption: false});
+      });
+    </script>
+
+    </div>
+  </div>
+</div>    
+    
+    
+  </div>
+
+</div>
+  
+
+{% endblock %}

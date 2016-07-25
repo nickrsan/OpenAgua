@@ -1,7 +1,9 @@
+from __future__ import print_function
 from flask import jsonify, Response, json, request, session, redirect, url_for, escape, send_file, render_template
 from flask import Markup
 from functools import wraps
 import requests
+import sys
 
 from OpenAgua import app
 
@@ -91,15 +93,15 @@ def home():
 @app.route('/network_editor')
 @login_required
 def network_editor():   
-    
     return render_template('network_editor.html',
-                           username=username)    
+                           username=username) 
 
 @app.route('/_load_network')
 def load_network():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
     templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
+    template = templates[0]
     
     features = get_features(network, template)
 
@@ -116,8 +118,10 @@ def load_network():
 @app.route('/_save_network')
 def save_network():
     conn = connection(url=url, session_id=session['session_id'])
-    network = conn.get_network(session['network_id'])    
-    features = get_features(network)
+    network = conn.get_network(session['network_id'])
+    templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
+    template = templates[0]    
+    features = get_features(network, template)
 
     new_features = request.args.get('new_features')
     new_features = json.loads(new_features)['shapes']        
@@ -143,3 +147,30 @@ def save_network():
 
     result_json = jsonify(result=result)
     return result_json
+
+@app.route('/_add_feature')
+def add_feature():
+    #conn = connection(url=url, session_id=session['session_id'])
+    #network = conn.get_network(session['network_id'])    
+    #feature_names = [f.name for f in network.nodes]
+
+    #gj = json.loads(request.args.get('new_feature'))
+    
+    #if gj['properties']['name'] in feature_names:
+        #new_id = -1
+    #else:
+        #if gj['geometry']['type'] == 'Point':       
+            #feature = conn.call('add_node', {'network_id':session['network_id'], 'node':gj2hyd_node(gj)})
+        #if gj.geometry.type == 'LineString':       
+            #feature = conn.call('add_link', {'network_id':session['network_id'], 'link':gj2hyd_link(gj)})
+        #new_id = feature.id
+    
+    result = dict(new_id=5)
+    
+    return jsonify(result=result)
+
+@app.route('/settings')
+@login_required
+def settings():   
+    return render_template('settings.html',
+                           username=username)
