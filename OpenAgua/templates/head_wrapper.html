@@ -2,25 +2,21 @@
   $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 </script>
 
-<!--Jquery-->
-<script src="{{ url_for('static', filename='lib/jquery/jquery-3.1.0.min.js') }}"></script>
+<!--jQuery-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+
+<!--Bootstrap-->
+<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
 
 <!--Font Awesome-->
 <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" />
 
-<!--Bootstrap-->
-<!--<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">-->
-<!--<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>-->
-<link rel="stylesheet" href="{{ url_for('static', filename='lib/bootstrap-3.3.6/css/bootstrap.min.css') }}" />
-<script src="{{ url_for('static', filename='lib/bootstrap-3.3.6/js/bootstrap.min.js') }}"></script>
-<!--<link rel="stylesheet" href="{{ url_for('static', filename='lib/bootstrap-4.0.0-alpha.2/css/bootstrap.min.css') }}" />-->
-<!--<script src="{{ url_for('static', filename='lib/bootstrap-4.0.0-alpha.2/js/bootstrap.min.js') }}"></script>-->
+<!--spin-->
+<script src="{{ url_for('static', filename='lib/spin/spin.min.js') }}"></script>
 
 <!--Bootstrap customizations-->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
-
-<!--spin-->
-<script src="{{ url_for('static', filename='lib/spin/spin.min.js') }}"></script>
 
 <!--Other customizations-->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }}" />

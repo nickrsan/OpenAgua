@@ -1,5 +1,8 @@
 {% extends "master.html" %}
 {% block title %} - Network{% endblock %}
+{% block head_main %}
+{% include 'head_leaflet.html' %}
+{% endblock %}
 
 {% block content %}
 
@@ -14,6 +17,7 @@
 <div id="load_status" class="label label-success"></div>
 <div id="save_status" class="label label-danger"></div>
 
+{% include "modal_add_feature.html" %}
 <script src="{{ url_for('static', filename='js/network-editor.js') }}"></script>
 
 {% endblock %}

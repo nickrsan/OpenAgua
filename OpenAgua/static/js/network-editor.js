@@ -15,26 +15,26 @@ map.addLayer(currentItems);
 var newItems = new L.FeatureGroup();
 map.addLayer(newItems);
 
-// add zoom buttons
-L.control.zoom({position:'topright'}).addTo(map);
-var zoomboxControl = new L.Control.boxzoom({ position:'topright' });
-map.addControl(zoomboxControl);
+//// add zoom buttons
+//L.control.zoom({position:'topright'}).addTo(map);
+//var zoomboxControl = new L.Control.boxzoom({ position:'topright' });
+//map.addControl(zoomboxControl);
 
-// add locate button
-var locateControl = new L.control.locate(options={
-    position: 'bottomright',
-    drawCircle: false,
-    drawMarker: false,
-    icon: 'fa fa-location-arrow',
-    keepCurrentZoomLevel: true,
-    setView: false,
-    strings: {title: "Go to my location"}
-});
-map.addControl(locateControl);
+//// add locate button
+//var locateControl = new L.control.locate(options={
+    //position: 'bottomright',
+    //drawCircle: false,
+    //drawMarker: false,
+    //icon: 'fa fa-location-arrow',
+    //keepCurrentZoomLevel: true,
+    //setView: false,
+    //strings: {title: "Go to my location"}
+//});
+//map.addControl(locateControl);
 
-// full screen button
-var fullScreenButton = new L.Control.Fullscreen({position: 'topright'});
-map.addControl(fullScreenButton);
+//// full screen button
+//var fullScreenButton = new L.Control.Fullscreen({position: 'topright'});
+//map.addControl(fullScreenButton);
 
 // feature creation & editing toolbar
 // need to revise this for multiple feature types
@@ -74,14 +74,12 @@ $( document ).ready(function() {
 map.on('draw:created', function (e) {
     var type = e.layerType,
         layer = e.layer;
-
-    if (type === 'marker') {
-        layer.bindPopup('A popup!');
-    }
-
     newItems.addLayer(layer);
-    guideLayers.push(layer); // snapping
-    $("#save_status").text('EDITS NOT SAVED!');
+    $('#modal_add_node').modal('show');
+    
+    status_message = "Saved!"
+    //guideLayers.push(layer); // snapping
+    $("#save_status").text(status_message);
 });
 
 map.on('draw:edited', function (e) {
@@ -93,49 +91,49 @@ map.on('draw:edited', function (e) {
     console.log("Edited " + countOfEditedLayers + " layers");
 });
 
-// button - save edits
-// if successful, need to update map with data.result.network_data
-$('button#save_edits').bind('click', function() {
-    newLayers = newItems.getLayers();
-    cnt = newLayers.length;
-    if (cnt > 0) {
-        map.spin(true);
-        new_features = getJson(newItems);
-        $.getJSON($SCRIPT_ROOT + '/_save_network', {new_features: new_features}, function(data) {
-          currentItems_geoJson = JSON.parse(data.result.features);
-          currentItems.clearLayers();
-          newItems.clearLayers();
-          currentItems.addData(currentItems_geoJson);
-          status_message = 'Edits saved!';
-          $("#save_status").text('Edits saved!');
-          });
-        map.spin(false);
-    } else {
-        $("#save_status").text('No edits detected. Nothing saved.')
-    };
+//// button - save edits
+//// if successful, need to update map with data.result.network_data
+//$('button#save_edits').bind('click', function() {
+    //newLayers = newItems.getLayers();
+    //cnt = newLayers.length;
+    //if (cnt > 0) {
+        //map.spin(true);
+        //new_features = getJson(newItems);
+        //$.getJSON($SCRIPT_ROOT + '/_save_network', {new_features: new_features}, function(data) {
+          //currentItems_geoJson = JSON.parse(data.result.features);
+          //currentItems.clearLayers();
+          //newItems.clearLayers();
+          //currentItems.addData(currentItems_geoJson);
+          //status_message = 'Edits saved!';
+          //$("#save_status").text('Edits saved!');
+          //});
+        //map.spin(false);
+    //} else {
+        //$("#save_status").text('No edits detected. Nothing saved.')
+    //};
     
-  });
+  //});
 
-// button - clear edits
-$('button#clear_edits').bind('click', function() {
-  newItems.eachLayer(function(layer) {
-    newItems.removeLayer(layer);
-    guideLayers.pop(layer);
-    $("#save_status").text('Edits cleared.');
-  });
-});
+//// button - clear edits
+//$('button#clear_edits').bind('click', function() {
+  //newItems.eachLayer(function(layer) {
+    //newItems.removeLayer(layer);
+    //guideLayers.pop(layer);
+    //$("#save_status").text('Edits cleared.');
+  //});
+//});
 
-// get shapes to add
-var getJson = function(items) {
-    var shapes = [];
-    var layerJson;
+//// get shapes to add
+//var getJson = function(items) {
+    //var shapes = [];
+    //var layerJson;
     
-    items.eachLayer(function(layer) {
-        layerJson = layer.toGeoJSON();
-        shapes.push(layerJson);
-    });
+    //items.eachLayer(function(layer) {
+        //layerJson = layer.toGeoJSON();
+        //shapes.push(layerJson);
+    //});
 
-    var jsonshapes = JSON.stringify({shapes: shapes});
+    //var jsonshapes = JSON.stringify({shapes: shapes});
 
-    return jsonshapes;
-};
+    //return jsonshapes;
+//};

@@ -1,4 +1,5 @@
 from flask import jsonify, Response, json, request, session, redirect, url_for, escape, send_file, render_template
+from flask import Markup
 from functools import wraps
 import requests
 
@@ -92,11 +93,18 @@ def home():
 @app.route('/network_editor')
 @login_required
 def network_editor():   
+    
+    popup_html_node = '<form>it\'s a node!<input type="text"name="lastname"></form>'
+    
+    popup_html_link = 'test'
+    
     return render_template('network_editor.html',
                            username=username,
                            session_id=session['session_id'],
                            project_name=session['project_name'],
-                           network_name=session['network_name'])    
+                           network_name=session['network_name'],
+                           popup_html_node=Markup(popup_html_node),
+                           popup_html_link=Markup(popup_html_link))    
 
 @app.route('/_load_network')
 def load_network():
