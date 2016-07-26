@@ -47,7 +47,7 @@ var drawControl = new L.Control.Draw({
         rectangle: false,
     },
     edit: {
-        featureGroup: newItems // to edit we should add also currentItems
+        featureGroup: currentItems // to edit we should add also currentItems
     },
     delete: {
         featureGroup: currentItems    
@@ -88,12 +88,11 @@ $('button#add_feature_confirm').bind('click', function() {
     gj.properties.description = $('#feature_description').val();
     $.getJSON($SCRIPT_ROOT + '/_add_feature', {new_feature: JSON.stringify(gj)}, function(data) {
         status_code = data.result.status_code;
-        console.log(status_code);
+        //console.log(status_code);
         if ( status_code == -1 ) {
             $("#add_feature_error").text('Name already in use. Please try again.');
         } else {
-            //var new_gj = JSON.parse(data.result.new_gj);
-            console.log(data.result.new_gj)
+            //console.log(data.result.new_gj)
             var new_gj = data.result.new_gj;
             newItems.clearLayers();
             currentItems.addData(new_gj);
@@ -108,7 +107,7 @@ $('button#add_feature_confirm').bind('click', function() {
 
 $('button#add_feature_cancel').bind('click', function() {
     var status_code = 1;
-    newItems.removeLayer(layer);
+    newItems.clearLayers();
     $('#feature_name').val('');
     $('#feature_description').val('');
     $("#save_status").text('Action cancelled.');
@@ -120,7 +119,7 @@ map.on('draw:edited', function (e) {
     layers.eachLayer(function(layer) {
         countOfEditedLayers++;
     });
-    console.log("Edited " + countOfEditedLayers + " layers");
+    //console.log("Edited " + countOfEditedLayers + " layers");
 });
 
 map.on('draw:deleted', function (e) {

@@ -41,7 +41,6 @@ def login():
             error = 'Invalid Credentials. Please try again.'
         else:
             session['logged_in'] = True
-            session['username'] = username
             return redirect(url_for('home'))
     return render_template('login.html', error=error)
 
@@ -184,4 +183,5 @@ def add_feature():
 @app.route('/settings')
 @login_required
 def settings():   
-    return render_template('settings.html')
+    return render_template('settings.html',
+                           username=username)

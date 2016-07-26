@@ -6,8 +6,21 @@
 <div class="page-header">
   <h3>Welcome!</h3>
 </div>
-<p>Here's an overview of your recent activity:</p>
 
+<div class="row">
+  <div class="col-md-9">
+    <div class="panel panel-default">
+      <div class="panel-heading">Load project</div>
+      <div class="panel-body">
+        <p>For now, we need to load a default project ("Monterrey") and network ("base_network"). Click the button below. This will create the project/network if they don't already exist. More importantly, it will log in to Hydra Platform, creating a unique session ID. In the future, this session ID can be saved so OpenAgua users can remain logged in to Hydra Platform.</p>
+        <a href="/_hydra_login" class="btn btn-primary" role="button" id="hydra_login">Load project/network</a>
+        <p>Note: There's no login confirmation (yet), but it should take just 1-2 seconds.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
 <div class="col-md-3">
   <div class="panel panel-default">
     <div class="panel-heading">Recent projects</div>
@@ -32,6 +45,7 @@
       <p>No recently used apps.</p>
     </div>
   </div>
+</div>
 </div>
 
 {% endblock %}
