@@ -1,11 +1,18 @@
+from __future__ import print_function
 from flask import jsonify, Response, json, request, session, redirect, url_for, escape, send_file, render_template
+from flask import Markup
 from functools import wraps
 import requests
+import sys
 
 from OpenAgua import app
 
 from connection import connection
 from conversions import *
+
+url = app.config['HYDRA_URL']
+hydra_username = app.config['HYDRA_USERNAME']
+hydra_password = app.config['HYDRA_PASSWORD']
 
 app.secret_key = app.config['SECRET_KEY']
 
@@ -34,6 +41,7 @@ def login():
             error = 'Invalid Credentials. Please try again.'
         else:
             session['logged_in'] = True
+            session['username'] = username
             return redirect(url_for('home'))
     return render_template('login.html', error=error)
 
@@ -46,16 +54,26 @@ def logout():
 @app.route('/home')
 @login_required
 def home():
+    return render_template('home.html')
 
+@app.route('/network_editor')
+@login_required
+def network_editor():   
+    return render_template('network_editor.html') 
+
+# note: this is to log in to Hydra Server, not OpenAgua
+# we are basically just logging in and getting the session ID,
+# but also creating an empty project if it doesn't exist
+# in the future, we can (optionally) store the Hydra session ID with the user account
+# i.e., give the user an option to auto-load last-used project.
+@app.route('/_hydra_login')
+def hydra_login():
+    
     # FUTURE: for all of this, add post methods or auto-load from user settings
-    urls = [app.config['HYDRA_URL']]
-    url = urls[0]
-    hydra_username = app.config['HYDRA_USERNAME']
-    hydra_password = app.config['HYDRA_PASSWORD']
+    # for now, the project is loaded via a button on the home page.
         
     # connect
-    global conn
-    conn = connection(url = url)
+    conn = connection(url=url)
     conn.login(username = hydra_username, password = hydra_password)
     session['session_id'] = conn.session_id
     session['user_id'] = conn.get_user_by_name(hydra_username)
@@ -84,39 +102,34 @@ def home():
         network = conn.call('add_network', {'net':net})
     session['network_id'] = network.id
     activated = conn.call('activate_network', {'network_id':session['network_id']})
-
-    return render_template('home.html',
-                           username = username,
-                           project_name = session['project_name'],
-                           network_name = session['network_name'])
-
-@app.route('/network_editor')
-@login_required
-def network_editor():   
-    return render_template('network_editor.html',
-                           username=username,
-                           session_id=session['session_id'],
-                           project_name=session['project_name'],
-                           network_name=session['network_name'])    
+    return redirect(url_for('home'))
 
 @app.route('/_load_network')
 def load_network():
+    conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
+    templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
+    template = templates[0]
+    
     features = get_features(network)
 
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
 
     features = json.dumps(features)
-    result = dict( status_code = status_code, status_message = status_message, features = features )
+    
+    result = dict( status_code = status_code, status_message = status_message, features = features,
+                   types = network.types, templates = templates)
     result_json = jsonify(result=result)
     return result_json
 
 @app.route('/_save_network')
 def save_network():
-
+    conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
-    features = get_features(network)
+    templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
+    template = templates[0]    
+    features = get_features(network, template)
 
     new_features = request.args.get('new_features')
     new_features = json.loads(new_features)['shapes']        
@@ -142,3 +155,33 @@ def save_network():
 
     result_json = jsonify(result=result)
     return result_json
+
+@app.route('/_add_feature')
+def add_feature():
+    conn = connection(url=url, session_id=session['session_id'])
+    network = conn.get_network(session['network_id'])
+
+    new_feature = request.args.get('new_feature')
+    gj = json.loads(new_feature)
+
+    new_gj = ''
+    status_code = -1
+    if gj['geometry']['type'] == 'Point':
+        if gj['properties']['name'] not in [f.name for f in network.nodes]:
+            node = conn.call('add_node', {'network_id':session['network_id'], 'node':gj2hyd_point(gj)})
+            new_gj = gj # let's just send back what we got to save time (for now)
+            new_gj['properties']['id'] = node.id
+            status_code = 1
+    else:
+        if gj['properties']['name'] not in [f.name for f in network.links]:
+            coords = get_coords(network)
+            links = conn.call('add_links', {'network_id':session['network_id'], 'links':gj2hyd_polyline(gj, coords)})
+            new_gj = hyd2gj_links(links, coords)
+            status_code = 1
+    result = dict(new_gj = new_gj, status_code = status_code)
+    return jsonify(result=result)
+
+@app.route('/settings')
+@login_required
+def settings():   
+    return render_template('settings.html')

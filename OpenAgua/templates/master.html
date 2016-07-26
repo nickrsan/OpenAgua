@@ -1,9 +1,9 @@
-{% extends "wrapper.html" %}    
+{% extends "layout.html" %}    
     
-{% block head %}
+{% block head_master %}
 {% include 'head_master.html' %}
 {% include 'navbar.html' %}
-{% endblock %}>
+{% endblock %}
 
 {% block main %}    
 
@@ -12,7 +12,7 @@
   <div class="row">
     {% if project_name %}
       <div class="col-sm-offset-3 col-md-offset-2" style="padding:10px">
-        <p style="font-size:12px">Project: {{project_name}}; Network: {{network_name}}</p>
+        <p style="font-size:12px">Project: {{ session.project_name }}; Network: {{ session.network_name }}</p>
       </div>
     {% endif %}
   </div>  

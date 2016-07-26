@@ -47,7 +47,10 @@ var drawControl = new L.Control.Draw({
         rectangle: false,
     },
     edit: {
-        featureGroup: newItems // to edit we should add also currentItems
+        featureGroup: currentItems // to edit we should add also currentItems
+    },
+    delete: {
+        featureGroup: currentItems    
     }
 });
 map.addControl(drawControl);
@@ -71,59 +74,94 @@ $( document ).ready(function() {
 });
 
 // create features
+var gj;
 map.on('draw:created', function (e) {
     var type = e.layerType,
         layer = e.layer;
-
-    if (type === 'marker') {
-        layer.bindPopup('A popup!');
-    }
-
     newItems.addLayer(layer);
-    guideLayers.push(layer); // snapping
-    $("#save_status").text('EDITS NOT SAVED!');
+    gj = layer.toGeoJSON();
+    $('#modal_add_feature').modal('show');
 });
 
+$('button#add_feature_confirm').bind('click', function() {
+    gj.properties.name = $('#feature_name').val();
+    gj.properties.description = $('#feature_description').val();
+    $.getJSON($SCRIPT_ROOT + '/_add_feature', {new_feature: JSON.stringify(gj)}, function(data) {
+        status_code = data.result.status_code;
+        //console.log(status_code);
+        if ( status_code == -1 ) {
+            $("#add_feature_error").text('Name already in use. Please try again.');
+        } else {
+            //console.log(data.result.new_gj)
+            var new_gj = data.result.new_gj;
+            newItems.clearLayers();
+            currentItems.addData(new_gj);
+            guideLayers.push(new_gj); // snapping
+            $('#feature_name').val('');
+            $('#feature_description').val('');
+            $("#save_status").text('Network updated!');
+            $('#modal_add_feature').modal('hide');
+        };
+    });
+});
+
+$('button#add_feature_cancel').bind('click', function() {
+    var status_code = 1;
+    newItems.clearLayers();
+    $('#feature_name').val('');
+    $('#feature_description').val('');
+    $("#save_status").text('Action cancelled.');
+    
+});
 map.on('draw:edited', function (e) {
     var layers = e.layers;
     var countOfEditedLayers = 0;
     layers.eachLayer(function(layer) {
         countOfEditedLayers++;
     });
-    console.log("Edited " + countOfEditedLayers + " layers");
+    //console.log("Edited " + countOfEditedLayers + " layers");
 });
 
-// button - save edits
-// if successful, need to update map with data.result.network_data
-$('button#save_edits').bind('click', function() {
-    newLayers = newItems.getLayers();
-    cnt = newLayers.length;
-    if (cnt > 0) {
-        map.spin(true);
-        new_features = getJson(newItems);
-        $.getJSON($SCRIPT_ROOT + '/_save_network', {new_features: new_features}, function(data) {
-          currentItems_geoJson = JSON.parse(data.result.features);
-          currentItems.clearLayers();
-          newItems.clearLayers();
-          currentItems.addData(currentItems_geoJson);
-          status_message = 'Edits saved!';
-          $("#save_status").text('Edits saved!');
-          });
-        map.spin(false);
-    } else {
-        $("#save_status").text('No edits detected. Nothing saved.')
-    };
+map.on('draw:deleted', function (e) {
+    var layers = e.layers;
+    $('#modal_delete_feature').modal('show');
+    //newItems.addLayer(layer);
+    status_message = "Deleted!"
+    //guideLayers.push(layer); // snapping
+    $("#save_status").text(status_message);
+});
+
+//// button - save edits
+//// if successful, need to update map with data.result.network_data
+//$('button#save_edits').bind('click', function() {
+    //newLayers = newItems.getLayers();
+    //cnt = newLayers.length;
+    //if (cnt > 0) {
+        //map.spin(true);
+        //new_features = getJson(newItems);
+        //$.getJSON($SCRIPT_ROOT + '/_save_network', {new_features: new_features}, function(data) {
+          //currentItems_geoJson = JSON.parse(data.result.features);
+          //currentItems.clearLayers();
+          //newItems.clearLayers();
+          //currentItems.addData(currentItems_geoJson);
+          //status_message = 'Edits saved!';
+          //$("#save_status").text('Edits saved!');
+          //});
+        //map.spin(false);
+    //} else {
+        //$("#save_status").text('No edits detected. Nothing saved.')
+    //};
     
-  });
+  //});
 
-// button - clear edits
-$('button#clear_edits').bind('click', function() {
-  newItems.eachLayer(function(layer) {
-    newItems.removeLayer(layer);
-    guideLayers.pop(layer);
-    $("#save_status").text('Edits cleared.');
-  });
-});
+//// button - clear edits
+//$('button#clear_edits').bind('click', function() {
+  //newItems.eachLayer(function(layer) {
+    //newItems.removeLayer(layer);
+    //guideLayers.pop(layer);
+    //$("#save_status").text('Edits cleared.');
+  //});
+//});
 
 // get shapes to add
 var getJson = function(items) {
