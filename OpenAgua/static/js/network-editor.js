@@ -1,16 +1,12 @@
-var tilesurl = 'http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
-        attrib = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-        tiles = L.tileLayer(tilesurl, {maxZoom: 18, attribution: attrib}),
-        map = new L.Map('map-edit', {
-            layers: [tiles],
-            center: new L.LatLng(25.66, -100.3),
-            zoomControl: false,
-            zoom: 8
-        });
-        
-// geoJson items from Hydra Server
+var map = new L.Map('map-edit');
+
+var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+    maxZoom: 18,
+});
+
+// the layer containing the features        
 var currentItems = new L.geoJson();
-map.addLayer(currentItems);
 
 var newItems = new L.FeatureGroup();
 map.addLayer(newItems);
@@ -32,9 +28,11 @@ var locateControl = new L.control.locate(options={
 });
 map.addControl(locateControl);
 
-// full screen button
-var fullScreenButton = new L.Control.Fullscreen({position: 'topright'});
-map.addControl(fullScreenButton);
+// full screen button - NB: function deleted since modal doesn't show in
+// full screen mode. Let's add this back for the visualization though. Or,
+// figure out how to disable editing in full screen mode.
+//var fullScreenButton = new L.Control.Fullscreen({position: 'topright'});
+//map.addControl(fullScreenButton);
 
 // feature creation & editing toolbar
 // need to revise this for multiple feature types
@@ -55,22 +53,33 @@ var drawControl = new L.Control.Draw({
 });
 map.addControl(drawControl);
 
+// load existing network
+var currentItems_geoJson;
+$( document ).ready(function() {
+    $.getJSON($SCRIPT_ROOT + '/_load_network', function(data) {
+        currentItems_geoJson = JSON.parse(data.result.features);
+        currentItems.addData(currentItems_geoJson);
+        var n = currentItems.getLayers().length;
+        var status_message;
+        if (n > 0 ) {
+            map.fitBounds(currentItems.getBounds());
+            status_message = 'Network loaded, with ' + n + ' features added.'
+        } else {
+            map.setView([0, 0], 2);
+            status_message = 'Empty network loaded. Please add features.'
+        };
+        tileLayer.addTo(map); // add the tiles
+        map.addLayer(currentItems); // add the layers
+        $("#load_status").text(status_message);
+    });
+});
+
 // snapping
 var guideLayers = new Array();
 guideLayers.push(currentItems);
 drawControl.setDrawingOptions({
     marker: { guideLayers: guideLayers, snapDistance: 15 },
     polyline: { guideLayers: guideLayers, snapDistance: 15 },
-});
-
-// load existing network
-$( document ).ready(function() {
-  $.getJSON($SCRIPT_ROOT + '/_load_network', function(data) {
-    var currentItems_geoJson = JSON.parse(data.result.features);
-    currentItems.clearLayers();
-    currentItems.addData(currentItems_geoJson);
-    $("#load_status").text(data.result.status_message);
-  });
 });
 
 // create features
@@ -130,38 +139,6 @@ map.on('draw:deleted', function (e) {
     //guideLayers.push(layer); // snapping
     $("#save_status").text(status_message);
 });
-
-//// button - save edits
-//// if successful, need to update map with data.result.network_data
-//$('button#save_edits').bind('click', function() {
-    //newLayers = newItems.getLayers();
-    //cnt = newLayers.length;
-    //if (cnt > 0) {
-        //map.spin(true);
-        //new_features = getJson(newItems);
-        //$.getJSON($SCRIPT_ROOT + '/_save_network', {new_features: new_features}, function(data) {
-          //currentItems_geoJson = JSON.parse(data.result.features);
-          //currentItems.clearLayers();
-          //newItems.clearLayers();
-          //currentItems.addData(currentItems_geoJson);
-          //status_message = 'Edits saved!';
-          //$("#save_status").text('Edits saved!');
-          //});
-        //map.spin(false);
-    //} else {
-        //$("#save_status").text('No edits detected. Nothing saved.')
-    //};
-    
-  //});
-
-//// button - clear edits
-//$('button#clear_edits').bind('click', function() {
-  //newItems.eachLayer(function(layer) {
-    //newItems.removeLayer(layer);
-    //guideLayers.pop(layer);
-    //$("#save_status").text('Edits cleared.');
-  //});
-//});
 
 // get shapes to add
 var getJson = function(items) {
