@@ -31,7 +31,7 @@ def nodes_geojson(nodes, coords):
         gj.append(f)
     return gj
 
-def links_geojson(links, coords):
+def hyd2gj_links(links, coords):
     gj = []
     for l in links:
         n1 = l['node_1_id']
@@ -47,6 +47,7 @@ def links_geojson(links, coords):
              'geometry':{ 'type': 'LineString',
                           'coordinates': [coords[n1],coords[n2]] },
              'properties':{'name':l.name,
+                           'id':l.id,
                            'description':l.description,
                            'linetype':ftype_name,
                            'template':template_name}}
@@ -56,37 +57,41 @@ def links_geojson(links, coords):
     return gj
 
 # convert geoJson nodes to Hydra nodes
-def gj2hyd_node(shape):
-    x, y = s['geometry']['coordinates']
-    n = dict(
+def gj2hyd_point(shape):
+    x, y = shape['geometry']['coordinates']
+    node = dict(
         id = -1,
-        name = s['properties']['name'],
-        description = s['properties']['description'],
+        name = shape['properties']['name'],
+        description = shape['properties']['description'],
         x = str(x),
         y = str(y)
     )
     return node
 
 # convert geoJson polylines to Hydra links
-# need to account for multisegment lines
-# for now, this assumes links lack vertices
-def gj2hyd_link(polyline, coords):
+# note that this accounts for multisegment lines by splitting up the segment into pieces
+# for now, this assumes links lack vertices that are not on existing nodes
+def gj2hyd_polyline(polyline, coords):
     d = 4 # rounding decimal points to match link coords with nodes.
     # p.s. This is annoying. It would be good to have geographic/topology capabilities built in to Hydra
     nlookup = {(round(x,d), round(y,d)): k for k, [x, y] in coords.items()}
     xys = []
-    for [x,y] in pl['geometry']['coordinates']:
+    for [x,y] in polyline['geometry']['coordinates']:
         xy = (round(x,d), round(y,d))
         xys.append(xy)
 
-    link = dict(
-        id = -1,
-        name = pl['properties']['name'],
-        description = pl['properties']['description'],
-        node_1_id = nlookup[xys[0]],
-        node_2_id = nlookup[xys[1]]
-    )
-    return link
+    links = []
+    nsegments = len(xys) - 1
+    for i in range(nsegments):
+        link = dict(
+            id = -1,
+            name = '{}_{:02}'.format(polyline['properties']['name'], i+1),
+            description = '{} (Segment {})'.format(polyline['properties']['description'], i+1),
+            node_1_id = nlookup[xys[i]],
+            node_2_id = nlookup[xys[i+1]]
+        )
+    links.append(link)
+    return links
 
 # use this to add shapes from Leaflet to Hydra
 def add_features(conn, network_id, shapes):
@@ -109,9 +114,9 @@ def add_features(conn, network_id, shapes):
             links = conn.call('add_links', {'network_id': network_id, 'links': links})
 
 # converts Hydra network to geojson nodes and links
-def get_features(network, template):
+def get_features(network):
     coords = get_coords(network)
-    nodes = nodes_geojson(network.nodes, coords, template)
-    links = links_geojson(network.links, coords, template)
+    nodes = nodes_geojson(network.nodes, coords)
+    links = hyd2gj_links(network.links, coords)
     features = nodes + links
     return features

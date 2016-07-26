@@ -103,7 +103,7 @@ def load_network():
     templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
     template = templates[0]
     
-    features = get_features(network, template)
+    features = get_features(network)
 
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
@@ -148,25 +148,29 @@ def save_network():
     result_json = jsonify(result=result)
     return result_json
 
-@app.route('/_add_feature')
+@app.route('/_add_feature', methods=['GET','POST'])
 def add_feature():
-    #conn = connection(url=url, session_id=session['session_id'])
-    #network = conn.get_network(session['network_id'])    
-    #feature_names = [f.name for f in network.nodes]
+    conn = connection(url=url, session_id=session['session_id'])
+    network = conn.get_network(session['network_id'])
 
-    #gj = json.loads(request.args.get('new_feature'))
-    
-    #if gj['properties']['name'] in feature_names:
-        #new_id = -1
-    #else:
-        #if gj['geometry']['type'] == 'Point':       
-            #feature = conn.call('add_node', {'network_id':session['network_id'], 'node':gj2hyd_node(gj)})
-        #if gj.geometry.type == 'LineString':       
-            #feature = conn.call('add_link', {'network_id':session['network_id'], 'link':gj2hyd_link(gj)})
-        #new_id = feature.id
-    
-    result = dict(new_id=5)
-    
+    new_feature = request.args.get('new_feature')
+    gj = json.loads(new_feature)
+
+    new_gj = ''
+    status_code = -1
+    if gj['geometry']['type'] == 'Point':
+        if gj['properties']['name'] not in [f.name for f in network.nodes]:
+            node = conn.call('add_node', {'network_id':session['network_id'], 'node':gj2hyd_point(gj)})
+            new_gj = gj # let's just send back what we got to save time (for now)
+            new_gj['properties']['id'] = node.id
+            status_code = 1
+    else:
+        if gj['properties']['name'] not in [f.name for f in network.links]:
+            coords = get_coords(network)
+            links = conn.call('add_links', {'network_id':session['network_id'], 'links':gj2hyd_polyline(gj, coords)})
+            new_gj = hyd2gj_links(links, coords)
+            status_code = 1
+    result = dict(new_gj = new_gj, status_code = status_code)
     return jsonify(result=result)
 
 @app.route('/settings')

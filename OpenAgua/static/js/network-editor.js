@@ -76,39 +76,36 @@ map.on('draw:created', function (e) {
         layer = e.layer;
     newItems.addLayer(layer);
     var gj = layer.toGeoJSON();
-    var node_added = false;
     $('#modal_add_feature').modal('show');
+    var status_code = -1;
     do {
         $('button#add_feature_confirm').bind('click', function() {
-            gj.properties['name'] = $('#feature_name').val();
-            gj.properties['description'] = $('#feature_description').val();
-            var request = {new_feature: layer.toGeoJSON()};
-            $.getJSON($SCRIPT_ROOT + '/_add_feature', request, function(data) {
-                var new_id = 10;
-                $('#modal_add_feature').modal('hide');
-                //var new_id = JSON.parse(data.result.new_id);
-                if (new_id > 0) {
-                    gj.properties['id'] = new_id;
-                    newItems.removeLayer(layer);
-                    currentItems.addLayer(gj);
-                    $('#feature_name').val('');
-                    //guideLayers.push(layer); // snapping
-                    $('#modal_add_feature').modal('hide');
-                    $("#save_status").text('Feature added!');
-                } else {
-                    $("#save_status").text('Name already in use. Please try again.');
-                };
-            });
+            gj.properties.name = $('#feature_name').val();
+            gj.properties.description = $('#feature_description').val();
+            //$.getJSON($SCRIPT_ROOT + '/_add_feature', {new_feature: JSON.stringify(gj)}, function(data) {
+                //status_code = data.result.status_code;
+                //if ( status_code == -1 ) {
+                    //$("#add_feature_error").text('Name already in use. Please try again.');
+                //} else {
+                    //var new_gj = JSON.parse(data.result.new_gj);
+                    //newItems.removeLayer(layer);
+                    //currentItems.addData(new_gj);
+                    //guideLayers.push(new_gj); // snapping
+                    //$('#modal_add_feature').modal('hide');
+                    //$("#save_status").text('Network updated!');
+                //};
+            //});
+            var status_code = 1;
         });
         $('button#add_feature_cancel').bind('click', function() {
-            newItems.removeLayer(layer)
-            var new_id = 0;
-            $('#feature_name').val('');
-            $('#feature_description').val('');
-            $("#save_status").text('Action cancelled.');
+            //newItems.removeLayer(layer);
+            var status_code = 1;
+            //$("#save_status").text('Action cancelled.');
         });
-    }
-    while (new_id < 0);
+        status_code = 1;
+    } while (status_code < 0);
+    $('#feature_name').val('');
+    $('#feature_description').val('');
 });
 
 map.on('draw:edited', function (e) {
