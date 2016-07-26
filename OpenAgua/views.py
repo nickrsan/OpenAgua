@@ -148,7 +148,7 @@ def save_network():
     result_json = jsonify(result=result)
     return result_json
 
-@app.route('/_add_feature', methods=['GET','POST'])
+@app.route('/_add_feature')
 def add_feature():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
