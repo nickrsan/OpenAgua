@@ -1,4 +1,4 @@
-var map = new L.Map('map-edit');
+var map = new L.Map('map', { zoomControl:false });
 
 var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
@@ -8,8 +8,13 @@ var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/
 // the layer containing the features        
 var currentItems = new L.geoJson();
 
+//items to be added
 var newItems = new L.FeatureGroup();
 map.addLayer(newItems);
+
+//items to be deleted
+var deleteItems = new L.FeatureGroup();
+map.addLayer(deleteItems);
 
 // add zoom buttons
 L.control.zoom({position:'topright'}).addTo(map);
@@ -18,7 +23,7 @@ map.addControl(zoomboxControl);
 
 // add locate button
 var locateControl = new L.control.locate(options={
-    position: 'bottomright',
+    position: 'topright',
     drawCircle: false,
     drawMarker: false,
     icon: 'fa fa-location-arrow',
@@ -54,10 +59,9 @@ var drawControl = new L.Control.Draw({
 map.addControl(drawControl);
 
 // load existing network
-var currentItems_geoJson;
 $( document ).ready(function() {
     $.getJSON($SCRIPT_ROOT + '/_load_network', function(data) {
-        currentItems_geoJson = JSON.parse(data.result.features);
+        var currentItems_geoJson = JSON.parse(data.result.features);
         currentItems.addData(currentItems_geoJson);
         var n = currentItems.getLayers().length;
         var status_message;
@@ -131,10 +135,20 @@ map.on('draw:edited', function (e) {
     //console.log("Edited " + countOfEditedLayers + " layers");
 });
 
-map.on('draw:deleted', function (e) {
-    var layers = e.layers;
+map.on('draw:deletestart', function (e) {
+    var layer = e.layers;
+    //deleteItems.addLayer(layer);
     $('#modal_delete_feature').modal('show');
-    //newItems.addLayer(layer);
+    //status_message = "Deleted!"
+    //guideLayers.push(layer); // snapping
+    //$("#save_status").text(status_message);
+});
+
+
+map.on('draw:delete', function (e) {
+    var layers = e.layers;
+    //deleteItems.addLayer(layer);
+    $('#modal_delete_feature').modal('show');
     status_message = "Deleted!"
     //guideLayers.push(layer); // snapping
     $("#save_status").text(status_message);
