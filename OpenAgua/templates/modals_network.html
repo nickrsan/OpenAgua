@@ -8,6 +8,11 @@
       <div class="modal-body">
           <form role="form">
             <div class="form-group">
+              <select>
+                {% for ftype in ftypes %}
+                  <option value="{{ ftype.id }}">{{ ftype.name }}</option>
+                {% endfor %}
+              </select>
               <label for="feature_name">Name:</label>
               <input type="text" class="form-control" id="feature_name" autofocus>
             </div>

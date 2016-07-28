@@ -76,8 +76,12 @@ def home():
 
 @app.route('/network_editor')
 @login_required
-def network_editor():   
-    return render_template('network_editor.html') 
+def network_editor():
+    conn = connection(url=url, session_id=session['session_id'])
+    template = conn.call('get_template', {'template_id':session['template_id']})
+    ftypes = template.types
+    return render_template('network_editor.html',
+                           ftypes = ftypes) 
 
 # Load projects
 # in the future, we can (optionally) store the Hydra session ID with the user account
@@ -130,9 +134,9 @@ def add_network():
 def load_network():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
-    templates = conn.call('get_templates', {'template_id':5})
+    template = conn.call('get_template', {'template_id':5})
     
-    features = features2gj(network)
+    features = features2gj(network, template)
 
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
