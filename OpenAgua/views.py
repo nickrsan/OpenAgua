@@ -54,64 +54,85 @@ def logout():
 @app.route('/home')
 @login_required
 def home():
-    return render_template('home.html')
+
+    # connect to hydra (login if we don't already have a session ID)
+    if 'session_id' in session:
+        conn = connection(url=url, session_id=session['session_id'])
+    else:
+        conn = connection(url=url)
+    
+    # this makes sure we are logged in, in case there is a leftover session_id
+    # in the Flask session. We shouldn't get here though.
+    conn.login(username = hydra_username, password = hydra_password)    
+    session['session_id'] = conn.session_id
+        
+    user = conn.get_user_by_name(hydra_username)
+    session['user_id'] = user.id
+
+    projects = conn.call('get_projects',{'user_id':session['user_id']})
+    project_names = [project.name for project in projects]
+    return render_template('home.html',
+                           project_names = project_names)
 
 @app.route('/network_editor')
 @login_required
 def network_editor():   
     return render_template('network_editor.html') 
 
-# note: this is to log in to Hydra Server, not OpenAgua
-# we are basically just logging in and getting the session ID,
-# but also creating an empty project if it doesn't exist
+# Load projects
 # in the future, we can (optionally) store the Hydra session ID with the user account
 # i.e., give the user an option to auto-load last-used project.
-@app.route('/_hydra_login')
-def hydra_login():
+@app.route('/_load_recent')
+def load_recent():
     
-    # FUTURE: for all of this, add post methods or auto-load from user settings
-    # for now, the project is loaded via a button on the home page.
-        
-    # connect
-    conn = connection(url=url)
-    conn.login(username = hydra_username, password = hydra_password)
-    session['session_id'] = conn.session_id
-    session['user_id'] = conn.get_user_by_name(hydra_username)
+    conn = connection(url=url, session_id=session['session_id'])
+    
+    # load recent project / network (to be done by user in the future)
+    session['project_name'] = app.config['HYDRA_PROJECT_NAME']
+    session['network_name'] = app.config['HYDRA_NETWORK_NAME']    
     
     # load / create project
-    session['project_name'] = app.config['HYDRA_PROJECT_NAME']
-    try:
-        project = conn.get_project_by_name(session['project_name'])
-    except:
-        proj = dict(name = session['project_name'])
-        project = conn.add_project(proj)
+    project = conn.get_project_by_name(session['project_name'])
     session['project_id'] = project.id
-    project_id = session['project_id']
 
-    # load / create / activate network
-    session['network_name'] = app.config['HYDRA_NETWORK_NAME']
-    exists = conn.call('network_exists', {'project_id':project_id, 'network_name':session['network_name']})
-    if exists=='Y':
-        network = conn.get_network_by_name(project_id, session['network_name'])
-    else:
-        net = dict(
-            project_id = project_id,
-            name = session['network_name'],
-            description = 'Prototype DSS network for Monterrey'
-        )
-        network = conn.call('add_network', {'net':net})
+    # load / activate network
+    network = conn.get_network_by_name(session['project_id'], session['network_name'])
     session['network_id'] = network.id
     activated = conn.call('activate_network', {'network_id':session['network_id']})
+    
+    # load / activate template (temporary fix)
+    session['template_id'] = 5 # this works on David's office computer only.
+    
+    return redirect(url_for('network_editor'))
+
+@app.route('/_add_project', methods=['GET', 'POST'])
+def add_project():
+    conn = connection(url=url, session_id=session['session_id'])
+    proj = dict(
+        name = request.form['project_name'],
+        description = request.form['project_description']
+    )
+    project = conn.add_project(proj)
+    return redirect(url_for('home'))
+
+@app.route('/_add_network', methods=['GET', 'POST'])
+def add_network():
+    conn = connection(url=url, session_id=session['session_id'])
+    net = dict(
+        project_id = session['project_id'],
+        name = request.form['network_name'],
+        description = request.form['network_description']
+    )
+    network = conn.call('add_network', {'net':net})
     return redirect(url_for('home'))
 
 @app.route('/_load_network')
 def load_network():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
-    templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
-    template = templates[0]
+    templates = conn.call('get_templates', {'template_id':5})
     
-    features = get_features(network)
+    features = features2gj(network)
 
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
@@ -169,8 +190,7 @@ def add_feature():
     if gj['geometry']['type'] == 'Point':
         if gj['properties']['name'] not in [f.name for f in network.nodes]:
             node = conn.call('add_node', {'network_id':session['network_id'], 'node':gj2hyd_point(gj)})
-            new_gj = gj # let's just send back what we got to save time (for now)
-            new_gj['properties']['id'] = node.id
+            new_gj = hyd2gj_nodes([node]) # let's just send back what we got to save time (for now)
             status_code = 1
     else:
         if gj['properties']['name'] not in [f.name for f in network.links]:
@@ -186,8 +206,8 @@ def delete_feature():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
     
-    gj = request.args.get('feature_geojson')
-    print(gj)
+    deleted_feature = request.args.get('deleted')
+    gj = json.loads(deleted_feature)
 
     status_code = -1
     if gj['geometry']['type'] == 'Point':
@@ -204,7 +224,7 @@ def settings():
     return render_template('settings.html')
 
 @app.route('/_hydra_call')
-def settings():
+def hydra_call():
     s = request.args.get('request')
     j = json.loads(s)
     resp = conn.call(j['func'], j['args'])

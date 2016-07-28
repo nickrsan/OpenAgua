@@ -11,7 +11,7 @@ def get_coords(network):
     return coords
 
 # convert hydra nodes to geoJson for Leaflet
-def nodes_geojson(nodes, coords):
+def hyd2gj_nodes(nodes, template_id):
     gj = []
     for node in nodes:
         if node.types:
@@ -23,12 +23,14 @@ def nodes_geojson(nodes, coords):
             template_name = 'UNASSIGNED'
         f = {'type':'Feature',
              'geometry':{'type':'Point',
-                         'coordinates':coords[node.id]},
+                         'coordinates':[node.x, node.y]},
              'properties':{'name':node.name,
+                           'id':node.id,
                            'description':node.description,
                            'nodetype':ftype_name,
                            'template':template_name}} # hopefully this can be pretty fancy
         gj.append(f)
+
     return gj
 
 def hyd2gj_links(links, coords):
@@ -114,9 +116,9 @@ def add_features(conn, network_id, shapes):
             links = conn.call('add_links', {'network_id': network_id, 'links': links})
 
 # converts Hydra network to geojson nodes and links
-def get_features(network):
+def features2gj(network):
     coords = get_coords(network)
-    nodes = nodes_geojson(network.nodes, coords)
+    nodes = hyd2gj_nodes(network.nodes)
     links = hyd2gj_links(network.links, coords)
     features = nodes + links
     return features
