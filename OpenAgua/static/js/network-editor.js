@@ -1,4 +1,7 @@
-var mapOptions = {
+// VARIABLES
+
+// main context menu
+var mapContextmenuOptions = {
     zoomControl: false,
     contextmenu: true,
     contextmenuWidth: 140,
@@ -11,11 +14,13 @@ var mapOptions = {
     }]
 };
 
-var map = L.map('map', mapOptions);
+// CREATE BASIC MAP
+
+var map = L.map('map', mapContextmenuOptions);
 
 var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-    maxZoom: 18,
+    maxZoom: 13,
 });
 
 // the layer containing the features        
@@ -65,9 +70,9 @@ var drawControl = new L.Control.Draw({
     edit: {
         featureGroup: currentItems // to edit we should add also currentItems
     },
-    delete: {
-        featureGroup: currentItems    
-    }
+    //delete: {
+        //featureGroup: currentItems    
+    //}
 });
 map.addControl(drawControl);
 
@@ -76,6 +81,11 @@ $( document ).ready(function() {
     $.getJSON($SCRIPT_ROOT + '/_load_network', function(data) {
         var currentItems_geoJson = JSON.parse(data.result.features);
         currentItems.addData(currentItems_geoJson);
+        currentItems.eachLayer(function(layer) { // process layers
+            var name = layer.feature.properties.name;
+            layer.bindPopup(name); // 1. add popup
+            layer.bindContextMenu(getContextmenuOptions(name)) // 2. add context menu
+        });
         var n = currentItems.getLayers().length;
         var status_message;
         if (n > 0 ) {
@@ -114,11 +124,9 @@ $('button#add_feature_confirm').bind('click', function() {
     gj.properties.description = $('#feature_description').val();
     $.getJSON($SCRIPT_ROOT + '/_add_feature', {new_feature: JSON.stringify(gj)}, function(data) {
         status_code = data.result.status_code;
-        //console.log(status_code);
         if ( status_code == -1 ) {
             $("#add_feature_error").text('Name already in use. Please try again.');
         } else {
-            //console.log(data.result.new_gj)
             var new_gj = data.result.new_gj;
             newItems.clearLayers();
             currentItems.addData(new_gj);
@@ -136,9 +144,9 @@ $('button#add_feature_cancel').bind('click', function() {
     newItems.clearLayers();
     $('#feature_name').val('');
     $('#feature_description').val('');
-    $("#save_status").text('Action cancelled.');
-    
+    $("#save_status").text('Action cancelled.');    
 });
+
 map.on('draw:edited', function (e) {
     var layers = e.layers;
     var countOfEditedLayers = 0;
@@ -146,25 +154,6 @@ map.on('draw:edited', function (e) {
         countOfEditedLayers++;
     });
     //console.log("Edited " + countOfEditedLayers + " layers");
-});
-
-map.on('draw:deletestart', function (e) {
-    var layer = e.layers;
-    //deleteItems.addLayer(layer);
-    $('#modal_delete_feature').modal('show');
-    //status_message = "Deleted!"
-    //guideLayers.push(layer); // snapping
-    //$("#save_status").text(status_message);
-});
-
-
-map.on('draw:delete', function (e) {
-    var layers = e.layers;
-    //deleteItems.addLayer(layer);
-    $('#modal_delete_feature').modal('show');
-    status_message = "Deleted!"
-    //guideLayers.push(layer); // snapping
-    $("#save_status").text(status_message);
 });
 
 // FUNCTIONS
@@ -184,7 +173,28 @@ var getJson = function(items) {
     return jsonshapes;
 };
 
-// contextmenu functions
+// feature context menu
+getContextmenuOptions = function(featureName) {
+    var contextmenuOptions = {
+        contextmenu: true,
+        contextmenuItems: [{
+            text: featureName,
+            index: 0
+        }, {
+            separator: true,
+            index: 1
+        }, {
+            text: 'Delete',
+            index: 2,
+            callback: deleteFeature
+        }, {
+            separator: true,
+            index: 3
+        }],
+        contextmenuInheritItems: true
+    };
+    return contextmenuOptions;
+};
 
 function centerMap (e) {
     map.panTo(e.latlng);
@@ -193,5 +203,27 @@ function centerMap (e) {
 function showCoordinates (e) {
     $("p#coords").text(e.latlng);
     $("#modal_coords").modal("show");
-    //alert(e.latlng);
 }
+
+var deleted_feature;
+function deleteFeature(e) {
+    var layer = e.layer;
+    deleted_feature = e.relatedTarget.feature;
+    var name = deleted_feature.properties.name;
+    $("#delete_feature_name").text("Delete \"" + name + "\"");
+    $('#modal_delete_feature').modal('show');
+}
+
+$('button#delete_feature_confirm').bind('click', function() {
+    $.getJSON($SCRIPT_ROOT + '/_delete_feature', {feature_geojson: JSON.stringify(feature_geojson)}, function(data) {
+        status_code = data.result.status_code;
+        console.log(status_code);
+        if ( status_code == 1 ) { // there should be only success
+            currentItems.removeData(deleted_feature);
+            guideLayers.remove(deleted_feature); // snapping
+            $("#delete_feature_name").text(""); // probably not necessary...
+            $("#save_status").text('Feature deleted!');
+            $('#modal_delete_feature').modal('hide');
+        };
+    });
+});

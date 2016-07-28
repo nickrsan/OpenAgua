@@ -181,7 +181,31 @@ def add_feature():
     result = dict(new_gj = new_gj, status_code = status_code)
     return jsonify(result=result)
 
+@app.route('/_delete_feature')
+def delete_feature():
+    conn = connection(url=url, session_id=session['session_id'])
+    network = conn.get_network(session['network_id'])
+    
+    gj = request.args.get('feature_geojson')
+    print(gj)
+
+    status_code = -1
+    if gj['geometry']['type'] == 'Point':
+        conn.call('delete_node',{'node_id': gj['properties']['id']})
+        status_code = 1
+    else:
+        conn.call('delete_link',{'link_id': gj['properties']['id']})
+        status_code = 1
+    return jsonify(result=dict(status_code=status_code))
+
 @app.route('/settings')
 @login_required
 def settings():   
     return render_template('settings.html')
+
+@app.route('/_hydra_call')
+def settings():
+    s = request.args.get('request')
+    j = json.loads(s)
+    resp = conn.call(j['func'], j['args'])
+    return jsonify(result=dict(response=resp))
