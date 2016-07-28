@@ -29,7 +29,7 @@
 </div>
 
 <!-- modal_add_feature -->
-<div class="modal fade" id="modal_delete_feature" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
+<div class="modal" id="modal_delete_feature" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
   <div class="modal-dialog modal-sm" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -44,5 +44,23 @@
         <button type="submit" class="btn btn-danger">Delete</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!--model_coords-->
+<div id="modal_coords" class="modal" role="dialog">
+  <div class="modal-dialog modal-sm">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Coordinates</h4>
+      </div>
+      <div class="modal-body">
+        <p id="coords"></p>
+      </div>
+    </div>
+
   </div>
 </div>

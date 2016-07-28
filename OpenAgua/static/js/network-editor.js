@@ -1,4 +1,17 @@
-var map = new L.Map('map', { zoomControl:false });
+var mapOptions = {
+    zoomControl: false,
+    contextmenu: true,
+    contextmenuWidth: 140,
+    contextmenuItems: [{
+        text: 'Show coordinates',
+        callback: showCoordinates
+        }, {
+        text: 'Center map here',
+        callback: centerMap
+    }]
+};
+
+var map = L.map('map', mapOptions);
 
 var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
@@ -154,6 +167,8 @@ map.on('draw:delete', function (e) {
     $("#save_status").text(status_message);
 });
 
+// FUNCTIONS
+
 // get shapes to add
 var getJson = function(items) {
     var shapes = [];
@@ -168,3 +183,15 @@ var getJson = function(items) {
 
     return jsonshapes;
 };
+
+// contextmenu functions
+
+function centerMap (e) {
+    map.panTo(e.latlng);
+}
+
+function showCoordinates (e) {
+    $("p#coords").text(e.latlng);
+    $("#modal_coords").modal("show");
+    //alert(e.latlng);
+}
