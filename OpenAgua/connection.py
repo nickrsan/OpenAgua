@@ -78,6 +78,22 @@ class connection(object):
     def get_network(self, network_id=None):
         return self.call('get_network', {'network_id':network_id})
     
+    def get_geojson_node(self, node_id=None, template_id=None):
+        node = self.call('get_node', {'node_id':node_id})
+        type_id = [t.id for t in node.types if t.template_id==template_id][0]
+        ftype = self.call('get_templatetype',{'type_id'})
+        f = {'type':'Feature',
+             'geometry':{'type':'Point',
+                         'coordinates':[node.x, node.y]},
+             'properties':{'name':node.name,
+                           'id':node.id,
+                           'description':node.description,
+                           'type':,
+                           'icone':icon}} # hopefully this can be pretty fancy
+        gj.append(f)
+
+    return gj        
+    
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

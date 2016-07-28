@@ -11,6 +11,5 @@ user_id = user.id
 
 project = conn.call('get_project_by_name',{'project_name':'Monterrey'})
 network = conn.call('get_network_by_name',{'project_id':project.id, 'network_name':'base_network'})
-names = [p.name for p in projects]
 
 print('finished')
