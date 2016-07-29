@@ -1,0 +1,44 @@
+{% extends "master.html" %}
+{% block title %} - Network{% endblock %}
+{% block head_main %}
+{% include 'head_leaflet.html' %}
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h3>Model Dashboard</h3>
+</div>
+
+ <div class="row">
+    <div class="col-md-9">
+      <div class="panel panel-default">
+        <div class="panel-heading">Pyomo optimization model</div>
+        <div class="panel-body">
+          
+          <form role="form">
+            <div class="form-group">
+            
+              <label for="option1">
+              <select id="option1" class="selectpicker">
+                <option>Mustard</option>
+                <option>Ketchup</option>
+                <option>Relish</option>
+              </select>
+              
+              <label for="option2">
+              <select id="option2" class="selectpicker">
+                <option>Red</option>
+                <option>Yellow</option>
+                <option>Blue</option>
+              </select>
+              
+            </div>
+          </form>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

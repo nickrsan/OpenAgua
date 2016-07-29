@@ -107,10 +107,9 @@ def load_recent():
     activated = conn.call('activate_network', {'network_id':session['network_id']})
     
     # load / activate template (temporary fix)
-    # NB: "get_template_by_name" in Hydra doesn't work!!!
-    #session['template_id'] = 5 # this works on David's office computer only.
-    session['template_id'] = 4 # this works on David's home computer only.
-    session['template_name'] = 'WEAP'
+    session['template_name'] = app.config['HYDRA_TEMPLATE_NAME']
+    templates = conn.call('get_templates',{})
+    session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
     
     return redirect(url_for('network_editor'))
 
@@ -145,9 +144,9 @@ def load_network():
     coords = get_coords(network)
     nodes = network.nodes
     links = network.links
-    nodes_gj = [conn.get_geojson_node(node.id, session['template_id']) for node in nodes if nodes]
-    links_gj = [conn.get_geojson_link(link.id, session['template_id'], coords) for link in links if links]
-    features = nodes + links
+    nodes_gj = [conn.get_geojson_node(node.id, session['template_name'], session['template_id']) for node in nodes if nodes]
+    links_gj = [conn.get_geojson_link(link.id, session['template_name'], session['template_id'], coords) for link in links if links]
+    features = nodes_gj + links_gj
 
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
@@ -195,6 +194,7 @@ def save_network():
 def add_feature():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
+    template = conn.call('get_template',{'template_id':session['template_id']})
 
     new_feature = request.args.get('new_feature')
     gj = json.loads(new_feature)
@@ -203,17 +203,25 @@ def add_feature():
     status_code = -1
     if gj['geometry']['type'] == 'Point':
         if gj['properties']['name'] not in [f.name for f in network.nodes]:
-            node_new = conn.make_node_from_geojson(gj, session['template_name'], session['template_id'])
+            node_new = conn.get_node_from_geojson(gj, template=template)
             node = conn.call('add_node', {'network_id':session['network_id'], 'node':node_new})
-            new_gj = hyd2gj_nodes([node]) # let's just send back what we got to save time (for now)
+            new_gj = [conn.get_geojson_node(node.id, session['template_name'], session['template_id'])]
             status_code = 1
     else:
         if gj['properties']['name'] not in [f.name for f in network.links]:
             coords = get_coords(network)
-            links = conn.call('add_links', {'network_id':session['network_id'], 'links':gj2hyd_polyline(gj, coords)})
-            new_gj = hyd2gj_links(links, coords)
-            status_code = 1
-    result = dict(new_gj = new_gj, status_code = status_code)
+            links_new = conn.get_links_from_geojson(gj, template, coords)
+            print(links_new, file=sys.stderr)
+            links = conn.call('add_links', {'network_id':session['network_id'], 'links':links_new})
+            if links:
+                new_gj = []
+                for link in links:
+                    gj = conn.get_geojson_link(link.id, session['template_name'], session['template_id'], coords)
+                    new_gj.append(gj)
+                status_code = 1
+            else:
+                status_code = -1
+    result = dict(new_gj=new_gj, status_code=status_code)
     return jsonify(result=result)
 
 @app.route('/_delete_feature')

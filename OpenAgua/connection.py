@@ -21,7 +21,7 @@ class connection(object):
         response = requests.post(self.url, json=call_json, headers=headers)
         if not response.ok:
             try:
-                fc, fs = resp['faultcode'], resp['faultstring']
+                fc, fs = response['faultcode'], response['faultstring']
                 log.debug('Something went wrong. Check faultcode and faultstring.')
                 resp = json.loads(response.content)
                 err = "faultcode: %s, faultstring: %s" % (fc, fs)
@@ -39,8 +39,8 @@ class connection(object):
         
         log.info('Finished communicating with Hydra Platform.')
 
-        resp_json = json.loads(response.content, object_hook=JSONObject)
-        return resp_json
+        resp = json.loads(response.content, object_hook=JSONObject)
+        return resp
 
     def login(self, username=None, password=None):
         if username is None:
@@ -78,7 +78,7 @@ class connection(object):
     def get_network(self, network_id=None):
         return self.call('get_network', {'network_id':network_id})
     
-    def get_geojson_node(self, node_id=None, template_id=None):
+    def get_geojson_node(self, node_id=None, template_name=None, template_id=None):
         node = self.call('get_node', {'node_id':node_id})
         type_id = [t.id for t in node.types if t.template_id==template_id][0]
         ftype = self.call('get_templatetype',{'type_id':type_id})
@@ -89,7 +89,8 @@ class connection(object):
                            'id':node.id,
                            'description':node.description,
                            'ftype':ftype.name,
-                           'image':ftype.layout.image}} # hopefully this can be pretty fancy
+                           'image':ftype.layout.image,
+                           'template_name':template_name}}
         return gj
 
     def get_geojson_link(self, link_id=None, template_id=None, coords=None):
@@ -111,15 +112,18 @@ class connection(object):
         return gj
     
     # convert geoJson node to Hydra node
-    def make_node_from_geojson(self, gj=None, template_name=None, template_id=None):
+    def get_node_from_geojson(self, gj=None, template=None):
         x, y = gj['geometry']['coordinates']
         type_name = gj['properties']['type']
-        type_obj = self.call('get_templatetype_by_name', {'template_id':template_id,'type_name':type_name})
+        #type_obj = self.call('get_templatetype_by_name', {'template_id':template_id,'type_name':type_name})
+        # the above doesn't work. this should, but will be less efficient...
+        type_obj = [t for t in template.types if t.name==type_name][0]
+        
         typesummary = dict(
             name = type_obj.name,
             id = type_obj.id,
-            template_name = template_name,
-            template_id = template_id
+            template_name = template.name,
+            template_id = template.id
         )
         node = dict(
             id = -1,
@@ -130,6 +134,40 @@ class connection(object):
             types = [typesummary]
         )
         return node
+    
+    
+    def get_links_from_geojson(self, gj=None, template=None, coords=None):
+        d = 3 # rounding decimal points to match link coords with nodes.
+        # p.s. This is annoying. It would be good to have geographic/topology capabilities built in to Hydra
+        nlookup = {(round(x,d), round(y,d)): k for k, [x, y] in coords.items()}
+        xys = []
+        for [x,y] in gj['geometry']['coordinates']:
+            xy = (round(x,d), round(y,d))
+            xys.append(xy)
+        type_name = gj['properties']['type']        
+        type_obj = [t for t in template.types if t.name==type_name][0]
+        
+        typesummary = dict(
+            name = type_obj.name,
+            id = type_obj.id,
+            template_name = template.name,
+            template_id = template.id
+        )
+
+        links = []
+        nsegments = len(xys) - 1        
+        for i in range(nsegments):
+            link = dict(
+                id = -1,
+                name = '{}_{:02}'.format(gj['properties']['name'], i+1),
+                description = '{} (Segment {})'.format(gj['properties']['description'], i+1),
+                node_1_id = nlookup[xys[i]],
+                node_2_id = nlookup[xys[i+1]],
+                types = typesummary
+            )
+        
+        links.append(link)
+        return links   
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

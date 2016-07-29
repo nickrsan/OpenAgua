@@ -99,11 +99,23 @@ $( document ).ready(function() {
     });
 });
 
+// icon class
+var nodeIcon = L.Icon.extend({
+    options: {
+        iconSize:     [20, 20],
+        iconAnchor:   [10, 10],
+        popupAnchor:  [0, -15]
+    }
+});
+
 refreshCurrentItems = function() {
     currentItems.eachLayer(function(layer) {
-        var name = layer.feature.properties.name;
-            layer.bindPopup(name); // 1. add popup
-            layer.bindContextMenu(getContextmenuOptions(name)) // 2. add context menu
+        var prop = layer.feature.properties;
+        var iconUrl = $SCRIPT_ROOT + "/static/hydra/" + prop.template_name + "/" + prop.image;
+        var icon = new nodeIcon({iconUrl: iconUrl});
+        layer.setIcon(icon); // 1. add icon
+        layer.bindPopup(prop.name); // 2. add popup
+        layer.bindContextMenu(getContextmenuOptions(prop.name)) // 3. add context menu
     });
 };
 
@@ -191,8 +203,15 @@ getContextmenuOptions = function(featureName) {
         }, {
             separator: true,
             index: 3
-        }],
-        contextmenuInheritItems: true
+        }, {
+            text: 'Show coordinates',
+            index: 4,
+            callback: showCoordinates
+        }, {
+            text: 'Center map here',
+            index: 5,
+            callback: centerMap}],
+        contextmenuInheritItems: false
     };
     return contextmenuOptions;
 };
