@@ -79,9 +79,11 @@ def home():
 def network_editor():
     conn = connection(url=url, session_id=session['session_id'])
     template = conn.call('get_template', {'template_id':session['template_id']})
-    ftypes = template.types
+    ntypes = [t.name for t in template.types if t.resource_type == 'NODE']
+    ltypes = [t.name for t in template.types if t.resource_type == 'LINK']
+    
     return render_template('network_editor.html',
-                           ftypes = ftypes) 
+                           ntypes=ntypes, ltypes=ltypes) 
 
 # Load projects
 # in the future, we can (optionally) store the Hydra session ID with the user account
@@ -105,7 +107,10 @@ def load_recent():
     activated = conn.call('activate_network', {'network_id':session['network_id']})
     
     # load / activate template (temporary fix)
-    session['template_id'] = 5 # this works on David's office computer only.
+    # NB: "get_template_by_name" in Hydra doesn't work!!!
+    #session['template_id'] = 5 # this works on David's office computer only.
+    session['template_id'] = 4 # this works on David's home computer only.
+    session['template_name'] = 'WEAP'
     
     return redirect(url_for('network_editor'))
 
@@ -134,17 +139,22 @@ def add_network():
 def load_network():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
-    template = conn.call('get_template', {'template_id':5})
+    template = conn.call('get_template',{'template_id':session['template_id']})
     
-    features = features2gj(network, template)
+    #features = features2gj(network, template)
+    coords = get_coords(network)
+    nodes = network.nodes
+    links = network.links
+    nodes_gj = [conn.get_geojson_node(node.id, session['template_id']) for node in nodes if nodes]
+    links_gj = [conn.get_geojson_link(link.id, session['template_id'], coords) for link in links if links]
+    features = nodes + links
 
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
 
     features = json.dumps(features)
     
-    result = dict( status_code = status_code, status_message = status_message, features = features,
-                   types = network.types, templates = templates)
+    result = dict(features=features, status_code=status_code, status_message=status_message)
     result_json = jsonify(result=result)
     return result_json
 
@@ -193,7 +203,8 @@ def add_feature():
     status_code = -1
     if gj['geometry']['type'] == 'Point':
         if gj['properties']['name'] not in [f.name for f in network.nodes]:
-            node = conn.call('add_node', {'network_id':session['network_id'], 'node':gj2hyd_point(gj)})
+            node_new = conn.make_node_from_geojson(gj, session['template_name'], session['template_id'])
+            node = conn.call('add_node', {'network_id':session['network_id'], 'node':node_new})
             new_gj = hyd2gj_nodes([node]) # let's just send back what we got to save time (for now)
             status_code = 1
     else:

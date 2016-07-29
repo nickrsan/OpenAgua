@@ -12,4 +12,10 @@ user_id = user.id
 project = conn.call('get_project_by_name',{'project_name':'Monterrey'})
 network = conn.call('get_network_by_name',{'project_id':project.id, 'network_name':'base_network'})
 
+for node in network.nodes[0:5]:
+    print node
+    
+template = conn.call('get_template', {'template_id':4})
+ntypes = [t.name for t in template.types if t.resource_type != 'NETWORK']
+
 print('finished')

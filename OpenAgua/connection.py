@@ -81,19 +81,55 @@ class connection(object):
     def get_geojson_node(self, node_id=None, template_id=None):
         node = self.call('get_node', {'node_id':node_id})
         type_id = [t.id for t in node.types if t.template_id==template_id][0]
-        ftype = self.call('get_templatetype',{'type_id'})
-        f = {'type':'Feature',
+        ftype = self.call('get_templatetype',{'type_id':type_id})
+        gj = {'type':'Feature',
              'geometry':{'type':'Point',
                          'coordinates':[node.x, node.y]},
              'properties':{'name':node.name,
                            'id':node.id,
                            'description':node.description,
-                           'type':,
-                           'icone':icon}} # hopefully this can be pretty fancy
-        gj.append(f)
+                           'ftype':ftype.name,
+                           'image':ftype.layout.image}} # hopefully this can be pretty fancy
+        return gj
 
-    return gj        
+    def get_geojson_link(self, link_id=None, template_id=None, coords=None):
+        link = self.call('get_link', {'link_id':link_id})
+        type_id = [t.id for t in link.types if t.template_id==template_id][0]
+        ftype = self.call('get_templatetype',{'type_id':type_id})
+
+        n1 = link['node_1_id']
+        n2 = link['node_2_id']
+            
+        gj = {'type':'Feature',
+             'geometry':{ 'type': 'LineString',
+                          'coordinates': [coords[n1],coords[n2]] },
+             'properties':{'name':link.name,
+                           'id':link.id,
+                           'description':link.description,
+                           'ftype':ftype.name,
+                           'image':ftype.layout.image}}
+        return gj
     
+    # convert geoJson node to Hydra node
+    def make_node_from_geojson(self, gj=None, template_name=None, template_id=None):
+        x, y = gj['geometry']['coordinates']
+        type_name = gj['properties']['type']
+        type_obj = self.call('get_templatetype_by_name', {'template_id':template_id,'type_name':type_name})
+        typesummary = dict(
+            name = type_obj.name,
+            id = type_obj.id,
+            template_name = template_name,
+            template_id = template_id
+        )
+        node = dict(
+            id = -1,
+            name = gj['properties']['name'],
+            description = gj['properties']['description'],
+            x = str(x),
+            y = str(y),
+            types = [typesummary]
+        )
+        return node
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

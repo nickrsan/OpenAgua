@@ -122,6 +122,7 @@ map.on('draw:created', function (e) {
 $('button#add_feature_confirm').bind('click', function() {
     gj.properties.name = $('#feature_name').val();
     gj.properties.description = $('#feature_description').val();
+    gj.properties.type = $("#feature_type").val();
     $.getJSON($SCRIPT_ROOT + '/_add_feature', {new_feature: JSON.stringify(gj)}, function(data) {
         status_code = data.result.status_code;
         if ( status_code == -1 ) {
