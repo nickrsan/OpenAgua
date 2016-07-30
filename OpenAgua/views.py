@@ -144,8 +144,8 @@ def load_network():
     coords = get_coords(network)
     nodes = network.nodes
     links = network.links
-    nodes_gj = [conn.get_geojson_node(node.id, session['template_name'], session['template_id']) for node in nodes]
-    links_gj = [conn.get_geojson_link(link.id, session['template_name'], session['template_id'], coords) for link in links]
+    nodes_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id']) for node in nodes]
+    links_gj = [conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords) for link in links]
     features = nodes_gj + links_gj
 
     status_code = 1
@@ -172,18 +172,18 @@ def add_feature():
         if gj['properties']['name'] not in [f.name for f in network.nodes]:
             node_new = conn.make_node_from_geojson(gj, template=template)
             node = conn.call('add_node', {'network_id':session['network_id'], 'node':node_new})
-            new_gj = [conn.get_geojson_node(node.id, session['template_name'], session['template_id'])]
+            new_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id'])]
             status_code = 1
     else:
         if gj['properties']['name'] not in [f.name for f in network.links]:
             coords = get_coords(network)
             links_new = conn.make_links_from_geojson(gj, template, coords)
-            print(links_new, file=sys.stderr)
             links = conn.call('add_links', {'network_id':session['network_id'], 'links':links_new})
+            print(links, file=sys.stderr)
             if links:
                 new_gj = []
                 for link in links:
-                    gj = conn.get_geojson_link(link.id, session['template_name'], session['template_id'], coords)
+                    gj = conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords)
                     new_gj.append(gj)
                 status_code = 1
             else:

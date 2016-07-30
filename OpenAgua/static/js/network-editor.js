@@ -117,7 +117,16 @@ refreshCurrentItems = function() {
             var iconUrl = $SCRIPT_ROOT + "/static/hydra/" + prop.template_name + "/" + prop.image;
             var icon = new nodeIcon({iconUrl: iconUrl});
             layer.setIcon(icon); // add icon
+        } else {
+            layer.setStyle({
+                color: prop.color,
+                weight: prop.weight,
+                dashArray: prop.dashArray,
+                lineJoin: prop.lineJoin,
+                opacity: prop.opacity,
+            });      
         }
+        
     });
 };
 

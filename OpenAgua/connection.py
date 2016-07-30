@@ -1,4 +1,5 @@
 from __future__ import print_function
+from webcolors import name_to_hex
 import sys
 import requests
 import json
@@ -80,7 +81,10 @@ class connection(object):
     def get_network(self, network_id=None):
         return self.call('get_network', {'network_id':network_id})
     
-    def get_geojson_node(self, node_id=None, template_name=None, template_id=None):
+    def get_node(self, node_id=None):
+        return self.call('get_node',{'node_id':node_id})
+    
+    def make_geojson_from_node(self, node_id=None, template_name=None, template_id=None):
         node = self.call('get_node', {'node_id':node_id})
         type_id = [t.id for t in node.types if t.template_id==template_id][0]
         ftype = self.call('get_templatetype',{'type_id':type_id})
@@ -95,16 +99,24 @@ class connection(object):
                            'template_name':template_name}}
         return gj
 
-    def get_geojson_link(self, link_id=None, template_id=None, template_name=None, coords=None):
+    def make_geojson_from_link(self, link_id=None, template_id=None, template_name=None, coords=None):
         
         link = self.call('get_link', {'link_id':link_id})
         #type_id = [t.id for t in link.types if t.template_id==template_id][0]
-        type_obj = link.types[0]
+        type_obj = link.types[0] # NB: the above line should work. delete this when debugged.
         type_id = type_obj.id
-        ftype = self.call('get_templatetype',{'type_id':type_id})
+        ttype = self.call('get_templatetype',{'type_id':type_id})
 
         n1 = link['node_1_id']
         n2 = link['node_2_id']
+        
+        # for dash arrays, see:
+        # https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
+        symbol = ttype.layout.symbol
+        if symbol=='solid':
+            dashArray = '1,0'
+        elif symbol=='dashed':
+            dashArray = '5,5'
             
         gj = {'type':'Feature',
              'geometry':{ 'type': 'LineString',
@@ -112,9 +124,16 @@ class connection(object):
              'properties':{'name':link.name,
                            'id':link.id,
                            'description':link.description,
-                           'ftype':ftype.name,
-                           'image':ftype.layout.image,
-                           'template_name':template_name}}
+                           'template_type':ttype.name,
+                           'image':ttype.layout.image,
+                           'template_name':template_name,
+                           'color': name_to_hex(ttype.layout.colour),
+                           'weight': ttype.layout.line_weight,
+                           'opacity': 0.7,
+                           'dashArray': dashArray,
+                           'lineJoin': 'round'
+                           }
+             }
         return gj
     
     # convert geoJson node to Hydra node
@@ -152,9 +171,13 @@ class connection(object):
             xys.append(xy)
         type_name = gj['properties']['type']        
         type_obj = [t for t in template.types if t.name==type_name][0]
+        type_name = type_obj.name
+        
+        polyline_name = gj['properties']['name']
+        description = gj['properties']['description']
         
         typesummary = dict(
-            name = type_obj.name,
+            name = type_name,
             id = type_obj.id,
             template_name = template.name,
             template_id = template.id
@@ -163,17 +186,31 @@ class connection(object):
         links = []
         nsegments = len(xys) - 1        
         for i in range(nsegments):
+            
+            print(nlookup, file=sys.stderr)
+            print(xys[i], file=sys.stderr)
+            node_1_id = nlookup[xys[i]]
+            node_2_id = nlookup[xys[i+1]]
+
             link = dict(
-                #id = -1,
-                name = '{}_{:02}'.format(gj['properties']['name'], i+1),
-                description = '{} (Segment {})'.format(gj['properties']['description'], i+1),
-                node_1_id = nlookup[xys[i]],
-                node_2_id = nlookup[xys[i+1]],
+                node_1_id = node_1_id,
+                node_2_id = node_2_id,
                 types = [typesummary]
             )
-        
+            if len(polyline_name) and nsegments == 1:
+                link['name'] = polyline_name
+                link['description'] = description
+            elif len(polyline_name) and nsegments > 1:
+                link['name'] = '{}_{:02}'.format(polyline_name, i+1)
+                link['description'] = '{} (Segment {})'.format(description, i+1)
+            else:
+                n1_name = self.get_node(node_1_id).name
+                n2_name = self.get_node(node_2_id).name
+                link['name'] = '{}_{}'.format(n1_name, n2_name)
+                link['description'] = '{} from {} to {}'.format(type_name, n1_name, n2_name)
+                
         links.append(link)
-        return links   
+        return links  
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
