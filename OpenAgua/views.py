@@ -54,105 +54,106 @@ def logout():
 @app.route('/home')
 @login_required
 def home():
-    return render_template('home.html')
+
+    # connect to hydra (login if we don't already have a session ID)
+    if 'session_id' in session:
+        conn = connection(url=url, session_id=session['session_id'])
+    else:
+        conn = connection(url=url)
+    
+    # this makes sure we are logged in, in case there is a leftover session_id
+    # in the Flask session. We shouldn't get here though.
+    conn.login(username = hydra_username, password = hydra_password)    
+    session['session_id'] = conn.session_id
+        
+    user = conn.get_user_by_name(hydra_username)
+    session['user_id'] = user.id
+
+    projects = conn.call('get_projects',{'user_id':session['user_id']})
+    project_names = [project.name for project in projects]
+    return render_template('home.html',
+                           project_names = project_names)
 
 @app.route('/network_editor')
 @login_required
-def network_editor():   
-    return render_template('network_editor.html') 
+def network_editor():
+    conn = connection(url=url, session_id=session['session_id'])
+    template = conn.call('get_template', {'template_id':session['template_id']})
+    ntypes = [t.name for t in template.types if t.resource_type == 'NODE']
+    ltypes = [t.name for t in template.types if t.resource_type == 'LINK']
+    
+    return render_template('network_editor.html',
+                           ntypes=ntypes, ltypes=ltypes) 
 
-# note: this is to log in to Hydra Server, not OpenAgua
-# we are basically just logging in and getting the session ID,
-# but also creating an empty project if it doesn't exist
+# Load projects
 # in the future, we can (optionally) store the Hydra session ID with the user account
 # i.e., give the user an option to auto-load last-used project.
-@app.route('/_hydra_login')
-def hydra_login():
+@app.route('/_load_recent')
+def load_recent():
     
-    # FUTURE: for all of this, add post methods or auto-load from user settings
-    # for now, the project is loaded via a button on the home page.
-        
-    # connect
-    conn = connection(url=url)
-    conn.login(username = hydra_username, password = hydra_password)
-    session['session_id'] = conn.session_id
-    session['user_id'] = conn.get_user_by_name(hydra_username)
+    conn = connection(url=url, session_id=session['session_id'])
+    
+    # load recent project / network (to be done by user in the future)
+    session['project_name'] = app.config['HYDRA_PROJECT_NAME']
+    session['network_name'] = app.config['HYDRA_NETWORK_NAME']    
     
     # load / create project
-    session['project_name'] = app.config['HYDRA_PROJECT_NAME']
-    try:
-        project = conn.get_project_by_name(session['project_name'])
-    except:
-        proj = dict(name = session['project_name'])
-        project = conn.add_project(proj)
+    project = conn.get_project_by_name(session['project_name'])
     session['project_id'] = project.id
-    project_id = session['project_id']
 
-    # load / create / activate network
-    session['network_name'] = app.config['HYDRA_NETWORK_NAME']
-    exists = conn.call('network_exists', {'project_id':project_id, 'network_name':session['network_name']})
-    if exists=='Y':
-        network = conn.get_network_by_name(project_id, session['network_name'])
-    else:
-        net = dict(
-            project_id = project_id,
-            name = session['network_name'],
-            description = 'Prototype DSS network for Monterrey'
-        )
-        network = conn.call('add_network', {'net':net})
+    # load / activate network
+    network = conn.get_network_by_name(session['project_id'], session['network_name'])
     session['network_id'] = network.id
     activated = conn.call('activate_network', {'network_id':session['network_id']})
+    
+    # load / activate template (temporary fix)
+    session['template_name'] = app.config['HYDRA_TEMPLATE_NAME']
+    templates = conn.call('get_templates',{})
+    session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
+    
+    return redirect(url_for('network_editor'))
+
+@app.route('/_add_project', methods=['GET', 'POST'])
+def add_project():
+    conn = connection(url=url, session_id=session['session_id'])
+    proj = dict(
+        name = request.form['project_name'],
+        description = request.form['project_description']
+    )
+    project = conn.add_project(proj)
+    return redirect(url_for('home'))
+
+@app.route('/_add_network', methods=['GET', 'POST'])
+def add_network():
+    conn = connection(url=url, session_id=session['session_id'])
+    net = dict(
+        project_id = session['project_id'],
+        name = request.form['network_name'],
+        description = request.form['network_description']
+    )
+    network = conn.call('add_network', {'net':net})
     return redirect(url_for('home'))
 
 @app.route('/_load_network')
 def load_network():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
-    templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
-    template = templates[0]
+    template = conn.call('get_template',{'template_id':session['template_id']})
     
-    features = get_features(network)
+    #features = features2gj(network, template)
+    coords = get_coords(network)
+    nodes = network.nodes
+    links = network.links
+    nodes_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id']) for node in nodes]
+    links_gj = [conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords) for link in links]
+    features = nodes_gj + links_gj
 
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
 
     features = json.dumps(features)
     
-    result = dict( status_code = status_code, status_message = status_message, features = features,
-                   types = network.types, templates = templates)
-    result_json = jsonify(result=result)
-    return result_json
-
-@app.route('/_save_network')
-def save_network():
-    conn = connection(url=url, session_id=session['session_id'])
-    network = conn.get_network(session['network_id'])
-    templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
-    template = templates[0]    
-    features = get_features(network, template)
-
-    new_features = request.args.get('new_features')
-    new_features = json.loads(new_features)['shapes']        
-
-    if new_features:
-        add_features(conn, session['network_id'], new_features)
-        network = conn.get_network(session['network_id']) # get updated network
-        features = get_features(network) # get updated features
-        status_code = 1
-        status_message = 'Edits saved!'
-    else:
-        status_code = 2
-        status_message = 'No edits detected'
-
-    # get updated network and features
-
-    features = json.dumps(features)
-    result = dict(
-        status_code = status_code,
-        status_message = status_message,
-        features = features
-    )
-
+    result = dict(features=features, status_code=status_code, status_message=status_message)
     result_json = jsonify(result=result)
     return result_json
 
@@ -160,6 +161,7 @@ def save_network():
 def add_feature():
     conn = connection(url=url, session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
+    template = conn.call('get_template',{'template_id':session['template_id']})
 
     new_feature = request.args.get('new_feature')
     gj = json.loads(new_feature)
@@ -168,20 +170,52 @@ def add_feature():
     status_code = -1
     if gj['geometry']['type'] == 'Point':
         if gj['properties']['name'] not in [f.name for f in network.nodes]:
-            node = conn.call('add_node', {'network_id':session['network_id'], 'node':gj2hyd_point(gj)})
-            new_gj = gj # let's just send back what we got to save time (for now)
-            new_gj['properties']['id'] = node.id
+            node_new = conn.make_node_from_geojson(gj, template=template)
+            node = conn.call('add_node', {'network_id':session['network_id'], 'node':node_new})
+            new_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id'])]
             status_code = 1
     else:
         if gj['properties']['name'] not in [f.name for f in network.links]:
             coords = get_coords(network)
-            links = conn.call('add_links', {'network_id':session['network_id'], 'links':gj2hyd_polyline(gj, coords)})
-            new_gj = hyd2gj_links(links, coords)
-            status_code = 1
-    result = dict(new_gj = new_gj, status_code = status_code)
+            links_new = conn.make_links_from_geojson(gj, template, coords)
+            links = conn.call('add_links', {'network_id':session['network_id'], 'links':links_new})
+            print(links, file=sys.stderr)
+            if links:
+                new_gj = []
+                for link in links:
+                    gj = conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords)
+                    new_gj.append(gj)
+                status_code = 1
+            else:
+                status_code = -1
+    result = dict(new_gj=new_gj, status_code=status_code)
     return jsonify(result=result)
+
+@app.route('/_delete_feature')
+def delete_feature():
+    conn = connection(url=url, session_id=session['session_id'])
+    network = conn.get_network(session['network_id'])
+    
+    deleted_feature = request.args.get('deleted')
+    gj = json.loads(deleted_feature)
+
+    status_code = -1
+    if gj['geometry']['type'] == 'Point':
+        conn.call('delete_node',{'node_id': gj['properties']['id']})
+        status_code = 1
+    else:
+        conn.call('delete_link',{'link_id': gj['properties']['id']})
+        status_code = 1
+    return jsonify(result=dict(status_code=status_code))
 
 @app.route('/settings')
 @login_required
 def settings():   
     return render_template('settings.html')
+
+@app.route('/_hydra_call')
+def hydra_call():
+    s = request.args.get('request')
+    j = json.loads(s)
+    resp = conn.call(j['func'], j['args'])
+    return jsonify(result=dict(response=resp))

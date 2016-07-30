@@ -1,51 +1,56 @@
-{% extends "master.html" %}
+{% extends "layout.html" %}
+
 {% block title %} - Home{% endblock %}
 
-{% block content %}
+{% block head_master %}
+{% include 'navbar.html' %}
+{% endblock %} 
 
-<div class="page-header">
-  <h3>Welcome!</h3>
-</div>
+{% block main %}
 
-<div class="row">
-  <div class="col-md-9">
-    <div class="panel panel-default">
-      <div class="panel-heading">Load project</div>
-      <div class="panel-body">
-        <p>For now, we need to load a default project ("Monterrey") and network ("base_network"). Click the button below. This will create the project/network if they don't already exist. More importantly, it will log in to Hydra Platform, creating a unique session ID. In the future, this session ID can be saved so OpenAgua users can remain logged in to Hydra Platform.</p>
-        <a href="/_hydra_login" class="btn btn-primary" role="button" id="hydra_login">Load project/network</a>
-        <p>Note: There's no login confirmation (yet), but it should take just 1-2 seconds.</p>
+<div class="container-fluid">
+  
+  <div class="row">
+    <div class="col sm-12 col-md-12">
+      <div class="page-header">
+        <h3>Welcome!</h3>
       </div>
     </div>
   </div>
-</div>
 
-<div class="row">
-<div class="col-md-3">
-  <div class="panel panel-default">
-    <div class="panel-heading">Recent projects</div>
-    <div class="panel-body">
-      <p>A list of recent projects will go here.</p>
-      <p><a href="#">Manage projects</a></p>
+  <div class="row">
+    <div class="col-md-9">
+      <div class="panel panel-default">
+        <div class="panel-heading">Recent project / network</div>
+        <div class="panel-body">
+          <p>For now, we need to load a default project ("Monterrey") and network ("base_network") manually.</p>
+          <ul>
+            <li><p>Monterrey / base_network - <a href="/_load_recent">edit network</a> - <a href="#">edit data</a></li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-<div class="col-md-3">
-  <div class="panel panel-default">
-    <div class="panel-heading">Model status</div>
-    <div class="panel-body">
-      <p>No recent model activity.</p>
+  
+  <div class="row">
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">Model status</div>
+        <div class="panel-body">
+          <p>No recent model activity.</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="panel panel-default">
+        <div class="panel-heading">Recent Hydra apps</div>
+        <div class="panel-body">
+          <p>No recently used apps.</p>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-<div class="col-md-3">
-  <div class="panel panel-default">
-    <div class="panel-heading">Recent Hydra apps</div>
-    <div class="panel-body">
-      <p>No recently used apps.</p>
-    </div>
-  </div>
-</div>
+  
 </div>
 
 {% endblock %}
