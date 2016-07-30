@@ -14,6 +14,7 @@ See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 4. Run run.py (or run.bat on Windows)
 5. Go to 127.0.0.1:5000 in your web browser.
 6. Log in with "admin@gmail.com" and "password".
+>>>>>>> refs/remotes/origin/development
 
 ## Setup
 
