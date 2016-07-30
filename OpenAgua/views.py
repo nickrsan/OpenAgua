@@ -144,8 +144,8 @@ def load_network():
     coords = get_coords(network)
     nodes = network.nodes
     links = network.links
-    nodes_gj = [conn.get_geojson_node(node.id, session['template_name'], session['template_id']) for node in nodes if nodes]
-    links_gj = [conn.get_geojson_link(link.id, session['template_name'], session['template_id'], coords) for link in links if links]
+    nodes_gj = [conn.get_geojson_node(node.id, session['template_name'], session['template_id']) for node in nodes]
+    links_gj = [conn.get_geojson_link(link.id, session['template_name'], session['template_id'], coords) for link in links]
     features = nodes_gj + links_gj
 
     status_code = 1
@@ -154,39 +154,6 @@ def load_network():
     features = json.dumps(features)
     
     result = dict(features=features, status_code=status_code, status_message=status_message)
-    result_json = jsonify(result=result)
-    return result_json
-
-@app.route('/_save_network')
-def save_network():
-    conn = connection(url=url, session_id=session['session_id'])
-    network = conn.get_network(session['network_id'])
-    templates = [conn.call('get_template', {'template_id':t.template_id}) for t in network.types]
-    template = templates[0]    
-    features = get_features(network, template)
-
-    new_features = request.args.get('new_features')
-    new_features = json.loads(new_features)['shapes']        
-
-    if new_features:
-        add_features(conn, session['network_id'], new_features)
-        network = conn.get_network(session['network_id']) # get updated network
-        features = get_features(network) # get updated features
-        status_code = 1
-        status_message = 'Edits saved!'
-    else:
-        status_code = 2
-        status_message = 'No edits detected'
-
-    # get updated network and features
-
-    features = json.dumps(features)
-    result = dict(
-        status_code = status_code,
-        status_message = status_message,
-        features = features
-    )
-
     result_json = jsonify(result=result)
     return result_json
 
@@ -203,14 +170,14 @@ def add_feature():
     status_code = -1
     if gj['geometry']['type'] == 'Point':
         if gj['properties']['name'] not in [f.name for f in network.nodes]:
-            node_new = conn.get_node_from_geojson(gj, template=template)
+            node_new = conn.make_node_from_geojson(gj, template=template)
             node = conn.call('add_node', {'network_id':session['network_id'], 'node':node_new})
             new_gj = [conn.get_geojson_node(node.id, session['template_name'], session['template_id'])]
             status_code = 1
     else:
         if gj['properties']['name'] not in [f.name for f in network.links]:
             coords = get_coords(network)
-            links_new = conn.get_links_from_geojson(gj, template, coords)
+            links_new = conn.make_links_from_geojson(gj, template, coords)
             print(links_new, file=sys.stderr)
             links = conn.call('add_links', {'network_id':session['network_id'], 'links':links_new})
             if links:

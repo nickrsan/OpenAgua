@@ -111,11 +111,13 @@ var nodeIcon = L.Icon.extend({
 refreshCurrentItems = function() {
     currentItems.eachLayer(function(layer) {
         var prop = layer.feature.properties;
-        var iconUrl = $SCRIPT_ROOT + "/static/hydra/" + prop.template_name + "/" + prop.image;
-        var icon = new nodeIcon({iconUrl: iconUrl});
-        layer.setIcon(icon); // 1. add icon
-        layer.bindPopup(prop.name); // 2. add popup
-        layer.bindContextMenu(getContextmenuOptions(prop.name)) // 3. add context menu
+        layer.bindPopup(prop.name); // add popup
+        layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu
+        if (layer.feature.geometry.type == 'Point') {
+            var iconUrl = $SCRIPT_ROOT + "/static/hydra/" + prop.template_name + "/" + prop.image;
+            var icon = new nodeIcon({iconUrl: iconUrl});
+            layer.setIcon(icon); // add icon
+        }
     });
 };
 

@@ -1,3 +1,5 @@
+from __future__ import print_function
+import sys
 import requests
 import json
 
@@ -93,9 +95,12 @@ class connection(object):
                            'template_name':template_name}}
         return gj
 
-    def get_geojson_link(self, link_id=None, template_id=None, coords=None):
+    def get_geojson_link(self, link_id=None, template_id=None, template_name=None, coords=None):
+        
         link = self.call('get_link', {'link_id':link_id})
-        type_id = [t.id for t in link.types if t.template_id==template_id][0]
+        #type_id = [t.id for t in link.types if t.template_id==template_id][0]
+        type_obj = link.types[0]
+        type_id = type_obj.id
         ftype = self.call('get_templatetype',{'type_id':type_id})
 
         n1 = link['node_1_id']
@@ -108,11 +113,12 @@ class connection(object):
                            'id':link.id,
                            'description':link.description,
                            'ftype':ftype.name,
-                           'image':ftype.layout.image}}
+                           'image':ftype.layout.image,
+                           'template_name':template_name}}
         return gj
     
     # convert geoJson node to Hydra node
-    def get_node_from_geojson(self, gj=None, template=None):
+    def make_node_from_geojson(self, gj=None, template=None):
         x, y = gj['geometry']['coordinates']
         type_name = gj['properties']['type']
         #type_obj = self.call('get_templatetype_by_name', {'template_id':template_id,'type_name':type_name})
@@ -136,7 +142,7 @@ class connection(object):
         return node
     
     
-    def get_links_from_geojson(self, gj=None, template=None, coords=None):
+    def make_links_from_geojson(self, gj=None, template=None, coords=None):
         d = 3 # rounding decimal points to match link coords with nodes.
         # p.s. This is annoying. It would be good to have geographic/topology capabilities built in to Hydra
         nlookup = {(round(x,d), round(y,d)): k for k, [x, y] in coords.items()}
@@ -158,12 +164,12 @@ class connection(object):
         nsegments = len(xys) - 1        
         for i in range(nsegments):
             link = dict(
-                id = -1,
+                #id = -1,
                 name = '{}_{:02}'.format(gj['properties']['name'], i+1),
                 description = '{} (Segment {})'.format(gj['properties']['description'], i+1),
                 node_1_id = nlookup[xys[i]],
                 node_2_id = nlookup[xys[i+1]],
-                types = typesummary
+                types = [typesummary]
             )
         
         links.append(link)
