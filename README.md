@@ -5,12 +5,6 @@ See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 ## How to run on your local machine for development / testing
 
 1. See below to set up OpenAguaDSS in your github folder.
-<<<<<<< HEAD
-2. Run Hydra Platform
-3. Run run.py (or run.bat on Windows)
-4. Go to 127.0.0.1:5000 in your web browser.
-5. Log in with "admin@gmail.com" and "password".
-=======
 2. For now, use Hydra Modeller to set up a test project, as follows:
   a. Create a project called "Monterrey"
   b. Import the template [WEAP.zip on GitHub] (https://github.com/rheinheimer/Hydra-WEAPTemplate).
