@@ -114,7 +114,7 @@ refreshCurrentItems = function() {
         layer.bindPopup(prop.name); // add popup
         layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu
         if (layer.feature.geometry.type == 'Point') {
-            var iconUrl = $SCRIPT_ROOT + "/static/hydra/" + prop.template_name + "/" + prop.image;
+            var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/" + prop.image;
             var icon = new nodeIcon({iconUrl: iconUrl});
             layer.setIcon(icon); // add icon
         } else {

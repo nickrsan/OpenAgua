@@ -62,7 +62,7 @@
             </script>
          
             <div class="container">
-                <div class='col-md-2'>
+                <div class='col-md-3'>
                     <label for "scenario_sets">Select scenarios to run</label>
                     <div id="scenario_sets"class="form-group">
                         <div class="checkbox">
@@ -77,36 +77,29 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="container">
-                <div class='col-md-2'>
-                    <button type="button" class="btn btn-primary">Run model</button>
-                </div>
-            </div>
-            
-            
           
         </div>
       
+        <div class="panel-footer">
+            <button id="run_app" type="button" class="btn btn-primary">Run model</button>
+            <button id="model_cancel" type="button" class="btn btn-danger">Stop model</button>
+        </div> 
       </div>
       
-      <div class="panel panel-default">
-        <div class="panel-heading">Model progress</div>
-        <div class="panel-body">
-            <!--<div><p id="model-status-label">Current progress:</p></div>-->
-            <div id="run-progress" class="progress">
-                <div id="model-run-progress" class="progress-bar" role="progressbar" style="width:0%"></div>
-            </div>
-            <div id="status-message"></div>
-            <br>
-            <button id="model-cancel" type="button" class="btn btn-danger">Stop model</button>
-            <p>Some results may be saved, but they may be incomplete.</p>
-        </div>
+      <label for="run_progress">Progress</label>
+      <div id="run_progress" class="progress">
+          <div id="model_run_progress" class="progress-bar" role="progressbar" style="width:{{ progress }}%">{{progress}}%</div>
       </div>
+      <div id="status_message"></div>
       
     </div>
   </div>
   
+<script>
+var status = {{ status }};
+var progress = {{ progress }};
+</script>
+
 <script src="{{ url_for('static', filename='js/model-dashboard.js') }}"></script>
 
 {% endblock %}

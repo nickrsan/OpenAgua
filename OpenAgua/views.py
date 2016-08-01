@@ -87,8 +87,14 @@ def network_editor():
 
 @app.route('/model_dashboard')
 @login_required
-def model_dashboard():    
-    return render_template('model_dashboard.html') 
+def model_dashboard():
+    
+    # check status and progress of any running model
+    status, progress = 0, 0 # default state
+    
+    return render_template('model_dashboard.html',
+                           status=status,
+                           progress=progress) 
 
 @app.route('/overview')
 @login_required
@@ -252,15 +258,11 @@ def hydra_call():
 
 @app.route('/_run_model')
 def run_model():  
-    status = 2
-    return jsonify(result={'status':status})
-
-@app.route('/_model_status')
-def model_status():
-    status = 2
+    status = 1
     return jsonify(result={'status':status})
 
 @app.route('/_model_progress')
 def model_progress():
+    status = 1
     progress = 100
-    return jsonify(result={'progress':progress})
+    return jsonify(result={'status':status, 'progress':progress})
