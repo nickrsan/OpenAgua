@@ -11,34 +11,102 @@
 </div>
 
  <div class="row">
-    <div class="col-md-9">
+    <div class="col-md-6">
       <div class="panel panel-default">
         <div class="panel-heading">Pyomo optimization model</div>
+        
         <div class="panel-body">
-          
-          <form role="form">
-            <div class="form-group">
-            
-              <label for="option1">
-              <select id="option1" class="selectpicker">
-                <option>Mustard</option>
-                <option>Ketchup</option>
-                <option>Relish</option>
-              </select>
-              
-              <label for="option2">
-              <select id="option2" class="selectpicker">
-                <option>Red</option>
-                <option>Yellow</option>
-                <option>Blue</option>
-              </select>
-              
+
+            <div class="container">
+                <div class='col-md-2'>
+                    <div class="form-group">
+                        <label for='datepicker1'>First month (mm/yyyy)</label>
+                        <div class='input-group date' id='datepicker1'>
+                            <input type='text' class="form-control" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <div class='col-md-2'>
+                    <div class="form-group">
+                        <label for='datepicker2'>Last month (mm/yyyy)</label>
+                        <div class='input-group date' id='datepicker2'>
+                            <input type='text' class="form-control" />
+                            <span class="input-group-addon">
+                                <span class="glyphicon glyphicon-calendar"></span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
-          </form>
+            <script type="text/javascript">
+                $(function () {
+                    $('#datepicker1').datetimepicker({
+                        viewMode: 'years',
+                        format: 'MM/YYYY'        
+                    });
+                    $('#datepicker2').datetimepicker({
+                        viewMode: 'years',
+                        format: 'MM/YYYY',
+                        useCurrent: false //Important! See issue #1075
+                    });
+                    $("#datepicker1").on("dp.change", function (e) {
+                        $('#datepicker2').data("DateTimePicker").minDate(e.date);
+                    });
+                    $("#datepicker2").on("dp.change", function (e) {
+                        $('#datepicker1').data("DateTimePicker").maxDate(e.date);
+                    });
+                });
+            </script>
+         
+            <div class="container">
+                <div class='col-md-2'>
+                    <label for "scenario_sets">Select scenarios to run</label>
+                    <div id="scenario_sets"class="form-group">
+                        <div class="checkbox">
+                            <label><input type="checkbox" value="">Base scenario</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" value="">Cuchillo expansion</label>
+                        </div>
+                        <div class="checkbox">
+                            <label><input type="checkbox" value="">New dam</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="container">
+                <div class='col-md-2'>
+                    <button type="button" class="btn btn-primary">Run model</button>
+                </div>
+            </div>
+            
+            
           
         </div>
+      
       </div>
+      
+      <div class="panel panel-default">
+        <div class="panel-heading">Model progress</div>
+        <div class="panel-body">
+            <!--<div><p id="model-status-label">Current progress:</p></div>-->
+            <div id="run-progress" class="progress">
+                <div id="model-run-progress" class="progress-bar" role="progressbar" style="width:0%"></div>
+            </div>
+            <div id="status-message"></div>
+            <br>
+            <button id="model-cancel" type="button" class="btn btn-danger">Stop model</button>
+            <p>Some results may be saved, but they may be incomplete.</p>
+        </div>
+      </div>
+      
     </div>
   </div>
+  
+<script src="{{ url_for('static', filename='js/model-dashboard.js') }}"></script>
 
 {% endblock %}

@@ -20,6 +20,45 @@
   <div class="row">
     
     <!--select project-->
+    <div class="panel panel-default">
+      <div class="panel-body">
+        <label>Existing projects (active project in bold)</label>
+        <ul>
+        {% if project_names %}
+          {% for pname in project_names %}
+            {% if pname == session['project_name']%}
+              <li><strong>{{ pname }}</strong></li>
+            {% else %}
+              <li>{{ pname }}</li>
+            {% endif %}
+          {% endfor %}
+        {% else %}          
+          <p>No projects yet.</p>
+        {% endif %}
+        </ul>
+        {% if session['project_name'] not in project_names %}
+          <button class="btn btn-default">Create new project</button>
+        {% else %}
+          <label>Networks for "Monterrey"</label>
+          <ul>
+          {% if network_names %}
+            {% for nname in network_names %}
+              {% if nname == session['network_name']%}
+                <li><strong>{{ nname }}</strong></li>
+              {% else %}  
+                <li>{{ nname }}</li>
+              {% endif %}
+            {% endfor %}
+          {% else %}          
+            <p>No networks yet.</p>
+          {% endif %}
+          </ul>
+          {% if session['project_name'] not in project_names %}
+            <button class="btn btn-default">Create network for {{ session['project_name'] }}</button>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
     
     <!--select network-->
     

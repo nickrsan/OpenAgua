@@ -1,0 +1,32 @@
+{% extends "master.html" %}
+{% block title %} - Network{% endblock %}
+{% block head_main %}
+{% include 'head_leaflet.html' %}
+{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+  <h3>Overview</h3>
+</div>
+
+ <div class="row">
+    <div class="col-md-6">
+      <div class="panel panel-default">
+        <div class="panel-heading">Things to do here:</div>
+        <div class="panel-body">
+
+          <div class="list-group">
+            <a href="/network_editor" class="list-group-item">Edit the network</a>
+            <a href="/model_dashboard" class="list-group-item">Go to the modeling dashboard</a>
+            <a href="#" class="list-group-item">Explore interesting results</a>
+            <a href="#" class="list-group-item">Discuss with collaborators</a>
+            <a href="#" class="list-group-item">Be social</a>
+          </div>        
+        
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock %}

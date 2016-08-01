@@ -1,6 +1,6 @@
 from __future__ import print_function
-from flask import jsonify, Response, json, request, session, redirect, url_for, escape, send_file, render_template
-from flask import Markup
+from flask import jsonify, Response, json, request, session, redirect, url_for, escape, send_file, render_template, flash
+from werkzeug.utils import secure_filename
 from functools import wraps
 import requests
 import sys
@@ -85,6 +85,21 @@ def network_editor():
     return render_template('network_editor.html',
                            ntypes=ntypes, ltypes=ltypes) 
 
+@app.route('/model_dashboard')
+@login_required
+def model_dashboard():    
+    return render_template('model_dashboard.html') 
+
+@app.route('/overview')
+@login_required
+def overview():    
+    return render_template('overview.html') 
+
+@app.route('/template')
+@login_required
+def template():    
+    return render_template('template.html') 
+
 # Load projects
 # in the future, we can (optionally) store the Hydra session ID with the user account
 # i.e., give the user an option to auto-load last-used project.
@@ -110,8 +125,11 @@ def load_recent():
     session['template_name'] = app.config['HYDRA_TEMPLATE_NAME']
     templates = conn.call('get_templates',{})
     session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
+    flash('Project loaded!')
     
-    return redirect(url_for('network_editor'))
+    session['app_name'] = 'pyomo_network_lp'
+    
+    return redirect(url_for('overview'))
 
 @app.route('/_add_project', methods=['GET', 'POST'])
 def add_project():
@@ -121,7 +139,7 @@ def add_project():
         description = request.form['project_description']
     )
     project = conn.add_project(proj)
-    return redirect(url_for('home'))
+    return redirect(url_for('settings'))
 
 @app.route('/_add_network', methods=['GET', 'POST'])
 def add_network():
@@ -132,7 +150,7 @@ def add_network():
         description = request.form['network_description']
     )
     network = conn.call('add_network', {'net':net})
-    return redirect(url_for('home'))
+    return redirect(url_for('settings'))
 
 @app.route('/_load_network')
 def load_network():
@@ -210,8 +228,20 @@ def delete_feature():
 
 @app.route('/settings')
 @login_required
-def settings():   
-    return render_template('settings.html')
+def settings():
+    conn = connection(url=url, session_id=session['session_id'])
+    
+    # get the list of project names and network names for the test project ('Monterrey')
+    projects = conn.call('get_projects',{'user_id':session['user_id']})
+    project_names = [project.name for project in projects]
+    if session['project_name'] in project_names:
+        networks = conn.call('get_networks',{'project_id':session['project_id'],'include_data':'N'})
+        network_names = [network.name for network in networks]
+    else:
+        network_names = []
+    return render_template('settings.html',
+                           project_names=project_names,
+                           network_names=network_names)
 
 @app.route('/_hydra_call')
 def hydra_call():
@@ -219,3 +249,18 @@ def hydra_call():
     j = json.loads(s)
     resp = conn.call(j['func'], j['args'])
     return jsonify(result=dict(response=resp))
+
+@app.route('/_run_model')
+def run_model():  
+    status = 2
+    return jsonify(result={'status':status})
+
+@app.route('/_model_status')
+def model_status():
+    status = 2
+    return jsonify(result={'status':status})
+
+@app.route('/_model_progress')
+def model_progress():
+    progress = 100
+    return jsonify(result={'progress':progress})
