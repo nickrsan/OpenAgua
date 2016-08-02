@@ -285,12 +285,15 @@ def hydra_call():
     return jsonify(result=dict(response=resp))
 
 @app.route('/_run_model')
-def run_model():  
+def run_model():
+
+    # add model code here
+    
     status = 1
     return jsonify(result={'status':status})
 
 @app.route('/_model_progress')
 def model_progress():
     status = 1
-    progress = 100
+    progress = 100 # get progress from running model
     return jsonify(result={'status':status, 'progress':progress})
