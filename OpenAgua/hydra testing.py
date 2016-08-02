@@ -17,4 +17,6 @@ conn.login(username = 'root', password = '')
 
 template = conn.call('get_template', {'template_id':5})
 
+conn.call('add_project',{'name':'Monterrey7'})
+
 print('finished')

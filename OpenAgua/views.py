@@ -144,26 +144,42 @@ def load_recent():
     
     return redirect(url_for('overview'))
 
-@app.route('/_add_project', methods=['GET', 'POST'])
+@app.route('/_add_project')
 def add_project():
     conn = connection(url=url, session_id=session['session_id'])
-    proj = dict(
-        name = request.form['project_name'],
-        description = request.form['project_description']
-    )
-    project = conn.add_project(proj)
-    return redirect(url_for('settings'))
+    projects = conn.call('get_projects', {'user_id':session['user_id']})
+    project_names = [project.name for project in projects]
+    #activate_proj = request.args.get('activate_project')
+    activate_proj = True
+    proj = request.args.get('proj')
+    proj = json.loads(proj)
+    if proj['name'] in project_names:
+        return jsonify(result={status_code: -1})
+    else:
+        project = conn.call('add_project', {'project':proj})
+        if activate_proj:
+            session['project_name'] = project.name
+            session['project_id'] = project.id
+        return redirect(url_for('settings'))
 
 @app.route('/_add_network', methods=['GET', 'POST'])
 def add_network():
     conn = connection(url=url, session_id=session['session_id'])
-    net = dict(
-        project_id = session['project_id'],
-        name = request.form['network_name'],
-        description = request.form['network_description']
-    )
-    network = conn.call('add_network', {'net':net})
-    return redirect(url_for('settings'))
+    networks = conn.call('get_networks', {'project_id':session['project_id'], 'include_data':'N'})
+    network_names = [network.name for network in networks]
+    #activate_proj = request.args.get('activate_project')
+    activate_net = True
+    new_net = request.args.get('net')
+    new_net = json.loads(new_net)
+    if new_net['name'] in network_names:
+        return jsonify(result={status_code: -1})
+    else:
+        new_net['project_id'] = session['project_id']
+        network = conn.call('add_network', {'net':new_net})
+        if activate_net:
+            session['network_name'] = network.name
+            session['network_id'] = network.id
+        return redirect(url_for('settings'))
 
 @app.route('/_load_network')
 def load_network():
@@ -256,11 +272,13 @@ def settings():
                            project_names=project_names,
                            network_names=network_names)
 
-@app.route('/_hydra_call')
+@app.route('/_hydra_call', methods=['GET','POST'])
 def hydra_call():
-    s = request.args.get('request')
-    j = json.loads(s)
-    resp = conn.call(j['func'], j['args'])
+    conn = connection(url=url, session_id=session['session_id'])
+    func = request.json['func']
+    args = request.json['args']
+    print(args, file=sys.stderr)
+    resp = conn.call(func, args)
     return jsonify(result=dict(response=resp))
 
 @app.route('/_run_model')

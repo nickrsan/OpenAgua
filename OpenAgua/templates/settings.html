@@ -19,48 +19,55 @@
       </div>
     </div>
   </div>
+  
   <div class="row">
     
-    <!--select project-->
-    <div class="panel panel-default">
-      <div class="panel-body">
-        <label>Existing projects (active project in bold)</label>
-        <ul>
-        {% if project_names %}
-          {% for pname in project_names %}
-            {% if pname == session['project_name']%}
-              <li><strong>{{ pname }}</strong></li>
-            {% else %}
-              <li>{{ pname }}</li>
-            {% endif %}
-          {% endfor %}
-        {% else %}          
-          <p>No projects yet.</p>
-        {% endif %}
-        </ul>
-        <button id="add_project" class="btn btn-default">Add project</button>
-        {% if session['project_name'] in project_names %}
-          <label>Networks for "Monterrey"</label>
+    <!--select/add project-->
+    <div class="col sm-8 col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-body">
+          <label>Existing projects (active project in bold)</label>
           <ul>
-          {% if network_names %}
-            {% for nname in network_names %}
-              {% if nname == session['network_name']%}
-                <li><strong>{{ nname }}</strong></li>
-              {% else %}  
-                <li>{{ nname }}</li>
+          {% if project_names %}
+            {% for pname in project_names %}
+              {% if pname == session['project_name']%}
+                <li><strong>{{ pname }}</strong></li>
+              {% else %}
+                <li>{{ pname }}</li>
               {% endif %}
             {% endfor %}
           {% else %}          
-            <p>No networks yet.</p>
+            <p>No projects yet.</p>
           {% endif %}
           </ul>
-          {% if session['project_name'] not in project_names %}
+          <button id="add_project" class="btn btn-default">Add project</button>
+        </div>
+      </div>
+      
+      <!--select/add network-->
+      <div class="panel panel-default">
+        <div class="panel-body">
+          {% if session['project_name'] in project_names %}
+            <label>Networks for {{ session['project_name'] }}</label>
+            <ul>
+            {% if network_names %}
+              {% for nname in network_names %}
+                {% if nname == session['network_name']%}
+                  <li><strong>{{ nname }}</strong></li>
+                {% else %}  
+                  <li>{{ nname }}</li>
+                {% endif %}
+              {% endfor %}
+            {% else %}          
+              <p>No networks yet.</p>
+            {% endif %}
+            </ul>
             <button id="add_network" class="btn btn-default">Add network</button>
           {% endif %}
-        {% endif %}
+        </div>
       </div>
-    </div>
-    
+      
+    </div>    
     <!--select network-->
     
     <!--select template-->
@@ -83,13 +90,13 @@
     <div class="panel-heading">Manage templates</div>
     <div class="panel-body">
 
-    <label class="control-label">Upload new template</label>
-    <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
-    <script>
-      $(document).on('ready', function() {
-          $("#upload-template").fileinput({showCaption: false});
-      });
-    </script>
+      <label class="control-label">Upload new template</label>
+      <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
+      <script>
+        $(document).on('ready', function() {
+            $("#upload-template").fileinput({showCaption: false});
+        });
+      </script>
 
     </div>
   </div>
@@ -111,21 +118,25 @@ $("button#add_network").bind('click', function() {
 });
 
 $("button#add_project_confirm").bind('click', function() {
-      name = $('#project_name').val()
-      desc = $('#project_description').val()
-      $.ajax({
-          url: '/_add_project',
-          data: $('form').serialize(),
-          type: 'POST',
-          success: function(response) {
-              console.log(response);
-          },
-          error: function(error) {
-              console.log(error);
-          }
-      });
-
+      var proj = {name: $('#project_name').val(), description: $('#project_description').val()};
+      $.getJSON($SCRIPT_ROOT + '/_add_project', {proj: JSON.stringify(proj)}, function(resp) {
+        status_code = resp.result.status_code;
+        if ( status_code == -1 ) {
+            $("#add_project_error").text('Name already in use. Please try again.');
+        };
+    });
 });
+
+$("button#add_network_confirm").bind('click', function() {
+      var net = {name: $('#network_name').val(), description: $('#network_description').val()};
+      $.getJSON($SCRIPT_ROOT + '/_add_network', {net: JSON.stringify(net)}, function(resp) {
+        status_code = resp.result.status_code;
+        if ( status_code == -1 ) {
+            $("#add_network_error").text('Name already in use. Please try again.');
+        };
+    });
+});
+
 
 </script>
 
