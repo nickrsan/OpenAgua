@@ -120,16 +120,16 @@ def load_recent():
     
     # load / create project
     project = conn.get_project_by_name(session['project_name'])
-    try:
+    if 'id' in project.keys():
         session['project_id'] = project.id
-    except:
+    else:
         return redirect(url_for('settings'))
     
     # load / activate network
     network = conn.get_network_by_name(session['project_id'], session['network_name'])
-    try:
+    if 'id' in network.keys():
         session['network_id'] = network.id
-    except:
+    else:
         return redirect(url_for('settings'))
     
     activated = conn.call('activate_network', {'network_id':session['network_id']})
@@ -154,13 +154,13 @@ def add_project():
     proj = request.args.get('proj')
     proj = json.loads(proj)
     if proj['name'] in project_names:
-        return jsonify(result={status_code: -1})
-    else:
-        project = conn.call('add_project', {'project':proj})
-        if activate_proj:
-            session['project_name'] = project.name
-            session['project_id'] = project.id
-        return redirect(url_for('settings'))
+        return jsonify(result={'status_code': -1})
+    
+    project = conn.call('add_project', {'project':proj})
+    if activate_proj:
+        session['project_name'] = project.name
+        session['project_id'] = project.id
+        return jsonify(result={'status_code': 1})
 
 @app.route('/_add_network', methods=['GET', 'POST'])
 def add_network():
@@ -264,6 +264,9 @@ def settings():
     projects = conn.call('get_projects',{'user_id':session['user_id']})
     project_names = [project.name for project in projects]
     if session['project_name'] in project_names:
+        if 'project_id' not in session:
+            project = conn.get_project_by_name(project_name=session['project_name'])
+            session['project_id'] = project.id
         networks = conn.call('get_networks',{'project_id':session['project_id'],'include_data':'N'})
         network_names = [network.name for network in networks]
     else:

@@ -27,19 +27,21 @@
       <div class="panel panel-default">
         <div class="panel-body">
           <label>Existing projects (active project in bold)</label>
-          <ul>
-          {% if project_names %}
-            {% for pname in project_names %}
-              {% if pname == session['project_name']%}
-                <li><strong>{{ pname }}</strong></li>
-              {% else %}
-                <li>{{ pname }}</li>
-              {% endif %}
-            {% endfor %}
-          {% else %}          
-            <p>No projects yet.</p>
-          {% endif %}
-          </ul>
+          <div id="project_list">
+            <ul>
+            {% if project_names %}
+              {% for pname in project_names %}
+                {% if pname == session['project_name']%}
+                  <li><strong>{{ pname }}</strong></li>
+                {% else %}
+                  <li>{{ pname }}</li>
+                {% endif %}
+              {% endfor %}
+            {% else %}          
+              <p>No projects yet.</p>
+            {% endif %}
+            </ul>
+          </div>
           <button id="add_project" class="btn btn-default">Add project</button>
         </div>
       </div>
@@ -108,7 +110,6 @@
 </div>
   
 <script>
-
 $("button#add_project").bind('click', function() {
   $('#modal_add_project').modal('show');
 });
@@ -123,6 +124,9 @@ $("button#add_project_confirm").bind('click', function() {
         status_code = resp.result.status_code;
         if ( status_code == -1 ) {
             $("#add_project_error").text('Name already in use. Please try again.');
+        } else if ( status_code == 1 ){
+            $("#project_list ul").append('<li>'+proj.name+'</li>');
+            $('#modal_add_project').modal('hide');
         };
     });
 });
