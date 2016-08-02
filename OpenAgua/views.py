@@ -120,11 +120,18 @@ def load_recent():
     
     # load / create project
     project = conn.get_project_by_name(session['project_name'])
-    session['project_id'] = project.id
-
+    try:
+        session['project_id'] = project.id
+    except:
+        return redirect(url_for('settings'))
+    
     # load / activate network
     network = conn.get_network_by_name(session['project_id'], session['network_name'])
-    session['network_id'] = network.id
+    try:
+        session['network_id'] = network.id
+    except:
+        return redirect(url_for('settings'))
+    
     activated = conn.call('activate_network', {'network_id':session['network_id']})
     
     # load / activate template (temporary fix)

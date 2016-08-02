@@ -8,6 +8,8 @@
     
 {% block main %}
 
+{% include "modals_settings.html" %}
+
 <div class="container-fluid">
   
   <div class="row">
@@ -36,9 +38,8 @@
           <p>No projects yet.</p>
         {% endif %}
         </ul>
-        {% if session['project_name'] not in project_names %}
-          <button class="btn btn-default">Create new project</button>
-        {% else %}
+        <button id="add_project" class="btn btn-default">Add project</button>
+        {% if session['project_name'] in project_names %}
           <label>Networks for "Monterrey"</label>
           <ul>
           {% if network_names %}
@@ -54,7 +55,7 @@
           {% endif %}
           </ul>
           {% if session['project_name'] not in project_names %}
-            <button class="btn btn-default">Create network for {{ session['project_name'] }}</button>
+            <button id="add_network" class="btn btn-default">Add network</button>
           {% endif %}
         {% endif %}
       </div>
@@ -99,5 +100,34 @@
 
 </div>
   
+<script>
+
+$("button#add_project").bind('click', function() {
+  $('#modal_add_project').modal('show');
+});
+
+$("button#add_network").bind('click', function() {
+  $('#modal_add_network').modal('show');
+});
+
+$("button#add_project_confirm").bind('click', function() {
+      name = $('#project_name').val()
+      desc = $('#project_description').val()
+      $.ajax({
+          url: '/_add_project',
+          data: $('form').serialize(),
+          type: 'POST',
+          success: function(response) {
+              console.log(response);
+          },
+          error: function(error) {
+              console.log(error);
+          }
+      });
+
+});
+
+</script>
+
 
 {% endblock %}
