@@ -69,6 +69,10 @@ def home():
     user = conn.get_user_by_name(hydra_username)
     session['user_id'] = user.id
 
+    # add recent project/network to session (to be loaded from user data in the future)
+    session['project_name'] = app.config['HYDRA_PROJECT_NAME']
+    session['network_name'] = app.config['HYDRA_NETWORK_NAME'] 
+
     projects = conn.call('get_projects',{'user_id':session['user_id']})
     project_names = [project.name for project in projects]
     return render_template('home.html',
@@ -112,11 +116,7 @@ def template():
 @app.route('/_load_recent')
 def load_recent():
     
-    conn = connection(url=url, session_id=session['session_id'])
-    
-    # load recent project / network (to be done by user in the future)
-    session['project_name'] = app.config['HYDRA_PROJECT_NAME']
-    session['network_name'] = app.config['HYDRA_NETWORK_NAME']    
+    conn = connection(url=url, session_id=session['session_id'])   
     
     # load / create project
     project = conn.get_project_by_name(session['project_name'])
