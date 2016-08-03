@@ -2,6 +2,8 @@ var myInterval;
 
 $('button#run_app').bind('click', function() {
 
+    $(this).button('loading')
+
     // 1. get run data and store it as json
     // in the future, we will get this from a form, scenario builder, etc.
     args = {
@@ -20,13 +22,16 @@ $('button#run_app').bind('click', function() {
 
 function model_progress(status) {
     if (status == -1) {
+        $("button#run_app").button('reset')
         $("#status_message").text("There's something wrong.")
     } else if (status == 0) {
+        $("button#run_app").button('reset')
         $("#status_message").text("No model running.")
     } else if (status == 1) {
         $("#status_message").text("Model running...");
         myInterval = setInterval(update_model_progress, 1000)
     } else if (status == 2) {
+        $("button#run_app").button('reset')
         $("#status_message").text("Model complete!")      
     };
 };
@@ -45,5 +50,6 @@ function update_model_progress() {
         if (progress == 100) {
             clearInterval(myInterval)
             $("#status_message").text("Model complete!");
+            $("button#run_app").button('reset')
         }
 };
