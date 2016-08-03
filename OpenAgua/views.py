@@ -167,7 +167,7 @@ def add_network():
     conn = connection(url=url, session_id=session['session_id'])
     networks = conn.call('get_networks', {'project_id':session['project_id'], 'include_data':'N'})
     network_names = [network.name for network in networks]
-    #activate_proj = request.args.get('activate_project')
+    #activate_net = request.args.get('activate_project')
     activate_net = True
     new_net = request.args.get('net')
     new_net = json.loads(new_net)
@@ -179,7 +179,7 @@ def add_network():
         if activate_net:
             session['network_name'] = network.name
             session['network_id'] = network.id
-        return redirect(url_for('settings'))
+        return jsonify(result={'status_code': 1})
 
 @app.route('/_load_network')
 def load_network():
@@ -271,9 +271,15 @@ def settings():
         network_names = [network.name for network in networks]
     else:
         network_names = []
+        
+    # get list of all templates
+    templates = conn.call('get_templates',{})
+    template_names = [t.name for t in templates]
+    
     return render_template('settings.html',
                            project_names=project_names,
-                           network_names=network_names)
+                           network_names=network_names,
+                           template_names=template_names)
 
 @app.route('/_hydra_call', methods=['GET','POST'])
 def hydra_call():

@@ -25,6 +25,7 @@
     <!--select/add project-->
     <div class="col sm-8 col-md-4">
       <div class="panel panel-default">
+        <div class="panel-heading">Manage projects</div>
         <div class="panel-body">
           <label>Existing projects (active project in bold)</label>
           <div id="project_list">
@@ -48,9 +49,11 @@
       
       <!--select/add network-->
       <div class="panel panel-default">
+        <div class="panel-heading">Manage networks</div>
         <div class="panel-body">
+          <label>Networks for active project</label>
           {% if session['project_name'] in project_names %}
-            <label>Networks for {{ session['project_name'] }}</label>
+            <div id="network_list">
             <ul>
             {% if network_names %}
               {% for nname in network_names %}
@@ -64,45 +67,46 @@
               <p>No networks yet.</p>
             {% endif %}
             </ul>
+            </div>
             <button id="add_network" class="btn btn-default">Add network</button>
           {% endif %}
         </div>
       </div>
       
     </div>    
-    <!--select network-->
-    
-    <!--select template-->
-    
-    
-    
-    <!--scripts-->
-    
-    <!--create project-->
-    
-    <!--create network-->
-    
-    <!--select template-->
-    
+        
 
-    <!--upload template-->
     
-<div class="col sm-8 col-md-4">
-  <div class="panel panel-default">
-    <div class="panel-heading">Manage templates</div>
-    <div class="panel-body">
+    <!--manage templates-->    
+    <div class="col sm-8 col-md-4">
+      <div class="panel panel-default">
+        <div class="panel-heading">Manage templates</div>
+        <div class="panel-body">
 
-      <label class="control-label">Upload new template</label>
-      <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
-      <script>
-        $(document).on('ready', function() {
-            $("#upload-template").fileinput({showCaption: false});
-        });
-      </script>
-
-    </div>
-  </div>
-</div>    
+          <label>Existing templates</label>
+          <div id="template_list">
+            <ul>
+            {% if template_names %}
+              {% for tname in template_names %}
+                <li>{{ tname }}</li>
+              {% endfor %}
+            {% else %}          
+              <p>No templates loaded.</p>
+            {% endif %}
+            </ul>
+          </div>
+    
+          <label class="control-label">Upload new template</label>
+          <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
+          <script>
+            $(document).on('ready', function() {
+                $("#upload-template").fileinput({showCaption: false});
+            });
+          </script>
+    
+        </div>
+      </div>
+    </div>    
     
     
   </div>
@@ -137,6 +141,9 @@ $("button#add_network_confirm").bind('click', function() {
         status_code = resp.result.status_code;
         if ( status_code == -1 ) {
             $("#add_network_error").text('Name already in use. Please try again.');
+        } else if ( status_code == 1 ){
+            $("#network_list ul").append('<li>'+net.name+'</li>');
+            $('#modal_add_network').modal('hide');
         };
     });
 });
