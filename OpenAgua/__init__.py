@@ -2,7 +2,7 @@
 from flask import Flask
 
 # import blueprints
-from .projects import projects
+from .projects_manager import projects
 from .network_editor import net_editor
 from .model_dashboard import model_dashboard
 

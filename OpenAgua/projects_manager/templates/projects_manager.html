@@ -132,8 +132,13 @@ $("button#add_project_confirm").bind('click', function() {
 });
 
 $("button#add_network_confirm").bind('click', function() {
-      var net = {name: $('#network_name').val(), description: $('#network_description').val()};
-      $.getJSON($SCRIPT_ROOT + '/_add_network', {net: JSON.stringify(net)}, function(resp) {
+      var net = {
+        name: $('#network_name').val(),
+        description: $('#network_description').val()
+      };
+      var tpl_id = $('#net_template').val();
+      var data = {net: JSON.stringify(net), tpl_id: tpl_id};
+      $.getJSON($SCRIPT_ROOT + '/_add_network', data, function(resp) {
         status_code = resp.result.status_code;
         if ( status_code == -1 ) {
             $("#add_network_error").text('Name already in use. Please try again.');
@@ -143,8 +148,6 @@ $("button#add_network_confirm").bind('click', function() {
         };
     });
 });
-
-
 </script>
 
 

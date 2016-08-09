@@ -1,7 +1,10 @@
+from __future__ import print_function
 from flask import render_template, request, session, json, jsonify
 import zipfile
 from ..connection import connection
 from ..conversions import *
+
+from sys import stderr
 
 # import blueprint definition
 from . import projects
@@ -33,7 +36,7 @@ def project_settings():
         conn.call('upload_template_xml', {'template_xml':template_xml})
         templates = conn.call('get_templates',{})
     
-    return render_template('project_settings.html',
+    return render_template('projects_manager.html',
                            project_names=project_names,
                            network_names=network_names,
                            templates=templates)
@@ -58,19 +61,35 @@ def add_project():
 
 @projects.route('/_add_network', methods=['GET', 'POST'])
 def add_network():
+    
+    # connect & get networks
     conn = connection(url=session['url'], session_id=session['session_id'])
     networks = conn.call('get_networks', {'project_id':session['project_id'], 'include_data':'N'})
     network_names = [network.name for network in networks]
-    #activate_net = request.args.get('activate_project')
+    #activate_net = request.args.get('activate_network')
     activate_net = True
+    
+    # add network
     new_net = request.args.get('net')
     new_net = json.loads(new_net)
+    tpl_id = int(request.args.get('tpl_id'))
     if new_net['name'] in network_names:
         return jsonify(result={status_code: -1})
     else:
         new_net['project_id'] = session['project_id']
         network = conn.call('add_network', {'net':new_net})
+
+        # add the template
+        conn.call('apply_template_to_network', {'template_id': tpl_id, 'network_id': network.id})
+        
+        # add a default scenario
+        #scen = {'name':'Baseline', 'return_summary':'N'}
+        #conn.call('add_scenario', {'network_id':network.id, 'scen':scen})
+        #network = conn.call('get_network', {'network_id':network.id})
+        #print(network, file=stderr)
+        
         if activate_net:
             session['network_name'] = network.name
             session['network_id'] = network.id
+            
         return jsonify(result={'status_code': 1})

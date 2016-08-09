@@ -5,18 +5,13 @@ session = {}
 
 conn = connection(url='http://127.0.0.1:8080/json')
 conn.login(username = 'root', password = '')    
-#session['session_id'] = conn.session_id
-#user = conn.get_user_by_name('root')
-#user_id = user.id
 
-#project = conn.call('get_project_by_name',{'project_name':'Monterrey'})
-#network = conn.call('get_network_by_name',{'project_id':project.id, 'network_name':'base_network'})
+project = conn.call('get_project_by_name',{'project_name':'Monterrey'})
 
-#for node in network.nodes[0:5]:
-    #print node
-
-template = conn.call('get_template', {'template_id':5})
-
-conn.call('add_project',{'name':'Monterrey7'})
+import random
+name = 'test' + str(random.randint(1,10000))
+new_net = {'project_id':project.id, 'name':name}
+net = conn.call('add_network',{'net':new_net})
+print(net)
 
 print('finished')

@@ -91,14 +91,14 @@ def load_recent():
     if 'id' in project.keys():
         session['project_id'] = project.id
     else:
-        return redirect(url_for('settings'))
+        return redirect(url_for('projects.project_settings'))
     
     # load / activate network
     network = conn.get_network_by_name(session['project_id'], session['network_name'])
     if 'id' in network.keys():
         session['network_id'] = network.id
     else:
-        return redirect(url_for('settings'))
+        return redirect(url_for('projects.project_settings'))
     
     activated = conn.call('activate_network', {'network_id':session['network_id']})
     

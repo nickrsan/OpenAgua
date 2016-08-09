@@ -1,4 +1,4 @@
-from flask import render_template, session, json, jsonify
+from flask import render_template, request, session, json, jsonify
 from ..connection import connection
 from ..conversions import *
 

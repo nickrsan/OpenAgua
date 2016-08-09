@@ -31,9 +31,9 @@ var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/
 var currentItems = new L.geoJson();
 
 // add zoom buttons
-L.control.zoom({position:'topright'}).addTo(map);
-var zoomboxControl = new L.Control.boxzoom({ position:'topright' });
-map.addControl(zoomboxControl);
+//L.control.zoom({position:'topright'}).addTo(map);
+//var zoomboxControl = new L.Control.boxzoom({ position:'topright' });
+//map.addControl(zoomboxControl);
 
 // add locate button
 var locateControl = new L.control.locate(options={
