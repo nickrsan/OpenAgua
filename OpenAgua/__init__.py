@@ -1,3 +1,5 @@
+import os
+
 # app.py or app/__init__.py
 from flask import Flask
 
@@ -6,7 +8,7 @@ from .projects_manager import projects
 from .network_editor import net_editor
 from .model_dashboard import model_dashboard
 
-app = Flask(__name__, instance_relative_config=True)
+app = Flask('OpenAgua', instance_relative_config=True)
 
 app.config.from_object('config')
 app.config.from_pyfile('config.py')
