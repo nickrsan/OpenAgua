@@ -1,4 +1,4 @@
-DEBUG = True
+DEBUG = False
 USERNAME = 'admin@gmail.com'
 PASSWORD = 'password'
 HYDRA_URL = 'http://127.0.0.1:8080/json'
