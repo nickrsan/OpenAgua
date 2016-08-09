@@ -1,4 +1,5 @@
 from __future__ import print_function
+import os
 from flask import render_template, request, session, json, jsonify
 import zipfile
 from ..connection import connection
@@ -8,6 +9,8 @@ from sys import stderr
 
 # import blueprint definition
 from . import projects
+
+here = os.path.dirname(os.path.abspath(__file__))
 
 @projects.route('/projects')
 @login_required
@@ -31,7 +34,7 @@ def project_settings():
     template_names = [t.name for t in templates]
     
     if 'WEAP' not in template_names:
-        zf = zipfile.ZipFile('static/hydra_templates/WEAP.zip')
+        zf = zipfile.ZipFile(os.path.join(here, 'static/hydra_templates/WEAP.zip'))
         template_xml = zf.read('WEAP/template/template.xml')
         conn.call('upload_template_xml', {'template_xml':template_xml})
         templates = conn.call('get_templates',{})
