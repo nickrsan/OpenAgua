@@ -44,8 +44,8 @@
               <input type="comment" class="form-control" rows="3" id="network_description">
             </div>
             <div class="form-group">
-              <label for="feature_type">Type:</label>
-              <select id="feature_type">
+              <label for="template_type">Template:</label>
+              <select id="template_type">
                 {% for template in templates %}
                   <option value="{{ template.id }}">{{ template.name }}</option>
                 {% endfor %}

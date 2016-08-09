@@ -12,7 +12,7 @@
 <div id="load_status" class="label label-success"></div>
 <div id="save_status" class="label label-danger"></div>
 
-{% include "modals_network.html" %}
-<script src="{{ url_for('static', filename='js/network-editor.js') }}"></script>
+{% include "modals.html" %}
+<script src="{{ url_for('network_editor.static', filename='js/network-editor.js') }}"></script>
 
 {% endblock %}

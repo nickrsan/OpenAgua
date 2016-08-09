@@ -1,4 +1,3 @@
-import zipfile
 from connection import connection
 from conversions import *
 
@@ -18,9 +17,6 @@ conn.login(username = 'root', password = '')
 
 template = conn.call('get_template', {'template_id':5})
 
-zf = zipfile.ZipFile('static/hydra/templates/WEAP.zip', 'r')
-template_xml = zf.read('WEAP/template/template.xml')
-
-conn.call('upload_template_xml',{'template_xml':template_xml})
+conn.call('add_project',{'name':'Monterrey7'})
 
 print('finished')

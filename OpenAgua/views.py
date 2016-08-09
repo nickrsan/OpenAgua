@@ -1,34 +1,19 @@
 from __future__ import print_function
 from flask import jsonify, Response, json, request, session, redirect, url_for, escape, send_file, render_template, flash
 from werkzeug.utils import secure_filename
-from functools import wraps
 import requests
 import sys
-import zipfile
 
 from OpenAgua import app
 
-from connection import connection
-from conversions import *
-
-url = app.config['HYDRA_URL']
-hydra_username = app.config['HYDRA_USERNAME']
-hydra_password = app.config['HYDRA_PASSWORD']
+from .connection import connection
+from .conversions import *
 
 app.secret_key = app.config['SECRET_KEY']
 
 # this needs to be done properly through a user management system
 username = app.config['USERNAME']
 password = app.config['PASSWORD']
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'logged_in' in session:
-            return f(*args, **kwargs)
-        else:
-            return redirect(url_for('index'))
-    return decorated_function
 
 @app.route('/')
 def index():
@@ -56,18 +41,22 @@ def logout():
 @login_required
 def home():
 
+    session['url'] = app.config['HYDRA_URL']
+    session['hydra_username'] = app.config['HYDRA_USERNAME']
+    session['hydra_password'] = app.config['HYDRA_PASSWORD']    
+
     # connect to hydra (login if we don't already have a session ID)
     if 'session_id' in session:
-        conn = connection(url=url, session_id=session['session_id'])
+        conn = connection(url=session['url'], session_id=session['session_id'])
     else:
-        conn = connection(url=url)
+        conn = connection(url=session['url'])
     
     # this makes sure we are logged in, in case there is a leftover session_id
     # in the Flask session. We shouldn't get here though.
-    conn.login(username = hydra_username, password = hydra_password)    
+    conn.login(username = session['hydra_username'], password = session['hydra_password'])    
     session['session_id'] = conn.session_id
         
-    user = conn.get_user_by_name(hydra_username)
+    user = conn.get_user_by_name(session['hydra_username'])
     session['user_id'] = user.id
 
     # add recent project/network to session (to be loaded from user data in the future)
@@ -78,28 +67,6 @@ def home():
     project_names = [project.name for project in projects]
     return render_template('home.html',
                            project_names = project_names)
-
-@app.route('/network_editor')
-@login_required
-def network_editor():
-    conn = connection(url=url, session_id=session['session_id'])
-    template = conn.call('get_template', {'template_id':session['template_id']})
-    ntypes = [t.name for t in template.types if t.resource_type == 'NODE']
-    ltypes = [t.name for t in template.types if t.resource_type == 'LINK']
-    
-    return render_template('network_editor.html',
-                           ntypes=ntypes, ltypes=ltypes) 
-
-@app.route('/model_dashboard')
-@login_required
-def model_dashboard():
-    
-    # check status and progress of any running model
-    status, progress = 0, 0 # default state
-    
-    return render_template('model_dashboard.html',
-                           status=status,
-                           progress=progress) 
 
 @app.route('/overview')
 @login_required
@@ -117,7 +84,7 @@ def template():
 @app.route('/_load_recent')
 def load_recent():
     
-    conn = connection(url=url, session_id=session['session_id'])   
+    conn = connection(url=session['url'], session_id=session['session_id'])   
     
     # load / create project
     project = conn.get_project_by_name(session['project_name'])
@@ -145,170 +112,3 @@ def load_recent():
     
     return redirect(url_for('overview'))
 
-@app.route('/_add_project')
-def add_project():
-    conn = connection(url=url, session_id=session['session_id'])
-    projects = conn.call('get_projects', {'user_id':session['user_id']})
-    project_names = [project.name for project in projects]
-    #activate_proj = request.args.get('activate_project')
-    activate_proj = True
-    proj = request.args.get('proj')
-    proj = json.loads(proj)
-    if proj['name'] in project_names:
-        return jsonify(result={'status_code': -1})
-    
-    project = conn.call('add_project', {'project':proj})
-    if activate_proj:
-        session['project_name'] = project.name
-        session['project_id'] = project.id
-        return jsonify(result={'status_code': 1})
-
-@app.route('/_add_network', methods=['GET', 'POST'])
-def add_network():
-    conn = connection(url=url, session_id=session['session_id'])
-    networks = conn.call('get_networks', {'project_id':session['project_id'], 'include_data':'N'})
-    network_names = [network.name for network in networks]
-    #activate_net = request.args.get('activate_project')
-    activate_net = True
-    new_net = request.args.get('net')
-    new_net = json.loads(new_net)
-    if new_net['name'] in network_names:
-        return jsonify(result={status_code: -1})
-    else:
-        new_net['project_id'] = session['project_id']
-        network = conn.call('add_network', {'net':new_net})
-        if activate_net:
-            session['network_name'] = network.name
-            session['network_id'] = network.id
-        return jsonify(result={'status_code': 1})
-
-@app.route('/_load_network')
-def load_network():
-    conn = connection(url=url, session_id=session['session_id'])
-    network = conn.get_network(session['network_id'])
-    template = conn.call('get_template',{'template_id':session['template_id']})
-    
-    #features = features2gj(network, template)
-    coords = get_coords(network)
-    nodes = network.nodes
-    links = network.links
-    nodes_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id']) for node in nodes]
-    links_gj = [conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords) for link in links]
-    features = nodes_gj + links_gj
-
-    status_code = 1
-    status_message = 'Network "%s" loaded' % session['network_name']
-
-    features = json.dumps(features)
-    
-    result = dict(features=features, status_code=status_code, status_message=status_message)
-    result_json = jsonify(result=result)
-    return result_json
-
-@app.route('/_add_feature')
-def add_feature():
-    conn = connection(url=url, session_id=session['session_id'])
-    network = conn.get_network(session['network_id'])
-    template = conn.call('get_template',{'template_id':session['template_id']})
-
-    new_feature = request.args.get('new_feature')
-    gj = json.loads(new_feature)
-
-    new_gj = ''
-    status_code = -1
-    if gj['geometry']['type'] == 'Point':
-        if gj['properties']['name'] not in [f.name for f in network.nodes]:
-            node_new = conn.make_node_from_geojson(gj, template=template)
-            node = conn.call('add_node', {'network_id':session['network_id'], 'node':node_new})
-            new_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id'])]
-            status_code = 1
-    else:
-        if gj['properties']['name'] not in [f.name for f in network.links]:
-            coords = get_coords(network)
-            links_new = conn.make_links_from_geojson(gj, template, coords)
-            links = conn.call('add_links', {'network_id':session['network_id'], 'links':links_new})
-            print(links, file=sys.stderr)
-            if links:
-                new_gj = []
-                for link in links:
-                    gj = conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords)
-                    new_gj.append(gj)
-                status_code = 1
-            else:
-                status_code = -1
-    result = dict(new_gj=new_gj, status_code=status_code)
-    return jsonify(result=result)
-
-@app.route('/_delete_feature')
-def delete_feature():
-    conn = connection(url=url, session_id=session['session_id'])
-    network = conn.get_network(session['network_id'])
-    
-    deleted_feature = request.args.get('deleted')
-    gj = json.loads(deleted_feature)
-
-    status_code = -1
-    if gj['geometry']['type'] == 'Point':
-        conn.call('delete_node',{'node_id': gj['properties']['id']})
-        status_code = 1
-    else:
-        conn.call('delete_link',{'link_id': gj['properties']['id']})
-        status_code = 1
-    return jsonify(result=dict(status_code=status_code))
-
-@app.route('/settings')
-@login_required
-def settings():
-    conn = connection(url=url, session_id=session['session_id'])
-    
-    # get the list of project names and network names for the test project ('Monterrey')
-    projects = conn.call('get_projects',{'user_id':session['user_id']})
-    project_names = [project.name for project in projects]
-    if session['project_name'] in project_names:
-        if 'project_id' not in session:
-            project = conn.get_project_by_name(project_name=session['project_name'])
-            session['project_id'] = project.id
-        networks = conn.call('get_networks',{'project_id':session['project_id'],'include_data':'N'})
-        network_names = [network.name for network in networks]
-    else:
-        network_names = []
-        
-    # get list of all templates
-    templates = conn.call('get_templates',{})
-    
-    # hacking it: replace this with a proper UI to add a template
-    template_names = [t.name for t in templates]
-    if 'WEAP' not in template_names:
-        zf = zipfile.ZipFile('static/hydra/templates/WEAP.zip', 'r')
-        template_xml = zf.read('WEAP/template/template.xml')
-        conn.call('upload_template_xml',{'template_xml':template_xml})
-        
-        templates = conn.call('get_templates',{})
-    
-    return render_template('settings.html',
-                           project_names=project_names,
-                           network_names=network_names,
-                           templates=templates)
-
-@app.route('/_hydra_call', methods=['GET','POST'])
-def hydra_call():
-    conn = connection(url=url, session_id=session['session_id'])
-    func = request.json['func']
-    args = request.json['args']
-    print(args, file=sys.stderr)
-    resp = conn.call(func, args)
-    return jsonify(result=dict(response=resp))
-
-@app.route('/_run_model')
-def run_model():
-
-    # add model code here
-    
-    status = 1
-    return jsonify(result={'status':status})
-
-@app.route('/_model_progress')
-def model_progress():
-    status = 1
-    progress = 100 # get progress from running model
-    return jsonify(result={'status':status, 'progress':progress})

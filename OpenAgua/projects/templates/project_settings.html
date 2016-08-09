@@ -1,6 +1,6 @@
 {% extends "layout.html" %} 
 
-{% block title %} - Settings{% endblock %}
+{% block title %} - Projects{% endblock %}
 
 {% block head_master %}
 {% include 'navbar.html' %}
@@ -8,20 +8,20 @@
     
 {% block main %}
 
-{% include "modals_settings.html" %}
+{% include "modals.html" %}
 
 <div class="container-fluid">
   
   <div class="row">
     <div class="col sm-12 col-md-12">
       <div class="page-header">
-        <h3>Settings</h3>
+        <h3>Manage projects</h3>
       </div>
     </div>
   </div>
   
   <div class="row">
-    
+  
     <!--select/add project-->
     <div class="col sm-8 col-md-4">
       <div class="panel panel-default">
@@ -73,9 +73,7 @@
         </div>
       </div>
       
-    </div>    
-        
-
+    </div>
     
     <!--manage templates-->    
     <div class="col sm-8 col-md-4">
@@ -108,9 +106,7 @@
       </div>
     </div>    
     
-    
-  </div>
-
+  </div>    
 </div>
   
 <script>
