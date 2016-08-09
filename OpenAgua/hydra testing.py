@@ -3,10 +3,10 @@ from conversions import *
 
 session = {}
 
-conn = connection(url='http://127.0.0.1:8080/json')
+conn = connection(url='http://hydra.openaguadss.org/json')
 conn.login(username = 'root', password = '')    
 
-project = conn.call('get_project_by_name',{'project_name':'Monterrey'})
+projects = conn.call('get_projects',{})
 
 import random
 name = 'test' + str(random.randint(1,10000))
