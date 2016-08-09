@@ -85,15 +85,15 @@
 
           <label>Existing templates</label>
           <div id="template_list">
+            {% if templates %}
             <ul>
-            {% if template_names %}
-              {% for tname in template_names %}
-                <li>{{ tname }}</li>
+              {% for tpl in templates %}
+                <li>{{ tpl.name }}</li>
               {% endfor %}
+            </ul>
             {% else %}          
               <p>No templates loaded.</p>
             {% endif %}
-            </ul>
           </div>
     
           <label class="control-label">Upload new template</label>

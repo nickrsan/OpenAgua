@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 import requests
 import sys
+import zipfile
 
 from OpenAgua import app
 
@@ -274,12 +275,20 @@ def settings():
         
     # get list of all templates
     templates = conn.call('get_templates',{})
+    
+    # hacking it: replace this with a proper UI to add a template
     template_names = [t.name for t in templates]
+    if 'WEAP' not in template_names:
+        zf = zipfile.ZipFile('static/hydra/templates/WEAP.zip', 'r')
+        template_xml = zf.read('WEAP/template/template.xml')
+        conn.call('upload_template_xml',{'template_xml':template_xml})
+        
+        templates = conn.call('get_templates',{})
     
     return render_template('settings.html',
                            project_names=project_names,
                            network_names=network_names,
-                           template_names=template_names)
+                           templates=templates)
 
 @app.route('/_hydra_call', methods=['GET','POST'])
 def hydra_call():
