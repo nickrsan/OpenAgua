@@ -9,7 +9,9 @@ See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 * [download from GitHub] (https://github.com/UMWRG/HydraPlatform), or
 * [set up on Windows] (http://umwrg.github.io/HydraPlatform/tutorials/getting-started/server.html)
 
-## Set up OpenAguaDSS (for running on your own machine). Technically, you can run OpenAgua on your local machine as is, without further configuration. However, you can change some local configuration settings thus:
+## Set up OpenAgua
+
+Technically, you can run OpenAgua on your local machine as is, without further configuration. However, you can change some local configuration settings thus:
 
 1. Create an "/instance" folder.
 2. In "/instance", create config.py
