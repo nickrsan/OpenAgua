@@ -113,7 +113,7 @@ To understand what these actually mean, you'll have to look elsewhere. One thing
 
 To enable these, use the command `a2ensite hydra-server` and `a2ensite openagua` (prepended with `sudo` as needed). Once these are enabled, restart Apache2 with `service apache2 restart`.
 
-Voila! OpenAgua should now be available on www.mysite.com, while Hydra Server should be available at hydra-server.mysite.com. This assumes, of course, you have configured your site's DNS appropriately.
+Voila! OpenAgua should now be available on http<nolink>://www.mysite.com, while Hydra Server should be available at hydra-server.mysite.com. This assumes, of course, you have configured your site's DNS appropriately.
 
 Note that this configuration works on Ubuntu, which has a more advanced Apache configuration organization. There may be other configurations, depending on actual web server (i.e., not Apache) and/or machine (e.g., non-Ubuntu machines).
 
