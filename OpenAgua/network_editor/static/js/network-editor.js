@@ -139,7 +139,7 @@ map.on('draw:created', function (e) {
         layer = e.layer;
     newItems.addLayer(layer);
     gj = layer.toGeoJSON();
-    if (type=='Point') {
+    if (type=='marker') {
         $('#modal_add_node').modal('show');
     } else {
         $('#modal_add_link').modal('show');            
