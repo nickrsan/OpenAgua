@@ -7,7 +7,7 @@ import sys
 from OpenAgua import app
 
 from .connection import connection
-from .conversions import *
+from .decorators import *
 
 app.secret_key = app.config['SECRET_KEY']
 
