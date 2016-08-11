@@ -95,3 +95,20 @@ def delete_feature():
         conn.call('delete_link',{'link_id': gj['properties']['id']})
         status_code = 1
     return jsonify(result=dict(status_code=status_code))
+
+@net_editor.route('/_purge_feature')
+def purge_feature():
+    conn = connection(url=session['url'], session_id=session['session_id'])
+    network = conn.get_network(session['network_id'])
+    
+    purged_feature = request.args.get('purged')
+    gj = json.loads(purged_feature)
+
+    status_code = -1
+    if gj['geometry']['type'] == 'Point':
+        conn.call('purge_node',{'node_id': gj['properties']['id'], 'purge_data':'Y'})
+        status_code = 1
+    else:
+        conn.call('purge_link',{'link_id': gj['properties']['id'], 'purge_data':'Y'})
+        status_code = 1
+    return jsonify(result=dict(status_code=status_code))

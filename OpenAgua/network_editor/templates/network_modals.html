@@ -1,36 +1,67 @@
-<!-- add feature -->
-<div class="modal" id="modal_add_feature" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
+<!-- add node -->
+<div class="modal" id="modal_add_node" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
   <div class="modal-dialog modal-sm" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">New feature</h4>
+        <h4 class="modal-title" id="myModalLabel">New node</h4>
       </div>
       <div class="modal-body">
           <form role="form">
             <div class="form-group">
-              <label for="feature_type">Type:</label>
-              <select id="feature_type">
+              <label for="node_type">Type:</label>
+              <select id="node_type">
                 {% for ntype in ntypes %}
                   <option value="{{ ntype }}">{{ ntype }}</option>
                 {% endfor %}
-                  <option>--------</option>
+              </select><br>
+              <label for="node_name">Name:</label>
+              <input type="text" class="form-control" id="node_name" autofocus>
+            </div>
+            <div class="form-group">
+              <label for="node_description">Description:</label>
+              <input type="comment" class="form-control" rows="3" id="node_description">
+            </div>
+        </form>
+        <div id="add_node_error"></div>
+      </div>
+      <div class="modal-footer">
+        <button id="add_node_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="add_node_confirm" type="button" class="btn btn-primary">Add</button>
+        <!--<button type="button" class="btn btn-primary">Save changes</button>-->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- add link -->
+<div class="modal" id="modal_add_link" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel">New link</h4>
+      </div>
+      <div class="modal-body">
+          <form role="form">
+            <div class="form-group">
+              <label for="link_type">Type:</label>
+              <select id="link_type">
                 {% for ltype in ltypes %}
                   <option value="{{ ltype }}">{{ ltype }}</option>
                 {% endfor %}
               </select><br>
-              <label for="feature_name">Name:</label>
-              <input type="text" class="form-control" id="feature_name" autofocus>
+              <label for="link_name">Name:</label>
+              <input type="text" class="form-control" id="link_name" autofocus>
             </div>
             <div class="form-group">
-              <label for="feature_description">Description:</label>
-              <input type="comment" class="form-control" rows="3" id="feature_description">
+              <label for="link_description">Description:</label>
+              <input type="comment" class="form-control" rows="3" id="link_description">
             </div>
         </form>
-        <div id="add_feature_error"></div>
+        <div id="add_link_error"></div>
       </div>
       <div class="modal-footer">
-        <button id="add_feature_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button id="add_feature_confirm" type="button" class="btn btn-primary">Add</button>
+        <button id="add_link_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="add_link_confirm" type="button" class="btn btn-primary">Add</button>
         <!--<button type="button" class="btn btn-primary">Save changes</button>-->
       </div>
     </div>
@@ -45,11 +76,29 @@
         <h4 class="modal-title" id="delete_feature_name"></h4>
       </div>
       <div class="modal-body">
-        <p>Are you sure you want to do this? This cannot be undone. All data associated with the feature(s) will also be deleted.</p>
+        <p>You are about to delete this feature from the network, but the feature and it's data will remain in the database. If you wish to delete the node from the database, click CANCEL and use purge instead.</p>
       </div>
       <div class="modal-footer">
         <button id="delete_feature_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button id="delete_feature_confirm" type="submit" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- modal_purge_feature -->
+<div class="modal" id="modal_purge_feature" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="purge_feature_name"></h4>
+      </div>
+      <div class="modal-body">
+        <p>You are about to purge this feature. This feature and all data associated with it will be deleted from the project. THIS CANNOT BE UNDONE! If you wish to delete the node from the network, but keep the node in the database, click CANCEL and use purge instead.</p>
+      </div>
+      <div class="modal-footer">
+        <button id="purge_feature_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="purge_feature_confirm" type="submit" class="btn btn-danger">Purge</button>
       </div>
     </div>
   </div>
