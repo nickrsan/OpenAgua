@@ -62,10 +62,11 @@ var drawControl = new L.Control.Draw({
         circle: false,
         rectangle: false,
     },
-    edit: {
-        featureGroup: currentItems, // to edit we should add also currentItems
-        remove: false
-    }
+    edit: false
+    //edit: {
+        //featureGroup: currentItems, // to edit we should add also currentItems
+        //remove: false
+    //}
 });
 map.addControl(drawControl);
 
@@ -242,7 +243,7 @@ getContextmenuOptions = function(featureName) {
         }, {
             text: 'Delete',
             index: 2,
-            callback: purgeFeature
+            callback: deleteFeature
         }, {
             text: 'Purge',
             index: 3,
@@ -299,7 +300,7 @@ $('button#delete_feature_confirm').bind('click', function() {
         if ( status_code == 1 ) { // there should be only success
             currentItems.removeLayer(deleted_layer);
             $("#delete_feature_name").text(""); // probably not necessary...
-            $("#save_status").text("Feature deleted!");
+            //$("#save_status").text("Feature deleted!");
             $("#modal_delete_feature").modal("hide");
         };
     });
@@ -312,7 +313,7 @@ $('button#purge_feature_confirm').bind('click', function() {
         if ( status_code == 1 ) { // there should be only success
             currentItems.removeLayer(purged_layer);
             $("#purge_feature_name").text(""); // probably not necessary...
-            $("#save_status").text("Feature purged!");
+            //$("#save_status").text("Feature purged!");
             $("#modal_purge_feature").modal("hide");
         };
     });

@@ -46,36 +46,58 @@ def load_network():
     result_json = jsonify(result=result)
     return result_json
 
-@net_editor.route('/_add_feature')
-def add_feature():
+@net_editor.route('/_add_node')
+def add_node():
     conn = connection(url=session['url'], session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
     template = conn.call('get_template',{'template_id':session['template_id']})
 
-    new_feature = request.args.get('new_feature')
-    gj = json.loads(new_feature)
+    new_node = request.args.get('new_node')
+    gj = json.loads(new_node)
 
     new_gj = ''
-    status_code = -1
-    if gj['geometry']['type'] == 'Point':
-        if gj['properties']['name'] not in [f.name for f in network.nodes]:
-            node_new = conn.make_node_from_geojson(gj, template=template)
-            node = conn.call('add_node', {'network_id':session['network_id'], 'node':node_new})
-            new_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id'])]
-            status_code = 1
+    
+    # check if the node already exists in the network
+    if gj['properties']['name'] in [f.name for f in network.nodes]:
+        status_code = -1
+        
+    # create the new node
     else:
-        if gj['properties']['name'] not in [f.name for f in network.links]:
-            coords = get_coords(network)
-            links_new = conn.make_links_from_geojson(gj, template, coords)
-            links = conn.call('add_links', {'network_id':session['network_id'], 'links':links_new})
-            if links:
-                new_gj = []
-                for link in links:
-                    gj = conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords)
-                    new_gj.append(gj)
-                status_code = 1
-            else:
-                status_code = -1
+        node_new = conn.make_node_from_geojson(gj, template=template)
+        node = conn.call('add_node', {'network_id':session['network_id'], 'node':node_new})
+        new_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id'])]
+        status_code = 1
+    result = dict(new_gj=new_gj, status_code=status_code)
+    return jsonify(result=result)
+
+@net_editor.route('/_add_link')
+def add_link():
+    conn = connection(url=session['url'], session_id=session['session_id'])
+    network = conn.get_network(session['network_id'])
+    template = conn.call('get_template',{'template_id':session['template_id']})
+
+    new_link = request.args.get('new_link')
+    gj = json.loads(new_link)
+
+    new_gj = ''
+    
+    # check if the link already exists in the network
+    if gj['properties']['name'] in [f.name for f in network.links]:
+        status_code  = -1
+        
+    # create the new link(s)
+    else:
+        coords = get_coords(network)
+        links_new = conn.make_links_from_geojson(gj, template, coords)
+        links = conn.call('add_links', {'network_id':session['network_id'], 'links':links_new})
+        if links:
+            new_gj = []
+            for link in links:
+                gj = conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords)
+                new_gj.append(gj)
+            status_code = 1
+        else:
+            status_code = -1
     result = dict(new_gj=new_gj, status_code=status_code)
     return jsonify(result=result)
 
