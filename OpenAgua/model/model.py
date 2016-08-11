@@ -21,9 +21,7 @@ def get_network_by_name(conn, project_id, network_name):
                      {'project_id':project_id, 'network_name':network_name})
 
 # get project ID
-project_name = 'Water Allocation Demo'
-project = get_project_by_name(conn, project_name)
-project_id = project.id
+
 
 # get network ID
 network_name = 'Water Allocation Network'

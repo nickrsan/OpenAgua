@@ -31,9 +31,8 @@ var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/
 var currentItems = new L.geoJson();
 
 // add zoom buttons
-//L.control.zoom({position:'topright'}).addTo(map);
-//var zoomboxControl = new L.Control.boxzoom({ position:'topright' });
-//map.addControl(zoomboxControl);
+L.control.zoom({position:'topright'}).addTo(map);
+//L.Control.boxzoom({ position:'topright' }).addTo(map);
 
 // add locate button
 var locateControl = new L.control.locate(options={
@@ -63,10 +62,11 @@ var drawControl = new L.Control.Draw({
         circle: false,
         rectangle: false,
     },
-    edit: {
-        featureGroup: currentItems, // to edit we should add also currentItems
-        remove: false
-    }
+    edit: false
+    //edit: {
+        //featureGroup: currentItems, // to edit we should add also currentItems
+        //remove: false
+    //}
 });
 map.addControl(drawControl);
 
@@ -95,7 +95,7 @@ $( document ).ready(function() {
         };
         tileLayer.addTo(map); // add the tiles
         map.addLayer(currentItems); // add the layers
-        $("#load_status").text(status_message);
+        //$("#load_status").text(status_message);
     });
 });
 
@@ -139,36 +139,69 @@ map.on('draw:created', function (e) {
         layer = e.layer;
     newItems.addLayer(layer);
     gj = layer.toGeoJSON();
-    $('#modal_add_feature').modal('show');
+    if (type=='Point') {
+        $('#modal_add_node').modal('show');
+    } else {
+        $('#modal_add_link').modal('show');            
+    }
 });
 
-$('button#add_feature_confirm').bind('click', function() {
-    gj.properties.name = $('#feature_name').val();
-    gj.properties.description = $('#feature_description').val();
-    gj.properties.type = $("#feature_type").val();
-    $.getJSON($SCRIPT_ROOT + '/_add_feature', {new_feature: JSON.stringify(gj)}, function(data) {
+$('button#add_node_confirm').bind('click', function() {
+    gj.properties.name = $('#node_name').val();
+    gj.properties.description = $('#node_description').val();
+    gj.properties.type = $("#node_type").val();
+    $.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(data) {
         status_code = data.result.status_code;
         if ( status_code == -1 ) {
-            $("#add_feature_error").text('Name already in use. Please try again.');
+            $("#add_node_error").text('Name already in use. Please try again.');
         } else {
             var new_gj = data.result.new_gj;
             newItems.clearLayers();
             currentItems.addData(new_gj);
             refreshCurrentItems();
-            $('#feature_name').val('');
-            $('#feature_description').val('');
-            $("#save_status").text('Feature added!');
-            $('#modal_add_feature').modal('hide');
+            $('#node_name').val('');
+            $('#node_description').val('');
+            //$("#save_status").text('node added!');
+            $('#modal_add_node').modal('hide');
         };
     });
 });
 
-$('button#add_feature_cancel').bind('click', function() {
+$('button#add_link_confirm').bind('click', function() {
+    gj.properties.name = $('#link_name').val();
+    gj.properties.description = $('#link_description').val();
+    gj.properties.type = $("#link_type").val();
+    $.getJSON($SCRIPT_ROOT + '/_add_link', {new_link: JSON.stringify(gj)}, function(data) {
+        status_code = data.result.status_code;
+        if ( status_code == -1 ) {
+            $("#add_link_error").text('Name already in use. Please try again.');
+        } else {
+            var new_gj = data.result.new_gj;
+            newItems.clearLayers();
+            currentItems.addData(new_gj);
+            refreshCurrentItems();
+            $('#link_name').val('');
+            $('#link_description').val('');
+            //$("#save_status").text('link added!');
+            $('#modal_add_link').modal('hide');
+        };
+    });
+});
+
+$('button#add_node_cancel').bind('click', function() {
     var status_code = 1;
     newItems.clearLayers();
-    $('#feature_name').val('');
-    $('#feature_description').val('');
-    $("#save_status").text('Action cancelled.');    
+    $('#node_name').val('');
+    $('#node_description').val('');
+    //$("#save_status").text('Action cancelled.');    
+});
+
+$('button#add_link_cancel').bind('click', function() {
+    var status_code = 1;
+    newItems.clearLayers();
+    $('#link_name').val('');
+    $('#link_description').val('');
+    //$("#save_status").text('Action cancelled.');    
 });
 
 map.on('draw:edited', function (e) {
@@ -212,15 +245,19 @@ getContextmenuOptions = function(featureName) {
             index: 2,
             callback: deleteFeature
         }, {
+            text: 'Purge',
+            index: 3,
+            callback: purgeFeature
+        }, {
             separator: true,
-            index: 3
+            index: 4
         }, {
             text: 'Show coordinates',
-            index: 4,
+            index: 5,
             callback: showCoordinates
         }, {
             text: 'Center map here',
-            index: 5,
+            index: 6,
             callback: centerMap}],
         contextmenuInheritItems: false
     };
@@ -246,6 +283,16 @@ function deleteFeature(e) {
     $('#modal_delete_feature').modal('show');
 }
 
+var purged_layer;
+var purged_feature;
+function purgeFeature(e) {
+    purged_layer = e.relatedTarget;
+    purged_feature = e.relatedTarget.feature;
+    var name = purged_feature.properties.name;
+    $("#purge_feature_name").text("Purge \"" + name + "\"");
+    $('#modal_purge_feature').modal('show');
+}
+
 $('button#delete_feature_confirm').bind('click', function() {
     deleted_json = JSON.stringify(deleted_feature);
     $.getJSON($SCRIPT_ROOT+'/_delete_feature', {deleted: deleted_json}, function(data) {
@@ -253,8 +300,21 @@ $('button#delete_feature_confirm').bind('click', function() {
         if ( status_code == 1 ) { // there should be only success
             currentItems.removeLayer(deleted_layer);
             $("#delete_feature_name").text(""); // probably not necessary...
-            $("#save_status").text("Feature deleted!");
+            //$("#save_status").text("Feature deleted!");
             $("#modal_delete_feature").modal("hide");
+        };
+    });
+});
+
+$('button#purge_feature_confirm').bind('click', function() {
+    purged_json = JSON.stringify(purged_feature);
+    $.getJSON($SCRIPT_ROOT+'/_purge_feature', {purged: purged_json}, function(data) {
+        status_code = data.result.status_code;
+        if ( status_code == 1 ) { // there should be only success
+            currentItems.removeLayer(purged_layer);
+            $("#purge_feature_name").text(""); // probably not necessary...
+            //$("#save_status").text("Feature purged!");
+            $("#modal_purge_feature").modal("hide");
         };
     });
 });
