@@ -8,8 +8,6 @@
     
 {% block main %}
 
-{% include "modals.html" %}
-
 <div class="container-fluid">
   
   <div class="row">
@@ -35,7 +33,7 @@
             <ul class="list-group">
             {% if projects %}
               {% for project in projects %}
-                  <li id="{{ 'project%s' % project.id }}" value={{project.id}} class="list-group-item project_item clearfix" style="padding:5px">
+                  <li id="{{ project.id }}" value={{project.id}} class="list-group-item project_item clearfix" style="padding:5px">
                   
                     <div class="dropdown pull-right">
                       <button id="{{ 'dropdown_project_%s' % project.id }}" class="btn btn-default btn-xs dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
@@ -45,7 +43,7 @@
                       <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
                         <li><a href="#">Activate</a></li>
                         <li><a href="#">Rename</a></li>
-                        <li><a href="#">Delete</a></li>
+                        <li><a onclick="purge_project({{project.id}})" href="#">Purge</a></li>
                         <li role="separator" class="divider"></li>
                         <li><a href="#">Sharing</a></li>
                       </ul>
@@ -141,72 +139,15 @@
   </div>    
 </div>
   
-<script>
+{% include "modals.html" %}  
 
+<script>
 $( document ).ready(function() {
   $("li#{{ 'project%s' % session['project_id'] }}").addClass('active');
-});
-
-$("button#add_project").bind('click', function() {
-  $('#modal_add_project').modal('show');
-});
-
-<!--$('.project_item').mouseover(function() {-->
-   <!--$("#dropdown_project_"+this.value).show();-->
-<!--});-->
-
-<!--$('.project_item').mouseout(function() {-->
-   <!--$("#dropdown_project_"+this.value).hide();-->
-<!--});-->
-
-
-$( document ).ready(function() {
   $("li#{{ 'network%s' % session['network_id'] }}").addClass('active');
-});
-
-$("button#add_network").bind('click', function() {
-  $('#modal_add_network').modal('show');
-});
-
-<!--$('.network_item').mouseover(function() {-->
-   <!--$("#dropdown_network_"+this.value).show();-->
-<!--});-->
-
-<!--$('.network_item').mouseout(function() {-->
-   <!--$("#dropdown_network_"+this.value).hide();-->
-<!--});-->
-
-$("button#add_project_confirm").bind('click', function() {
-      var proj = {name: $('#project_name').val(), description: $('#project_description').val()};
-      $.getJSON($SCRIPT_ROOT + '/_add_project', {proj: JSON.stringify(proj)}, function(resp) {
-        status_code = resp.result.status_code;
-        if ( status_code == -1 ) {
-            $("#add_project_error").text('Name already in use. Please try again.');
-        } else if ( status_code == 1 ){
-            $("#project_list ul").append('<li>'+proj.name+'</li>');
-            $('#modal_add_project').modal('hide');
-        };
-    });
-});
-
-$("button#add_network_confirm").bind('click', function() {
-      var net = {
-        name: $('#network_name').val(),
-        description: $('#network_description').val()
-      };
-      var tpl_id = $('#net_template').val();
-      var data = {net: JSON.stringify(net), tpl_id: tpl_id};
-      $.getJSON($SCRIPT_ROOT + '/_add_network', data, function(resp) {
-        status_code = resp.result.status_code;
-        if ( status_code == -1 ) {
-            $("#add_network_error").text('Name already in use. Please try again.');
-        } else if ( status_code == 1 ){
-            $("#network_list ul").append('<li>'+net.name+'</li>');
-            $('#modal_add_network').modal('hide');
-        };
-    });
-});
+});  
 </script>
-
+  
+<script src="{{ url_for('user_projects.static', filename='js/user_projects.js') }}"></script>
 
 {% endblock %}
