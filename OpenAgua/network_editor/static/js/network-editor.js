@@ -19,7 +19,6 @@ var mapContextmenuOptions = {
 };
 
 // CREATE BASIC MAP
-
 var map = L.map('map', mapContextmenuOptions);
 
 var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
@@ -79,8 +78,10 @@ drawControl.setDrawingOptions({
 });
 
 // load existing network
+map.spin(true);
 $( document ).ready(function() {
     $.getJSON($SCRIPT_ROOT + '/_load_network', function(data) {
+        tileLayer.addTo(map); // add the tiles
         var featuresGJ = JSON.parse(data.result.features);
         currentItems.addData(featuresGJ);
         refreshCurrentItems();
@@ -93,9 +94,9 @@ $( document ).ready(function() {
             map.setView([0, 0], 2);
             status_message = 'Empty network loaded. Please add features.'
         };
-        tileLayer.addTo(map); // add the tiles
         map.addLayer(currentItems); // add the layers
         //$("#load_status").text(status_message);
+        map.spin(false);
     });
 });
 
