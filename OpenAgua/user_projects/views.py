@@ -26,9 +26,8 @@ def project_settings():
             project = conn.get_project_by_name(project_name=session['project_name'])
             session['project_id'] = project.id
         networks = conn.call('get_networks',{'project_id':session['project_id'],'include_data':'N'})
-        network_names = [network.name for network in networks]
     else:
-        network_names = []
+        networks = []
         
     # get list of all templates
     templates = conn.call('get_templates',{})
@@ -41,8 +40,8 @@ def project_settings():
         templates = conn.call('get_templates',{})
     
     return render_template('projects_manager.html',
-                           project_names=project_names,
-                           network_names=network_names,
+                           projects=projects,
+                           networks=networks,
                            templates=templates)
 
 @user_projects.route('/_add_project')

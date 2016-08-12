@@ -23,52 +23,85 @@
   <div class="row">
   
     <!--select/add project-->
-    <div class="col sm-8 col-md-4">
+    <div class="col sm-4 col-md-3">
       <div class="panel panel-default">
-        <div class="panel-heading">Manage projects</div>
+        <div class="panel-heading clearfix" style="padding:3px">
+          <button id="add_project" class="btn btn-default btn-sm pull-right">Add project</button>
+          <h4 style="margin:7px">Projects</h4>
+        </div>
         <div class="panel-body">
-          <label>Existing projects (active project in bold)</label>
+          <!--<p>Click to activate</p>-->
           <div id="project_list">
-            <ul>
-            {% if project_names %}
-              {% for pname in project_names %}
-                {% if pname == session['project_name']%}
-                  <li><strong>{{ pname }}</strong></li>
-                {% else %}
-                  <li>{{ pname }}</li>
-                {% endif %}
+            <ul class="list-group">
+            {% if projects %}
+              {% for project in projects %}
+                  <li id="{{ 'project%s' % project.id }}" value={{project.id}} class="list-group-item project_item clearfix" style="padding:5px">
+                  
+                    <div class="dropdown pull-right">
+                      <button id="{{ 'dropdown_project_%s' % project.id }}" class="btn btn-default btn-xs dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        Actions
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                        <li><a href="#">Activate</a></li>
+                        <li><a href="#">Rename</a></li>
+                        <li><a href="#">Delete</a></li>
+                        <li role="separator" class="divider"></li>
+                        <li><a href="#">Sharing</a></li>
+                      </ul>
+                    </div>
+                    
+                    <div style="margin:5px"> {{ project.name }} </div>
+                  
+                  </li>
               {% endfor %}
             {% else %}          
               <p>No projects yet.</p>
             {% endif %}
             </ul>
           </div>
-          <button id="add_project" class="btn btn-default">Add project</button>
         </div>
       </div>
+    </div>
       
-      <!--select/add network-->
+    <!--select/add network-->
+    <div class="col sm-4 col-md-3">
       <div class="panel panel-default">
-        <div class="panel-heading">Manage networks</div>
+        <div class="panel-heading clearfix" style="padding:3px">
+          <button id="add_network" class="btn btn-default btn-sm pull-right">Add network</button>
+          <h4 style="margin:7px">Networks</h4>
+        </div>
         <div class="panel-body">
-          <label>Networks for active project</label>
-          {% if session['project_name'] in project_names %}
+          {% if networks %}
+            <!--<p>Click to activate and view network</p>-->
             <div id="network_list">
-            <ul>
-            {% if network_names %}
-              {% for nname in network_names %}
-                {% if nname == session['network_name']%}
-                  <li><strong>{{ nname }}</strong></li>
-                {% else %}  
-                  <li>{{ nname }}</li>
-                {% endif %}
-              {% endfor %}
-            {% else %}          
-              <p>No networks yet.</p>
-            {% endif %}
+            <ul class="list-group">
+              {% for network in networks %}
+                <li id="{{ 'network%s' % network.id }}" value={{network.id}} type="button" class="list-group-item network_item clearfix" style="padding:5px">
+                
+                <div class="dropdown pull-right">
+                  <button id="{{ 'dropdown_network_%s' % network.id }}" class="btn btn-xs btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                    Actions
+                    <span class="caret"></span>
+                  </button>
+                  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                    <li><a href="#">Activate</a></li>
+                    <li><a href="#">Rename</a></li>
+                    <li><a href="#">Attach/detach templates</a></li>
+                    <li><a href="#">Delete</a></li>
+                    <!--<li role="separator" class="divider"></li>-->
+                    <!--<li><a href="#">Sharing</a></li>-->
+                  </ul>
+                </div>
+                
+                <div style="margin:5px">{{ network.name }}</div>
+                
+                </li>
+              {% endfor %}         
             </ul>
             </div>
-            <button id="add_network" class="btn btn-default">Add network</button>
+          {% else %}
+            <p>No networks yet.</p>
           {% endif %}
         </div>
       </div>
@@ -76,17 +109,16 @@
     </div>
     
     <!--manage templates-->    
-    <div class="col sm-8 col-md-4">
+    <div class="col sm-6 col-md-4">
       <div class="panel panel-default">
-        <div class="panel-heading">Manage templates</div>
+        <div class="panel-heading"><b>Templates</b></div>
         <div class="panel-body">
-
-          <label>Existing templates</label>
+          <p>Click to activate</p>
           <div id="template_list">
             {% if templates %}
-            <ul>
+            <ul class="list-group">
               {% for tpl in templates %}
-                <li>{{ tpl.name }}</li>
+                  <li class="list-group-item">{{ tpl.name }}</li>
               {% endfor %}
             </ul>
             {% else %}          
@@ -110,13 +142,39 @@
 </div>
   
 <script>
+
+$( document ).ready(function() {
+  $("li#{{ 'project%s' % session['project_id'] }}").addClass('active');
+});
+
 $("button#add_project").bind('click', function() {
   $('#modal_add_project').modal('show');
+});
+
+<!--$('.project_item').mouseover(function() {-->
+   <!--$("#dropdown_project_"+this.value).show();-->
+<!--});-->
+
+<!--$('.project_item').mouseout(function() {-->
+   <!--$("#dropdown_project_"+this.value).hide();-->
+<!--});-->
+
+
+$( document ).ready(function() {
+  $("li#{{ 'network%s' % session['network_id'] }}").addClass('active');
 });
 
 $("button#add_network").bind('click', function() {
   $('#modal_add_network').modal('show');
 });
+
+<!--$('.network_item').mouseover(function() {-->
+   <!--$("#dropdown_network_"+this.value).show();-->
+<!--});-->
+
+<!--$('.network_item').mouseout(function() {-->
+   <!--$("#dropdown_network_"+this.value).hide();-->
+<!--});-->
 
 $("button#add_project_confirm").bind('click', function() {
       var proj = {name: $('#project_name').val(), description: $('#project_description').val()};
