@@ -2,7 +2,7 @@ var myInterval;
 
 $('button#run_app').bind('click', function() {
 
-    $(this).button('loading')
+    $(this).button('loading');
 
     // 1. get run data and store it as json
     // in the future, we will get this from a form, scenario builder, etc.
@@ -12,8 +12,8 @@ $('button#run_app').bind('click', function() {
     };
     
     // 2. call run app route, sending json data with scenario information
-    $.getJSON($SCRIPT_ROOT+'/_run_model', {'model': args}, function(data) {
-        status = data.result.status;
+    $.getJSON($SCRIPT_ROOT+'/_run_model', {'params': JSON.stringify(args)}, function(resp) {
+        status = resp.result.status;
         model_progress(status);
     });
 });

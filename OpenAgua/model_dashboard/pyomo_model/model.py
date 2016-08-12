@@ -1,23 +1,53 @@
 # import
 import pandas
 from pandas.io.json import json_normalize
+import os
 import sys
 import json
+from time import sleep
+import logging
 
 # multicore processing tools
 import multiprocessing as mp
 from functools import partial
 poolsize = mp.cpu_count()
 
-from ..connection import connection
+#from ..connection import connection
+
+def run_timestep(data):
+    return 5
 
 # run the model
-# session holds all constant settings
-# scenario simply specifies which scenario to run
-def run_model(session, scenario):
-    pass
+# params holds all constant settings
+# scenario simply specifies which Hydra scenario to run
+def run_model(params, scenario):
+    project = params['project']
+    logfile = 'status - {project} - {scenario}.log'.format(project=project, scenario=scenario)
+    logging.basicConfig(filename=join('log', logfile), level=logging.INFO)
+    t0, tf = params['start'], params['finish']
+    timesteps = range(10)
+    for ts in timesteps:
+        
+        data = ts
+        
+        run_timestep(data)
+        
+        sleep(1)
+        msg = '{}'.format(ts)
+        logging.info(msg)         
 
-def main(session, scenario_sets):
+def get_progress(by_timestep, timesteps_count = None):
+    completed = 0
+    for fname in os.listdir('./log'):
+        n = len(open(fname).readlines())
+        if by_timestep:
+            completed += n
+        else:
+            if n == timesteps_count:
+                completed += 1
+    return completed
+
+def main(params, scenarios, chunksize):
 
     # =====
     # input
@@ -52,15 +82,15 @@ def main(session, scenario_sets):
     # log start of run
     #log('Running in multicore mode with pool.{}: {} workers, {} chunks each.' \
           #.format(session['pooltype'], poolsize, session['chunksize]))
-    
+    poolsize = 1
     pool = mp.Pool(processes=poolsize, maxtasksperchild=1)
     
     # set up the partial function with non-variable parameters as session (p in run_model)
-    f = partial(run_model, p=session)
+    f = partial(run_model, params=params)
     
     # pass partial to pools with scenario-specific data as scenarios (s in run_model)
     # scenarios should be defined from scenario sets, passed by user
-    pools = pool.imap(f, scenarios, chunksize=session['chunksize'])
+    pools = pool.imap(f, scenarios, chunksize=chunksize)
     
     # iterate over results
     for result in enumerate(pools):
@@ -81,9 +111,7 @@ def main(session, scenario_sets):
     pool.close()
     pool.join()
     pbar.finish()
-
-#def run_from_file(datafile):
     
 if __name__=='__main__':
-    run_from_file("input.dat") # useful for testing (but not ready)
+    run_timestep("input.dat") # useful for testing one time step
     
