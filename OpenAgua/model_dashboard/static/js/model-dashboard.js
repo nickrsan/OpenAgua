@@ -12,9 +12,15 @@ $('button#run_app').bind('click', function() {
     };
     
     // 2. call run app route, sending json data with scenario information
-    $.getJSON($SCRIPT_ROOT+'/_run_model', {'params': JSON.stringify(args)}, function(resp) {
-        status = resp.result.status;
-        model_progress(status);
+    //$.getJSON($SCRIPT_ROOT+'/_run_model', , );
+    $.ajax({
+      type: "POST",
+      url: $SCRIPT_ROOT+'/_run_model',
+      data: {'params': JSON.stringify(args)},
+      success: function(resp) {
+            status = resp.result.status;
+            model_progress(status);
+        }
     });
 });
 
@@ -40,9 +46,9 @@ function update_model_progress() {
     var width;
     $.getJSON(
         $SCRIPT_ROOT+'/_model_progress',
-        function(data) {
-            status = data.result.status;
-            progress = data.result.progress;
+        function(resp) {
+            //status = resp.result.status;
+            progress = resp.result.progress;
         });
         width = "width:"+progress+"%";
         $('#model_run_progress').attr('style',width);

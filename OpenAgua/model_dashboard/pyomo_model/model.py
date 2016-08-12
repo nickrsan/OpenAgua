@@ -32,7 +32,7 @@ def run_model(params, scenario):
         
         run_timestep(data)
         
-        sleep(1)
+        #sleep(0.01)
         msg = '{}'.format(ts)
         logging.info(msg)         
 
@@ -83,34 +83,34 @@ def main(params, scenarios, chunksize):
     #log('Running in multicore mode with pool.{}: {} workers, {} chunks each.' \
           #.format(session['pooltype'], poolsize, session['chunksize]))
     poolsize = 1
-    pool = mp.Pool(processes=poolsize, maxtasksperchild=1)
+    #pool = mp.Pool(processes=poolsize, maxtasksperchild=1)
     
     # set up the partial function with non-variable parameters as session (p in run_model)
-    f = partial(run_model, params=params)
+    #f = partial(run_model, params=params)
     
     # pass partial to pools with scenario-specific data as scenarios (s in run_model)
     # scenarios should be defined from scenario sets, passed by user
-    pools = pool.imap(f, scenarios, chunksize=chunksize)
+    #pools = pool.imap(f, scenarios, chunksize=chunksize)
     
     # iterate over results
-    for result in enumerate(pools):
+    #for result in enumerate(pools):
         
-        # log progress
-        #log...
+        ## log progress
+        ##log...
                
-        # save results 
-        if result is not None:
-            # add results to Hydra via json
-            pass
+        ## save results 
+        #if result is not None:
+            ## add results to Hydra via json
+            #pass
         
-        else:
-            # log(...)
-            pass
+        #else:
+            ## log(...)
+            #pass
                  
     # stop the pool
-    pool.close()
-    pool.join()
-    pbar.finish()
+    #pool.close()
+    #pool.join()
+    #pbar.finish()
     
 if __name__=='__main__':
     run_timestep("input.dat") # useful for testing one time step

@@ -31,23 +31,26 @@ def run_model():
     )
     print(params, file=stderr)
     
-    #2. define scenarios
+    ##2. define scenarios
     scenarios = ['Baseline', 'Re-operation 1', 'Re-operation 2']
     session['timesteps_count'] = 12
     session['scenario_count'] = len(scenarios)
     print(scenarios, file=stderr)
     
-    #3. run the model
+    ##3. run the model
     chunksize=5
     print(chunksize, file=stderr)
-    #model.main(params, scenarios, chunksize)
+    model.main(params, scenarios, chunksize)
+    status = 1
+    return jsonify(result={'status':status})
 
 @model_dashboard.route('/_model_progress')
 def model_progress():
     by_timestep = True
-    completed = model.get_progress(by_timestep = by_timestep)
-    if by_timestep:
-        progress = completed / (session['timestep_count'] * session['scenarios_count'])
-    else:
-        progress = completed / session['scenario_count']
+    #completed = model.get_progress(by_timestep = by_timestep)
+    #if by_timestep:
+        #progress = completed / (session['timestep_count'] * session['scenarios_count'])
+    #else:
+        #progress = completed / session['scenario_count']
+    progress = 100
     return jsonify(result={'progress':progress})
