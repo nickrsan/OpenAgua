@@ -4,7 +4,7 @@ from ..decorators import *
 
 # import blueprint definition
 from . import model_dashboard
-from pyomo_model import model
+#from pyomo_model import model
 
 @model_dashboard.route('/model_dashboard')
 @login_required
