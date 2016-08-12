@@ -1,12 +1,11 @@
 from connection import connection
-from conversions import *
 
 session = {}
 
 conn = connection(url='http://hydra.openaguadss.org/json')
 conn.login(username = 'root', password = '')    
-
 projects = conn.call('get_projects',{})
+templates = conn.call('get_templates',{})
 
 import random
 name = 'test' + str(random.randint(1,10000))

@@ -28,34 +28,8 @@
           <h4 style="margin:7px">Projects</h4>
         </div>
         <div class="panel-body">
-          <!--<p>Click to activate</p>-->
           <div id="project_list">
             <ul class="list-group">
-            {% if projects %}
-              {% for project in projects %}
-                  <li id="{{ project.id }}" value={{project.id}} class="list-group-item project_item clearfix" style="padding:5px">
-                  
-                    <div class="dropdown pull-right">
-                      <button id="{{ 'dropdown_project_%s' % project.id }}" class="btn btn-default btn-xs dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                        Actions
-                        <span class="caret"></span>
-                      </button>
-                      <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                        <li><a href="#">Activate</a></li>
-                        <li><a href="#">Rename</a></li>
-                        <li><a onclick="purge_project({{project.id}})" href="#">Purge</a></li>
-                        <li role="separator" class="divider"></li>
-                        <li><a href="#">Sharing</a></li>
-                      </ul>
-                    </div>
-                    
-                    <div style="margin:5px"> {{ project.name }} </div>
-                  
-                  </li>
-              {% endfor %}
-            {% else %}          
-              <p>No projects yet.</p>
-            {% endif %}
             </ul>
           </div>
         </div>
@@ -71,31 +45,8 @@
         </div>
         <div class="panel-body">
           {% if networks %}
-            <!--<p>Click to activate and view network</p>-->
             <div id="network_list">
             <ul class="list-group">
-              {% for network in networks %}
-                <li id="{{ 'network%s' % network.id }}" value={{network.id}} type="button" class="list-group-item network_item clearfix" style="padding:5px">
-                
-                <div class="dropdown pull-right">
-                  <button id="{{ 'dropdown_network_%s' % network.id }}" class="btn btn-xs btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                    Actions
-                    <span class="caret"></span>
-                  </button>
-                  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                    <li><a href="#">Activate</a></li>
-                    <li><a href="#">Rename</a></li>
-                    <li><a href="#">Attach/detach templates</a></li>
-                    <li><a href="#">Delete</a></li>
-                    <!--<li role="separator" class="divider"></li>-->
-                    <!--<li><a href="#">Sharing</a></li>-->
-                  </ul>
-                </div>
-                
-                <div style="margin:5px">{{ network.name }}</div>
-                
-                </li>
-              {% endfor %}         
             </ul>
             </div>
           {% else %}
@@ -111,17 +62,9 @@
       <div class="panel panel-default">
         <div class="panel-heading"><b>Templates</b></div>
         <div class="panel-body">
-          <p>Click to activate</p>
           <div id="template_list">
-            {% if templates %}
             <ul class="list-group">
-              {% for tpl in templates %}
-                  <li class="list-group-item">{{ tpl.name }}</li>
-              {% endfor %}
             </ul>
-            {% else %}          
-              <p>No templates loaded.</p>
-            {% endif %}
           </div>
     
           <label class="control-label">Upload new template - DOES NOT WORK</label>
@@ -142,10 +85,9 @@
 {% include "modals.html" %}  
 
 <script>
-$( document ).ready(function() {
-  $("li#{{ 'project%s' % session['project_id'] }}").addClass('active');
-  $("li#{{ 'network%s' % session['network_id'] }}").addClass('active');
-});  
+  var active_project_id = {{ session['project_id'] }};
+  var active_network_id = {{ session['network_id'] }};
+  var active_template_id = {{ session['template_id'] }};
 </script>
   
 <script src="{{ url_for('user_projects.static', filename='js/user_projects.js') }}"></script>
