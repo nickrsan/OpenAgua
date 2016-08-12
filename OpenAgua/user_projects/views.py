@@ -2,17 +2,18 @@ from __future__ import print_function
 import os
 from flask import render_template, request, session, json, jsonify
 import zipfile
+
 from ..connection import connection
-from ..conversions import *
+from ..decorators import *
 
 from sys import stderr
 
 # import blueprint definition
-from . import projects
+from . import user_projects
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-@projects.route('/projects')
+@user_projects.route('/projects')
 @login_required
 def project_settings():
     conn = connection(url=session['url'], session_id=session['session_id'])
@@ -44,7 +45,7 @@ def project_settings():
                            network_names=network_names,
                            templates=templates)
 
-@projects.route('/_add_project')
+@user_projects.route('/_add_project')
 def add_project():
     conn = connection(url=session['url'], session_id=session['session_id'])
     projects = conn.call('get_projects', {'user_id':session['user_id']})
@@ -62,7 +63,7 @@ def add_project():
         session['project_id'] = project.id
         return jsonify(result={'status_code': 1})
 
-@projects.route('/_add_network', methods=['GET', 'POST'])
+@user_projects.route('/_add_network', methods=['GET', 'POST'])
 def add_network():
     
     # connect & get networks
