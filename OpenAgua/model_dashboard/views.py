@@ -4,6 +4,8 @@ from flask import render_template, request, session, json, jsonify
 from ..connection import connection
 from ..decorators import *
 
+from subprocess import call
+
 # import blueprint definition
 from . import model_dashboard
 from pyomo_model import model
@@ -22,25 +24,32 @@ def model_dashboard_main():
 @model_dashboard.route('/_run_model', methods=['POST'])
 def run_model():
 
-    # add model code here
-    #1. define parameters
-    params = dict(
-        project = session['project_name'],
-        start = (2000, 1),
-        finish = (2000, 12)
-    )
-    print(params, file=stderr)
-    
-    ##2. define scenarios
+    # 1. get user input
+    ti = '1/2000'
+    tf = '12/2000'
     scenarios = ['Baseline', 'Re-operation 1', 'Re-operation 2']
-    session['timesteps_count'] = 12
-    session['scenario_count'] = len(scenarios)
-    print(scenarios, file=stderr)
+    scids = [1,2,3] # need to get these from scenario
     
-    ##3. run the model
-    chunksize=5
-    print(chunksize, file=stderr)
-    model.main(params, scenarios, chunksize)
+    # 2. define app name and arguments
+    # in the future:
+    # a. at least some of these should come in via the user interface (i.e. as a json string)
+    # b. this should be passed on directly to the model server
+    appname = 'openagua_model'
+    args = dict(
+        url = session['url'],
+        sid = session['session_id'],
+        nid = session['network_id'],
+        tid = session['template_id'],
+        scids = scids,
+        ti = ti,
+        tf = tf)
+    
+    # 3. run the model as a subprocess
+    # in the future, this will be via a web server call with json
+    call = ['python', appname]
+    for k, v in args.iteritems(): call.append(k, v)
+    returncode = Popen(call)   
+    
     status = 1
     return jsonify(result={'status':status})
 
