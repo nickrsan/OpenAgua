@@ -1,8 +1,8 @@
 from __future__ import division, print_function
 from sys import stderr
 from flask import render_template, request, session, json, jsonify
+from flask_user import login_required
 from ..connection import connection
-from ..decorators import *
 
 from subprocess import call
 

@@ -16,8 +16,8 @@
       <li class="nav-item"><a class="nav-link" href="#">Help</a></li>
       </ul>  
       <ul class="nav navbar-nav navbar-right">
-        <li class="nav-item"><a class="nav-link" href="#"><span class="glyphicon glyphicon-user"></span> {{ session.username }}</a></li>
-        <li class="nav-item"><a class="nav-link" href="/logout"><span class="glyphicon glyphicon-log-in"></span> Logout</a></li>
+        <li class="nav-item"><a class="nav-link" href="/user/profile"><span class="glyphicon glyphicon-user"></span> {{ current_user.username }}</a></li>
+        <li class="nav-item"><a class="nav-link" href="/user/sign-out"><span class="glyphicon glyphicon-log-in"></span> Sign out</a></li>
       </ul>  
     </div>
   </div>
