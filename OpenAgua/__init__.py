@@ -10,6 +10,7 @@ from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter
 from .user_projects import user_projects
 from .user_home import user_home
 from .network_editor import net_editor
+from .main_overview import main_overview
 from .model_dashboard import model_dashboard
 
 app = Flask('OpenAgua', instance_relative_config=True)
@@ -62,5 +63,6 @@ import OpenAgua.views
 
 app.register_blueprint(user_home, url_prefix='')
 app.register_blueprint(user_projects, url_prefix='')
+app.register_blueprint(main_overview, url_prefix='')
 app.register_blueprint(net_editor, url_prefix='')
 app.register_blueprint(model_dashboard, url_prefix='')
