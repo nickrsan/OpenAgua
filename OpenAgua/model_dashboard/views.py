@@ -34,21 +34,29 @@ def run_model():
     # in the future:
     # a. at least some of these should come in via the user interface (i.e. as a json string)
     # b. this should be passed on directly to the model server
-    appname = 'openagua_model'
+    appname = 'OpenAguaModel'
+    appfile = appname + '.py'
     args = dict(
+        app = appname,
         url = session['url'],
+        user = 'root',
+        pw = 'password',
         sid = session['session_id'],
         nid = session['network_id'],
         tid = session['template_id'],
-        scids = scids,
+        scids = str(scids),
         ti = ti,
-        tf = tf)
+        tf = tf,
+        tsf = '%m/%Y',
+        log = 'logs')
     
     # 3. run the model as a subprocess
     # in the future, this will be via a web server call with json
-    call = ['python', appname]
-    for k, v in args.iteritems(): call.append(k, v)
-    returncode = Popen(call)   
+    call = 'python {}'.format(appname)
+    for k, v in args.iteritems():
+        call += '-{} {}'.format(k, v)
+        
+    returncode = Popen(call)
     
     status = 1
     return jsonify(result={'status':status})
