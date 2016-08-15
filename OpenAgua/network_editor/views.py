@@ -1,6 +1,6 @@
 from flask import render_template, request, session, json, jsonify
+from flask_user import login_required
 from ..connection import connection
-from ..decorators import *
 
 # import blueprint definition
 from . import net_editor
