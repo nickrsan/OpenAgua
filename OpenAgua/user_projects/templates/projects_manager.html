@@ -8,8 +8,6 @@
     
 {% block main %}
 
-{% include "modals.html" %}
-
 <div class="container-fluid">
   
   <div class="row">
@@ -23,52 +21,36 @@
   <div class="row">
   
     <!--select/add project-->
-    <div class="col sm-8 col-md-4">
+    <div class="col sm-4 col-md-3">
       <div class="panel panel-default">
-        <div class="panel-heading">Manage projects</div>
+        <div class="panel-heading clearfix" style="padding:3px">
+          <button id="add_project" class="btn btn-default btn-sm pull-right">Add project</button>
+          <h4 style="margin:7px">Projects</h4>
+        </div>
         <div class="panel-body">
-          <label>Existing projects (active project in bold)</label>
           <div id="project_list">
-            <ul>
-            {% if project_names %}
-              {% for pname in project_names %}
-                {% if pname == session['project_name']%}
-                  <li><strong>{{ pname }}</strong></li>
-                {% else %}
-                  <li>{{ pname }}</li>
-                {% endif %}
-              {% endfor %}
-            {% else %}          
-              <p>No projects yet.</p>
-            {% endif %}
+            <ul class="list-group">
             </ul>
           </div>
-          <button id="add_project" class="btn btn-default">Add project</button>
         </div>
       </div>
+    </div>
       
-      <!--select/add network-->
+    <!--select/add network-->
+    <div class="col sm-4 col-md-3">
       <div class="panel panel-default">
-        <div class="panel-heading">Manage networks</div>
+        <div class="panel-heading clearfix" style="padding:3px">
+          <button id="add_network" class="btn btn-default btn-sm pull-right">Add network</button>
+          <h4 style="margin:7px">Networks</h4>
+        </div>
         <div class="panel-body">
-          <label>Networks for active project</label>
-          {% if session['project_name'] in project_names %}
+          {% if networks %}
             <div id="network_list">
-            <ul>
-            {% if network_names %}
-              {% for nname in network_names %}
-                {% if nname == session['network_name']%}
-                  <li><strong>{{ nname }}</strong></li>
-                {% else %}  
-                  <li>{{ nname }}</li>
-                {% endif %}
-              {% endfor %}
-            {% else %}          
-              <p>No networks yet.</p>
-            {% endif %}
+            <ul class="list-group">
             </ul>
             </div>
-            <button id="add_network" class="btn btn-default">Add network</button>
+          {% else %}
+            <p>No networks yet.</p>
           {% endif %}
         </div>
       </div>
@@ -76,22 +58,13 @@
     </div>
     
     <!--manage templates-->    
-    <div class="col sm-8 col-md-4">
+    <div class="col sm-6 col-md-4">
       <div class="panel panel-default">
-        <div class="panel-heading">Manage templates</div>
+        <div class="panel-heading"><b>Templates</b></div>
         <div class="panel-body">
-
-          <label>Existing templates</label>
           <div id="template_list">
-            {% if templates %}
-            <ul>
-              {% for tpl in templates %}
-                <li>{{ tpl.name }}</li>
-              {% endfor %}
+            <ul class="list-group">
             </ul>
-            {% else %}          
-              <p>No templates loaded.</p>
-            {% endif %}
           </div>
     
           <label class="control-label">Upload new template - DOES NOT WORK</label>
@@ -109,46 +82,14 @@
   </div>    
 </div>
   
+{% include "modals.html" %}  
+
 <script>
-$("button#add_project").bind('click', function() {
-  $('#modal_add_project').modal('show');
-});
-
-$("button#add_network").bind('click', function() {
-  $('#modal_add_network').modal('show');
-});
-
-$("button#add_project_confirm").bind('click', function() {
-      var proj = {name: $('#project_name').val(), description: $('#project_description').val()};
-      $.getJSON($SCRIPT_ROOT + '/_add_project', {proj: JSON.stringify(proj)}, function(resp) {
-        status_code = resp.result.status_code;
-        if ( status_code == -1 ) {
-            $("#add_project_error").text('Name already in use. Please try again.');
-        } else if ( status_code == 1 ){
-            $("#project_list ul").append('<li>'+proj.name+'</li>');
-            $('#modal_add_project').modal('hide');
-        };
-    });
-});
-
-$("button#add_network_confirm").bind('click', function() {
-      var net = {
-        name: $('#network_name').val(),
-        description: $('#network_description').val()
-      };
-      var tpl_id = $('#net_template').val();
-      var data = {net: JSON.stringify(net), tpl_id: tpl_id};
-      $.getJSON($SCRIPT_ROOT + '/_add_network', data, function(resp) {
-        status_code = resp.result.status_code;
-        if ( status_code == -1 ) {
-            $("#add_network_error").text('Name already in use. Please try again.');
-        } else if ( status_code == 1 ){
-            $("#network_list ul").append('<li>'+net.name+'</li>');
-            $('#modal_add_network').modal('hide');
-        };
-    });
-});
+  var active_project_id = {{ session['project_id'] }};
+  var active_network_id = {{ session['network_id'] }};
+  var active_template_id = {{ session['template_id'] }};
 </script>
-
+  
+<script src="{{ url_for('user_projects.static', filename='js/user_projects.js') }}"></script>
 
 {% endblock %}

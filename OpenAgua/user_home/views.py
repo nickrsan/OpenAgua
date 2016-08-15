@@ -1,6 +1,6 @@
-from flask import render_template, request, session, redirect
+from flask import render_template, request, session, redirect, url_for
+from flask_user import login_required
 from ..connection import connection
-from ..decorators import *
 
 # import blueprint definition
 from . import user_home
@@ -75,4 +75,4 @@ def load_recent():
     
     session['appname'] = 'pyomo_network_lp'
     
-    return redirect(url_for('overview'))
+    return redirect(url_for('main_overview.overview'))
