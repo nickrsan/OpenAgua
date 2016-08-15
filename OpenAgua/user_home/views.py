@@ -75,4 +75,4 @@ def load_recent():
     
     session['appname'] = 'pyomo_network_lp'
     
-    return redirect(url_for('overview'))
+    return redirect(url_for('main_overview.overview'))
