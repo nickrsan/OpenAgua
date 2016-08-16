@@ -6,8 +6,8 @@ $('button#run_app').bind('click', function() {
 
     // 1. get run data and store it as json
     args = {
-        ti: '1/2000',
-        tf: '12/2000',
+        ti: $('#datepicker1').data().date,
+        tf: $('#datepicker2').data().date,
     };
     
     // 2. call run app route, sending json data with scenario information
@@ -31,7 +31,7 @@ function model_progress(status) {
         $("#status_message").text("No model running.")
     } else if (status == 1) {
         $("#status_message").text("Model running...");
-        myInterval = setInterval(update_model_progress, 1000)
+        myInterval = setInterval(update_model_progress, 500)
     } else if (status == 2) {
         $("button#run_app").button('reset')
         $("#status_message").text("Model complete!")      
@@ -43,7 +43,6 @@ function update_model_progress() {
     $.getJSON(
         $SCRIPT_ROOT+'/_model_progress',
         function(resp) {
-            //status = resp.result.status;
             progress = resp.result.progress;
         });
         width = "width:"+progress+"%";
@@ -55,3 +54,6 @@ function update_model_progress() {
             $("button#run_app").button('reset')
         }
 };
+
+
+$( document ).unload(clearInterval(myInterval));

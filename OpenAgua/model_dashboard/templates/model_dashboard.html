@@ -6,14 +6,14 @@
 {% block content %}
 
  <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-6 col-sm-9">
       <div class="panel panel-default">
         <div class="panel-heading">Pyomo optimization model</div>
         
         <div class="panel-body">
 
             <div class="container">
-                <div class='col-md-2'>
+                <div class='col-md-2 col-sm-3'>
                     <div class="form-group">
                         <label for='datepicker1'>First month (mm/yyyy)</label>
                         <div class='input-group date' id='datepicker1'>
@@ -24,7 +24,7 @@
                         </div>
                     </div>
                 </div>
-                <div class='col-md-2'>
+                <div class='col-md-2 col-sm-3'>
                     <div class="form-group">
                         <label for='datepicker2'>Last month (mm/yyyy)</label>
                         <div class='input-group date' id='datepicker2'>
@@ -40,7 +40,7 @@
                 $(function () {
                     $('#datepicker1').datetimepicker({
                         viewMode: 'years',
-                        format: 'MM/YYYY'        
+                        format: 'MM/YYYY',
                     });
                     $('#datepicker2').datetimepicker({
                         viewMode: 'years',
@@ -53,6 +53,8 @@
                     $("#datepicker2").on("dp.change", function (e) {
                         $('#datepicker1').data("DateTimePicker").maxDate(e.date);
                     });
+                    $("#datepicker1").data("DateTimePicker").defaultDate('01/1995');
+                    $("#datepicker2").data("DateTimePicker").defaultDate('12/2014');
                 });
             </script>
          
