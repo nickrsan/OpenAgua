@@ -5,23 +5,19 @@ $('button#run_app').bind('click', function() {
     $(this).button('loading');
 
     // 1. get run data and store it as json
-    // in the future, we will get this from a form, scenario builder, etc.
     args = {
-        start_date: 5,
-        end_date: 10,
+        ti: '1/2000',
+        tf: '12/2000',
     };
     
     // 2. call run app route, sending json data with scenario information
-    //$.getJSON($SCRIPT_ROOT+'/_run_model', , );
-    $.ajax({
-      type: "POST",
-      url: $SCRIPT_ROOT+'/_run_model',
-      data: {'params': JSON.stringify(args)},
-      success: function(resp) {
-            status = resp.result.status;
-            model_progress(status);
+    $.getJSON(
+        $SCRIPT_ROOT+'/_run_model',
+        {'args': JSON.stringify(args)},
+        function(resp) {
+            status = resp.result.status; model_progress(status)
         }
-    });
+    );
 });
 
 //$( document ).ready(model_progress());

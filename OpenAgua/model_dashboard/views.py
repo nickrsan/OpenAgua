@@ -23,12 +23,13 @@ def model_dashboard_main():
                            status=status,
                            progress=progress) 
 
-@model_dashboard.route('/_run_model', methods=['POST'])
+@model_dashboard.route('/_run_model', methods=['GET','POST'])
+@login_required
 def run_model():
 
     # 1. get user input
-    ti = '1/2000'
-    tf = '12/2000'
+    args_user = request.args.get('args')
+    args_user = json.loads(args_user)
     scenarios = ['Baseline', 'Re-operation 1', 'Re-operation 2']
     scids = [1,2,3] # need to get these from scenario
     
@@ -42,14 +43,14 @@ def run_model():
     args = dict(
         app = appname,
         url = session['url'],
-        user = 'root',
-        pw = 'password',
+        #user = 'root',
+        #pw = 'password',
         sid = session['session_id'],
         nid = session['network_id'],
         tid = session['template_id'],
         scids = '"%s"' % scids,
-        ti = ti,
-        tf = tf,
+        ti = args_user['ti'],
+        tf = args_user['tf'],
         tsf = '%m/%Y')
     
     # 3. run the model as a subprocess
@@ -58,13 +59,13 @@ def run_model():
     for k, v in args.iteritems():
         call += ' -{} {}'.format(k, v)
     
-    print(call, file=stderr)
-    returncode = Popen(call)
+    returncode = Popen(call, shell=True)
     
     status = 1
     return jsonify(result={'status':status})
 
 @model_dashboard.route('/_model_progress')
+@login_required
 def model_progress():
     by_timestep = True
     #completed = model.get_progress(by_timestep = by_timestep)
