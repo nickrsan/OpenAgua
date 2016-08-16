@@ -1,5 +1,6 @@
 *.ipynb
 *.pyc
 *.sqlite
+*.log
 instance/
 OpenAgua/model_dashboard/popen test.py

@@ -3,6 +3,7 @@ var myInterval;
 $('button#run_app').bind('click', function() {
 
     $(this).button('loading');
+    update_progress_bar(0);
 
     // 1. get run data and store it as json
     args = {
@@ -45,12 +46,16 @@ function update_model_progress() {
         function(resp) {
             progress = resp.result.progress;
         });
-        width = "width:"+progress+"%";
-        $('#model_run_progress').attr('style',width);
-        $("#model_run_progress").text(progress+"%");
-        if (progress == 100) {
-            clearInterval(myInterval)
-            $("#status_message").text("Model complete!");
-            $("button#run_app").button('reset')
-        }
+    update_progress_bar(progress);
+    if (progress == 100) {
+        clearInterval(myInterval)
+        $("#status_message").text("Model complete!");
+        $("button#run_app").button('reset')
+    };
+};
+
+function update_progress_bar(progress) {
+    width = "width:"+progress+"%";
+    $('#model_run_progress').attr('style',width);
+    $("#model_run_progress").text(progress+"%");
 };

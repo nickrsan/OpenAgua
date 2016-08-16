@@ -28,7 +28,7 @@ def run_timestep(data):
 # scenario simply specifies which Hydra scenario to run
 def run_scenario(scenario, args=None):
     
-    logfile = join(args.scenario_log_dir, 'scenario_{}_log.txt'.format(scenario))
+    logfile = join(args.scenario_log_dir, 'scenario_{}.log'.format(scenario))
     log = create_logger(args.app_name, logfile)
     log.info('starting scenario {}'.format(scenario))
     
@@ -67,9 +67,9 @@ def run_scenario(scenario, args=None):
         # main per-timestep modeling routine here
         
         #run_timestep(data)
-        sleep(.1)
+        sleep(.05)
         
-        log.info('completed timestep {} [{}/{}]'.format(dt.date.strftime(date, args.timestep_format), t+1, T))
+        log.info('completed timestep {} | {}/{}'.format(dt.date.strftime(date, args.timestep_format), t+1, T))
     
     return scenario
 
@@ -203,7 +203,7 @@ if __name__=='__main__':
         args.scenario_log_dir = 'logs'
     args.scenario_log_dir = os.path.join(here, args.scenario_log_dir)
 
-    logfile = join(args.log_dir, 'log.txt')
+    logfile = join(args.log_dir, 'log.log')
     log = create_logger(args.app_name, logfile)
         
     log.info('started model run with args: %s' % str(args))
