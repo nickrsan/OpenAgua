@@ -23,7 +23,8 @@ def model_dashboard_main():
                            status=status,
                            progress=progress) 
 
-@model_dashboard.route('/_run_model')
+@model_dashboard.route('/_run_model', methods=['GET','POST'])
+@login_required
 def run_model():
 
     # 1. get user input
@@ -58,13 +59,13 @@ def run_model():
     for k, v in args.iteritems():
         call += ' -{} {}'.format(k, v)
     
-    print(call, file=stderr)
     returncode = Popen(call)
     
     status = 1
     return jsonify(result={'status':status})
 
 @model_dashboard.route('/_model_progress')
+@login_required
 def model_progress():
     by_timestep = True
     #completed = model.get_progress(by_timestep = by_timestep)

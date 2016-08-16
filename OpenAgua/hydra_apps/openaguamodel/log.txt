@@ -1,0 +1,2 @@
+2016-08-15 22:35:05,569 - OpenAguaModel - INFO - started model run with args: Namespace(app_name='OpenAguaModel', final_timestep='12/2000', hydra_password='password', hydra_url='http://127.0.0.1:8080/json', hydra_username='root', initial_timestep='1/2000', log_dir='.', network_id='12', scenario_ids='[1, 2, 3]', scenario_log_dir='logs', session_id='433d4490a22ca9ac14e3fa252a683ae3', template_id='6', timestep_format='%m/%Y')
+2016-08-15 22:35:05,755 - OpenAguaModel - INFO - Running 3 scenarios in multicore mode with 4 workers, 1 chunks each.
