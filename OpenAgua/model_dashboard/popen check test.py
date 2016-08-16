@@ -1,7 +1,7 @@
 from subprocess import Popen
-import os
 
 appname = 'openaguamodel'
+appfile = appname + '.py'
 
 args = dict(
     app = appname,
@@ -13,12 +13,12 @@ args = dict(
     scids = '[1,2,3,4,5]',
     ti = '1/2000',
     tf = '12/2000',
-    tsf = '%m/%Y')
+    tsf = '%m/%Y',
+    log = 'logs')
 
-appfile = os.path.join(os.path.abspath('../hydra_apps'), appname, 'main.py')
-call = 'python %s' % appfile
+call = 'python %s' % appname
 for k, v in args.iteritems():
     call += ' -%s %s' % (k, v)
 resp = Popen(call)
 
-print(resp)
+print('finished')

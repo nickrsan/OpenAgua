@@ -1,3 +1,5 @@
+import os
+
 DEBUG = False
 HYDRA_URL = 'http://127.0.0.1:8080/json'
 HYDRA_USERNAME = 'root'
@@ -7,6 +9,9 @@ HYDRA_NETWORK_NAME = 'base_network'
 HYDRA_TEMPLATE_NAME = 'WEAP'
 SECRET_KEY = '\xef0d\xd8\xb3\xcd\xb0\x04u\x05\x12\xc64\x1d\x00Ld\x8bh\xd5\x81+a\x00'
 SQLALCHEMY_DATABASE_URI = 'sqlite:///users.sqlite'
+
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+HYDRA_APPS_DIR = os.path.join(APP_ROOT, 'hydra_apps')
 
 # Flask-User settings
 USER_APP_NAME = "OpenAguaDSS"
