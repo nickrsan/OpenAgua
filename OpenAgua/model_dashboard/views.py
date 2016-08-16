@@ -59,8 +59,7 @@ def run_model():
     for k, v in args.iteritems():
         call += ' -{} {}'.format(k, v)
     
-    print(call, file=stderr)
-    returncode = Popen(call)
+    returncode = Popen(call, shell=True)
     
     status = 1
     return jsonify(result={'status':status})

@@ -15,7 +15,7 @@ args = dict(
     tf = '12/2000',
     tsf = '%m/%Y')
 
-appfile = os.path.join(os.path.abspath('../hykkkdra_apps'), appname, 'main.py')
+appfile = os.path.join(os.path.abspath('../hydra_apps'), appname, 'main.py')
 call = 'python %s' % appfile
 for k, v in args.iteritems():
     call += ' -%s %s' % (k, v)
