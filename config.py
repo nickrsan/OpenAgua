@@ -11,7 +11,7 @@ SECRET_KEY = '\xef0d\xd8\xb3\xcd\xb0\x04u\x05\x12\xc64\x1d\x00Ld\x8bh\xd5\x81+a\
 SQLALCHEMY_DATABASE_URI = 'sqlite:///users.sqlite'
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-HYDRA_APPS_DIR = os.path.join(APP_ROOT, 'hydra_apps')
+HYDRA_APPS_DIR = os.path.join(APP_ROOT, 'OpenAgua', 'hydra_apps')
 
 # Flask-User settings
 USER_APP_NAME = "OpenAguaDSS"
