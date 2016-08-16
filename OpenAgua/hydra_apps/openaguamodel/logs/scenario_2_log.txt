@@ -1,17 +1,17 @@
-2016-08-15 22:35:05,868 - OpenAguaModel - INFO - starting scenario 2
-2016-08-15 22:35:05,868 - OpenAguaModel - INFO - connecting to Hydra Server URL: http://127.0.0.1:8080/json
-2016-08-15 22:35:05,868 - OpenAguaModel - INFO - connected to Hydra Server URL: http://127.0.0.1:8080/json
-2016-08-15 22:35:05,869 - OpenAguaModel - INFO - logged in to Hydra Server with provided session ID: 433d4490a22ca9ac14e3fa252a683ae3
-2016-08-15 22:35:05,877 - OpenAguaModel - INFO - running scenario 2 for 12 months: 1/2000 to 12/2000
-2016-08-15 22:35:06,387 - OpenAguaModel - INFO - completed timestep 01/2000 [1/12]
-2016-08-15 22:35:06,888 - OpenAguaModel - INFO - completed timestep 02/2000 [2/12]
-2016-08-15 22:35:07,388 - OpenAguaModel - INFO - completed timestep 03/2000 [3/12]
-2016-08-15 22:35:07,888 - OpenAguaModel - INFO - completed timestep 04/2000 [4/12]
-2016-08-15 22:35:08,390 - OpenAguaModel - INFO - completed timestep 05/2000 [5/12]
-2016-08-15 22:35:08,890 - OpenAguaModel - INFO - completed timestep 06/2000 [6/12]
-2016-08-15 22:35:09,391 - OpenAguaModel - INFO - completed timestep 07/2000 [7/12]
-2016-08-15 22:35:09,891 - OpenAguaModel - INFO - completed timestep 08/2000 [8/12]
-2016-08-15 22:35:10,391 - OpenAguaModel - INFO - completed timestep 09/2000 [9/12]
-2016-08-15 22:35:10,891 - OpenAguaModel - INFO - completed timestep 10/2000 [10/12]
-2016-08-15 22:35:11,391 - OpenAguaModel - INFO - completed timestep 11/2000 [11/12]
-2016-08-15 22:35:11,891 - OpenAguaModel - INFO - completed timestep 12/2000 [12/12]
+2016-08-15 23:04:41,696 - OpenAguaModel - INFO - starting scenario 2
+2016-08-15 23:04:41,696 - OpenAguaModel - INFO - connecting to Hydra Server URL: http://127.0.0.1:8080/json
+2016-08-15 23:04:41,696 - OpenAguaModel - INFO - connected to Hydra Server URL: http://127.0.0.1:8080/json
+2016-08-15 23:04:41,696 - OpenAguaModel - INFO - logged in to Hydra Server with provided session ID: 811bea37c9ed07c05110fb74f2df84b6
+2016-08-15 23:04:41,696 - OpenAguaModel - INFO - running scenario 2 for 12 months: 1/2000 to 12/2000
+2016-08-15 23:04:42,196 - OpenAguaModel - INFO - completed timestep 01/2000 [1/12]
+2016-08-15 23:04:42,696 - OpenAguaModel - INFO - completed timestep 02/2000 [2/12]
+2016-08-15 23:04:43,197 - OpenAguaModel - INFO - completed timestep 03/2000 [3/12]
+2016-08-15 23:04:43,711 - OpenAguaModel - INFO - completed timestep 04/2000 [4/12]
+2016-08-15 23:04:44,213 - OpenAguaModel - INFO - completed timestep 05/2000 [5/12]
+2016-08-15 23:04:44,727 - OpenAguaModel - INFO - completed timestep 06/2000 [6/12]
+2016-08-15 23:04:45,227 - OpenAguaModel - INFO - completed timestep 07/2000 [7/12]
+2016-08-15 23:04:45,743 - OpenAguaModel - INFO - completed timestep 08/2000 [8/12]
+2016-08-15 23:04:46,243 - OpenAguaModel - INFO - completed timestep 09/2000 [9/12]
+2016-08-15 23:04:46,743 - OpenAguaModel - INFO - completed timestep 10/2000 [10/12]
+2016-08-15 23:04:47,243 - OpenAguaModel - INFO - completed timestep 11/2000 [11/12]
+2016-08-15 23:04:47,744 - OpenAguaModel - INFO - completed timestep 12/2000 [12/12]
