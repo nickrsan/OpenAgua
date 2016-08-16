@@ -1,16 +1,10 @@
-{% extends 'admin/base.html' %}
-{% block head_admin %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}" />
-{% endblock %}
+{% extends 'flask_user/public_base.html' %}
 
 {% block content %}
-{% from "admin/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
+{% from "flask_user/_macros.html" import render_field, render_checkbox_field, render_submit_field %}
+<h1>{%trans%}Sign in{%endtrans%}</h1>
 
-<div class="container">
-
-<form action="" method="POST" class="form-signin" role="form">
-    <!--<h1 class="form-signin-heading">{%trans%}Sign in{%endtrans%}</h1>-->
-    <h1 class="form-signin-heading">Sign in</h1>
+<form action="" method="POST" class="form" role="form">
     {{ form.hidden_tag() }}
 
     {# Username or Email field #}
@@ -67,7 +61,5 @@
     {# Submit button #}
     {{ render_submit_field(form.submit, tabindex=180) }}
 </form>
-
-</div>
 
 {% endblock %}
