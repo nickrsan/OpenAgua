@@ -25,15 +25,17 @@ def model_dashboard_main():
                            status=status,
                            progress=progress) 
 
-@model_dashboard.route('/_run_model', methods=['POST'])
+@model_dashboard.route('/_run_model', methods=['GET', 'POST'])
+@login_required
 def run_model():
 
     # 1. get user input
-    ti = request.args.get('ti')
-    tf = request.args.get('tf')
-    scenarios = ['Baseline', 'Re-operation 1', 'Re-operation 2']
+    user_args = request.args.get('user_args')
+    user_args = json.loads(user_args)
+    ti = user_args['ti']
+    tf = user_args['tf']
     scids = [1,2,3] # need to get these from scenario
-    session['scenarios_count'] = len(scenarios)
+    session['scenarios_count'] = len(scids)
     
     # 2. define app name and arguments
     # in the future:
@@ -45,8 +47,8 @@ def run_model():
     args = dict(
         app = appname,
         url = session['url'],
-        user = 'root',
-        pw = 'password',
+        #user = 'root',
+        #pw = 'password',
         sid = session['session_id'],
         nid = session['network_id'],
         tid = session['template_id'],
@@ -69,8 +71,7 @@ def run_model():
 
 @model_dashboard.route('/_model_progress')
 def model_progress():
-    by_timestep = True
-    result = get_completed()
+    result = get_completed(scenario_logs_dir='logs')
     ts_completed = result['timesteps_completed']
     ts_count = result['timesteps_count']
     if ts_count is not None:

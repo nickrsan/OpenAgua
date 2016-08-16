@@ -49,19 +49,25 @@ def run_scenario(scenario, args=None):
         raise Exception
 
     # specify scenario-level parameters parameters (this are sent via params)
-    ti = dt.datetime.strptime(args.initial_timestep, args.timestep_format)
-    tf = dt.datetime.strptime(args.final_timestep, args.timestep_format)
-    dates = [date for date in rrule.rrule(rrule.MONTHLY, dtstart=ti, until=tf)]
+    try:
+        log.info('creating timesteps')
+        ti = dt.datetime.strptime(args.initial_timestep, args.timestep_format)
+        tf = dt.datetime.strptime(args.final_timestep, args.timestep_format)
+        dates = [date for date in rrule.rrule(rrule.MONTHLY, dtstart=ti, until=tf)]
+    except:
+        log.info('failed to create timesteps with args: {}'.format(args))
+    finally:
+        log.info('failed to create timesteps')
+    
     log.info('running scenario {} for {} months: {} to {}'
              .format(scenario, len(dates), args.initial_timestep, args.final_timestep))
-    
     T = len(dates)
     for t, date in enumerate(dates):
         
         # main per-timestep modeling routine here
         
         #run_timestep(data)
-        sleep(.5)
+        sleep(.1)
         
         log.info('completed timestep {} [{}/{}]'.format(dt.date.strftime(date, args.timestep_format), t+1, T))
     
@@ -203,8 +209,7 @@ if __name__=='__main__':
     log.info('started model run with args: %s' % str(args))
     
     # delete old scenario log files
-    
-    rmtree(args.scenario_log_dir, ignore_errors=True)
-    os.mkdir(args.scenario_log_dir)
+    for fname in os.listdir(args.scenario_log_dir):
+        os.remove(join(args.scenario_log_dir, fname))
     
     run_scenarios(args)

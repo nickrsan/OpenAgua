@@ -5,22 +5,18 @@ $('button#run_app').bind('click', function() {
     $(this).button('loading');
 
     // 1. get run data and store it as json
-    // in the future, we will get this from a form, scenario builder, etc.
     args = {
-        ti: '1/2000',
-        tf: '12/2001',
+        ti: $('#initial_timestep').data().date,
+        tf: $('#final_timestep').data().date,
     };
     
     // 2. call run app route, sending json data with scenario information
-    //$.getJSON($SCRIPT_ROOT+'/_run_model', , );
-    $.ajax({
-      type: "POST",
-      url: $SCRIPT_ROOT+'/_run_model',
-      data: {'user_args': JSON.stringify(args)},
-      success: function(resp) {
+    $.getJSON(
+        $SCRIPT_ROOT+'/_run_model',
+        {'user_args': JSON.stringify(args)},
+        function(resp) {
             status = resp.result.status;
             model_progress(status);
-        }
     });
 });
 
@@ -35,7 +31,7 @@ function model_progress(status) {
         $("#status_message").text("No model running.")
     } else if (status == 1) {
         $("#status_message").text("Model running...");
-        myInterval = setInterval(update_model_progress, 500)
+        myInterval = setInterval(update_model_progress, 1000)
     } else if (status == 2) {
         $("button#run_app").button('reset')
         $("#status_message").text("Model complete!")      
@@ -47,7 +43,6 @@ function update_model_progress() {
     $.getJSON(
         $SCRIPT_ROOT+'/_model_progress',
         function(resp) {
-            //status = resp.result.status;
             progress = resp.result.progress;
         });
         width = "width:"+progress+"%";
