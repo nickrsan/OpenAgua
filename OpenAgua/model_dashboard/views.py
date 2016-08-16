@@ -1,6 +1,9 @@
 from __future__ import division, print_function
+import os
 from sys import stderr
-from flask import render_template, request, session, json, jsonify
+from subprocess import Popen
+
+from flask import render_template, request, session, json, jsonify, current_app
 from flask_user import login_required
 from ..connection import connection
 
@@ -8,7 +11,6 @@ from subprocess import call
 
 # import blueprint definition
 from . import model_dashboard
-from pyomo_model import model
 
 @model_dashboard.route('/model_dashboard')
 @login_required
@@ -35,7 +37,8 @@ def run_model():
     # a. at least some of these should come in via the user interface (i.e. as a json string)
     # b. this should be passed on directly to the model server
     appname = 'OpenAguaModel'
-    appfile = appname + '.py'
+    hydra_apps_dir = current_app.config.get('HYDRA_APPS_DIR')
+    appfile = os.path.join(hydra_apps_dir, appname, 'main.py')
     args = dict(
         app = appname,
         url = session['url'],
@@ -44,18 +47,18 @@ def run_model():
         sid = session['session_id'],
         nid = session['network_id'],
         tid = session['template_id'],
-        scids = str(scids),
+        scids = '"%s"' % scids,
         ti = ti,
         tf = tf,
-        tsf = '%m/%Y',
-        log = 'logs')
+        tsf = '%m/%Y')
     
     # 3. run the model as a subprocess
     # in the future, this will be via a web server call with json
-    call = 'python {}'.format(appname)
+    call = 'python {}'.format(appfile)
     for k, v in args.iteritems():
-        call += '-{} {}'.format(k, v)
-        
+        call += ' -{} {}'.format(k, v)
+    
+    print(call, file=stderr)
     returncode = Popen(call)
     
     status = 1

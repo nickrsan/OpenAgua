@@ -27,7 +27,7 @@ def run_timestep(data):
 # scenario simply specifies which Hydra scenario to run
 def run_scenario(scenario, args=None):
     
-    logfile = join(args.log_dir, 'scenario_{}_log.txt'.format(scenario))
+    logfile = join(os.path.abspath(os.path.dirname(__file__)), args.scenario_log_dir, 'scenario_{}_log.txt'.format(scenario))
     log = create_logger(args.app_name, logfile)
     log.info('starting scenario {}'.format(scenario))
     
@@ -167,7 +167,9 @@ def commandline_parser():
     parser.add_argument('-tsf', '--timestep-format',
                         help='''The format of the timestep (e.g., as found on http://strftime.org).''')
     parser.add_argument('-log', '--log-dir',
-                        help='''The log file directory for scenarios.''')
+                        help='''The main log file directory.''')
+    parser.add_argument('-slog', '--scenario-log-dir',
+                        help='''The log file directory for the scenarios.''')
     return parser
 
 def create_logger(appname, logfile):
@@ -185,8 +187,13 @@ if __name__=='__main__':
     parser = commandline_parser()
     args = parser.parse_args()
     
+    if args.log_dir is None:
+        args.log_dir = '.'
+    if args.scenario_log_dir is None:
+        args.scenario_log_dir = 'logs'
+
     # create logger
-    logfile = 'log.txt'
+    logfile = join(os.path.abspath(os.path.dirname(__file__)), args.log_dir, 'log.txt')
     log = create_logger(args.app_name, logfile)
         
     log.info('started model run with args: %s' % str(args))
