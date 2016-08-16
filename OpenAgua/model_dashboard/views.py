@@ -23,7 +23,7 @@ def model_dashboard_main():
                            status=status,
                            progress=progress) 
 
-@model_dashboard.route('/_run_model', methods=['POST'])
+@model_dashboard.route('/_run_model')
 def run_model():
 
     # 1. get user input
