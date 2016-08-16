@@ -1,0 +1,4 @@
+2016-08-16 13:56:50,167 - OpenAguaModel - INFO - starting scenario 3
+2016-08-16 13:56:50,167 - OpenAguaModel - INFO - connecting to Hydra Server URL: http://127.0.0.1:8080/json
+2016-08-16 13:56:50,168 - OpenAguaModel - INFO - connected to Hydra Server URL: http://127.0.0.1:8080/json
+2016-08-16 13:56:50,168 - OpenAguaModel - INFO - logged in to Hydra Server with provided session ID: 44e863a798e3f71ddd6dbf8e58372fe7

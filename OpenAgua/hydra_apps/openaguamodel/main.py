@@ -4,6 +4,7 @@ import argparse as ap
 import logging
 import os, sys
 from os.path import join
+from shutil import rmtree
 from time import sleep
 
 # hydra server connection
@@ -27,7 +28,7 @@ def run_timestep(data):
 # scenario simply specifies which Hydra scenario to run
 def run_scenario(scenario, args=None):
     
-    logfile = join(os.path.abspath(os.path.dirname(__file__)), args.scenario_log_dir, 'scenario_{}_log.txt'.format(scenario))
+    logfile = join(args.scenario_log_dir, 'scenario_{}_log.txt'.format(scenario))
     log = create_logger(args.app_name, logfile)
     log.info('starting scenario {}'.format(scenario))
     
@@ -60,7 +61,7 @@ def run_scenario(scenario, args=None):
         # main per-timestep modeling routine here
         
         #run_timestep(data)
-        sleep(0.5)
+        sleep(.5)
         
         log.info('completed timestep {} [{}/{}]'.format(dt.date.strftime(date, args.timestep_format), t+1, T))
     
@@ -187,15 +188,23 @@ if __name__=='__main__':
     parser = commandline_parser()
     args = parser.parse_args()
     
+    here = os.path.abspath(os.path.dirname(__file__))
     if args.log_dir is None:
         args.log_dir = '.'
+    args.log_dir = os.path.join(here, args.log_dir)
+        
     if args.scenario_log_dir is None:
         args.scenario_log_dir = 'logs'
+    args.scenario_log_dir = os.path.join(here, args.scenario_log_dir)
 
-    # create logger
-    logfile = join(os.path.abspath(os.path.dirname(__file__)), args.log_dir, 'log.txt')
+    logfile = join(args.log_dir, 'log.txt')
     log = create_logger(args.app_name, logfile)
         
     log.info('started model run with args: %s' % str(args))
+    
+    # delete old scenario log files
+    
+    rmtree(args.scenario_log_dir, ignore_errors=True)
+    os.mkdir(args.scenario_log_dir)
     
     run_scenarios(args)

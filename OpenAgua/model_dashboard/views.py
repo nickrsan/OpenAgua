@@ -7,6 +7,8 @@ from flask import render_template, request, session, json, jsonify, current_app
 from flask_user import login_required
 from ..connection import connection
 
+from ..hydra_apps.openaguamodel.progress_check import get_completed
+
 from subprocess import call
 
 # import blueprint definition
@@ -27,10 +29,11 @@ def model_dashboard_main():
 def run_model():
 
     # 1. get user input
-    ti = '1/2000'
-    tf = '12/2000'
+    ti = request.args.get('ti')
+    tf = request.args.get('tf')
     scenarios = ['Baseline', 'Re-operation 1', 'Re-operation 2']
     scids = [1,2,3] # need to get these from scenario
+    session['scenarios_count'] = len(scenarios)
     
     # 2. define app name and arguments
     # in the future:
@@ -58,7 +61,7 @@ def run_model():
     for k, v in args.iteritems():
         call += ' -{} {}'.format(k, v)
     
-    print(call, file=stderr)
+    #print(call, file=stderr)
     returncode = Popen(call)
     
     status = 1
@@ -67,10 +70,11 @@ def run_model():
 @model_dashboard.route('/_model_progress')
 def model_progress():
     by_timestep = True
-    #completed = model.get_progress(by_timestep = by_timestep)
-    #if by_timestep:
-        #progress = completed / (session['timestep_count'] * session['scenarios_count'])
-    #else:
-        #progress = completed / session['scenario_count']
-    progress = 100
-    return jsonify(result={'progress':progress})
+    result = get_completed()
+    ts_completed = result['timesteps_completed']
+    ts_count = result['timesteps_count']
+    if ts_count is not None:
+        progress = ts_completed / (session['scenarios_count'] * ts_count) * 100
+    else:
+        progress = 0
+    return jsonify(result={'progress':int(progress)})
