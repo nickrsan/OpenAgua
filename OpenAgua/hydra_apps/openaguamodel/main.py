@@ -17,6 +17,7 @@ from functools import partial
 # modeling
 import datetime as dt
 from dateutil import rrule
+from scenario import run_scenario
 
 # the main per time step routine
 def run_timestep(data):

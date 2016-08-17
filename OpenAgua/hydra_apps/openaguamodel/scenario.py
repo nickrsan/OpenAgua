@@ -1,3 +1,7 @@
+import wingdbstub
+
+from pyomo_model import create_model, update_instance
+
 # run the the main scenario-specific routine
 # params holds all constant settings
 # scenario simply specifies which Hydra scenario to run
@@ -37,30 +41,64 @@ def run_scenario(scenario, args=None):
              .format(scenario, len(dates), args.initial_timestep, args.final_timestep))
 
     # create the optimization solver
-    solver = SolverFactory(args.solver)      
+    solver = SolverFactory(args.solver)
     
+    # ===========================
+    # load scenario data
+    # ===========================
+   
 
-
-
-
-
-
-
-
-
-
-# ===========================
-# start the per timestep loop
-# ===========================
+   
+    # ===========================
+    # start the per timestep loop
+    # ===========================
    
     T = len(dates)
     for t, date in enumerate(dates):
         
-        # main per-timestep modeling routine here
+        # ===========================
+        # prepare the time steps to use in the optimization run
+        # ===========================        
+
+        # ===========================
+        # prepare the inflow forecast model
+        # ===========================
+
+        # For now, forecast based on mean monthly inflow at each catchment node
+        # However, this can be changed in the future
+
+        # ===========================
+        # run the model
+        # ===========================
         
-        #run_timestep(data)
-        sleep(.05)
+        if new_model:
+            model = create_model(data)
+            instance = model.create_instance()            
+        else:
+            instance = update_instance(instance, S0, inflow)
+            instance.preprocess()
+            
+        # solve the model
+        results = solver.solve(instance)
+        
+        # load the results
+        instance.solutions.load_from(results)
+        
+        # set initial conditions for the next time step
+        S0 = instance.S[isIDs[0]].value
+        if S0 is None:
+            S0 = 0.0
+            
+        # ===========================
+        # save results to memory
+        # ===========================
+        
         
         log.info('completed timestep {} | {}/{}'.format(dt.date.strftime(date, args.timestep_format), t+1, T))
     
-    return scenario
+    # ===========================
+    # save results to Hydra Server
+    # ===========================
+    
+    
+    return
