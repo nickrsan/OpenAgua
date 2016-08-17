@@ -9,6 +9,7 @@ $('button#run_app').bind('click', function() {
     args = {
         ti: $('#initial_timestep').data().date,
         tf: $('#final_timestep').data().date,
+        sol: 'glpk'
     };
     
     // 2. call run app route, sending json data with scenario information
