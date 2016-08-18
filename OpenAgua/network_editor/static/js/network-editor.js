@@ -265,15 +265,18 @@ getContextmenuOptions = function(featureName) {
     return contextmenuOptions;
 };
 
+// center the map on the selected point
 function centerMap (e) {
     map.panTo(e.latlng);
 }
 
+// show the coordinates of the selected point
 function showCoordinates (e) {
     $("p#coords").text(e.latlng);
     $("#modal_coords").modal("show");
 }
 
+// delete a feature
 var deleted_layer;
 var deleted_feature;
 function deleteFeature(e) {
@@ -284,6 +287,7 @@ function deleteFeature(e) {
     $('#modal_delete_feature').modal('show');
 }
 
+// purge a feature
 var purged_layer;
 var purged_feature;
 function purgeFeature(e) {

@@ -6,7 +6,7 @@ HYDRA_USERNAME = 'root'
 HYDRA_PASSWORD = ''
 HYDRA_PROJECT_NAME = 'Monterrey'
 HYDRA_NETWORK_NAME = 'base_network'
-HYDRA_TEMPLATE_NAME = 'WEAP'
+HYDRA_TEMPLATE_NAME = 'OpenAgua'
 SECRET_KEY = '\xef0d\xd8\xb3\xcd\xb0\x04u\x05\x12\xc64\x1d\x00Ld\x8bh\xd5\x81+a\x00'
 SQLALCHEMY_DATABASE_URI = 'sqlite:///../instance/users.sqlite'
 
