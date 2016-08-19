@@ -8,10 +8,10 @@ def get_completed(scenario_logs_dir):
         lfpath = os.path.join(logsdir, lf)
         with open(lfpath, 'rb') as f:
             lastline = f.readlines()[-1]
-        progress = lastline.split('[')[-1].split(']')[0]
-        parts = progress.split('/')
-        if len(parts) == 2:
-            timesteps_completed += int(parts[0])
-            timesteps_count = int(parts[1])
+        parts = lastline.split('|')
+        if len(parts) > 1:
+            completed, count = parts[-1].split('/')
+            timesteps_completed += int(completed)
+            timesteps_count = int(count)
             
     return {'timesteps_completed': timesteps_completed, 'timesteps_count':timesteps_count}

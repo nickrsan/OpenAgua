@@ -17,61 +17,12 @@ from functools import partial
 # modeling
 import datetime as dt
 from dateutil import rrule
+from scenario import run_scenario
 
 # the main per time step routine
 def run_timestep(data):
     
     return 5
-
-# run the the main scenario-specific routine
-# params holds all constant settings
-# scenario simply specifies which Hydra scenario to run
-def run_scenario(scenario, args=None):
-    
-    logfile = join(args.scenario_log_dir, 'scenario_{}_log.txt'.format(scenario))
-    log = create_logger(args.app_name, logfile)
-    log.info('starting scenario {}'.format(scenario))
-    
-    # log in to Hydra Platform
-    log.info('connecting to Hydra Server URL: {}'.format(args.hydra_url))
-    conn = connection(url=args.hydra_url, app_name=args.app_name)
-    log.info('connected to Hydra Server URL: {}'.format(args.hydra_url))
-    try:
-        if args.session_id is not None:
-            conn.session_id=args.session_id
-            log.info('logged in to Hydra Server with provided session ID: %s' % conn.session_id)
-        else:
-            log.info('attempting to log in...'.format(args.hydra_url))
-            conn.login(username='root', password='')
-            log.info('logged in to Hydra Server with new session ID: %s' % conn.session_id)
-    except:
-        log.info('could not log in to Hydra Server')
-        raise Exception
-
-    # specify scenario-level parameters parameters (this are sent via params)
-    try:
-        log.info('creating timesteps')
-        ti = dt.datetime.strptime(args.initial_timestep, args.timestep_format)
-        tf = dt.datetime.strptime(args.final_timestep, args.timestep_format)
-        dates = [date for date in rrule.rrule(rrule.MONTHLY, dtstart=ti, until=tf)]
-    except:
-        log.info('failed to create timesteps with args: {}'.format(args))
-    finally:
-        log.info('failed to create timesteps')
-    
-    log.info('running scenario {} for {} months: {} to {}'
-             .format(scenario, len(dates), args.initial_timestep, args.final_timestep))
-    T = len(dates)
-    for t, date in enumerate(dates):
-        
-        # main per-timestep modeling routine here
-        
-        #run_timestep(data)
-        sleep(.1)
-        
-        log.info('completed timestep {} [{}/{}]'.format(dt.date.strftime(date, args.timestep_format), t+1, T))
-    
-    return scenario
 
 def run_scenarios(args):
     """
@@ -177,6 +128,8 @@ def commandline_parser():
                         help='''The main log file directory.''')
     parser.add_argument('-slog', '--scenario-log-dir',
                         help='''The log file directory for the scenarios.''')
+    parser.add_argument('-sol', '--solver',
+                        help='''The solver to use (e.g., glpk, gurobi, etc.).''')
     return parser
 
 def create_logger(appname, logfile):
@@ -203,7 +156,7 @@ if __name__=='__main__':
         args.scenario_log_dir = 'logs'
     args.scenario_log_dir = os.path.join(here, args.scenario_log_dir)
 
-    logfile = join(args.log_dir, 'log.txt')
+    logfile = join(args.log_dir, 'log.log')
     log = create_logger(args.app_name, logfile)
         
     log.info('started model run with args: %s' % str(args))

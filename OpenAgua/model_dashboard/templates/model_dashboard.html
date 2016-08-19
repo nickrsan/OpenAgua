@@ -6,14 +6,14 @@
 {% block content %}
 
  <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-6 col-sm-9">
       <div class="panel panel-default">
         <div class="panel-heading">Pyomo optimization model</div>
         
         <div class="panel-body">
 
             <div class="container">
-                <div class='col-md-2'>
+                <div class='col-md-2 col-sm-3'>
                     <div class="form-group">
                         <label for='initial_timestep'>First month (mm/yyyy)</label>
                         <div class='input-group date' id='initial_timestep'>
@@ -24,7 +24,7 @@
                         </div>
                     </div>
                 </div>
-                <div class='col-md-2'>
+                <div class='col-md-2 col-sm-3'>
                     <div class="form-group">
                         <label for='final_timestep'>Last month (mm/yyyy)</label>
                         <div class='input-group date' id='final_timestep'>
@@ -78,8 +78,8 @@
         </div>
       
         <div class="panel-footer">
-            <button id="run_app" type="button" data-loading-text="Running..." class="btn btn-primary">Run model</button>
-            <button id="model_cancel" type="button" class="btn btn-danger">Stop model</button>
+            <button id="run_model" type="button" data-loading-text="Running..." class="btn btn-primary">Run model</button>
+            <button id="stop_model" style="display:none" type="button" class="btn btn-danger">Stop model</button>
         </div> 
       </div>
       
@@ -91,6 +91,8 @@
       
     </div>
   </div>
+  
+{% include "model_modals.html" %}  
   
 <script>
 var status = {{ status }};

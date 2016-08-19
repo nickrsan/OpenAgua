@@ -2,7 +2,7 @@ from connection import connection
 
 session = {}
 
-conn = connection(url='http://hydra.openaguadss.org/json')
+conn = connection(url='http://127.0.0.1:8080/json')
 conn.login(username = 'root', password = '')    
 projects = conn.call('get_projects',{})
 templates = conn.call('get_templates',{})
