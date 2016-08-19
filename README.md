@@ -16,7 +16,7 @@ There are a few settings that should be set on a machine-specific basis, whether
 1. Create an "/instance" folder.
 2. In "/instance", create "config.py". This new file contains settings that will supercede settings in the main "config.py". For example, you can overwrite default debug settings, as: `DEBUG=True`.
 3. At a minimum, set the following parameters (values are examples only; your settings may be different):
-´´´
+```
 # Hydra Server settings
 HYDRA_URL = 'http://127.0.0.1:8080/json'
 
@@ -28,7 +28,7 @@ MAIL_SERVER = 'smtp.mysite.com'
 MAIL_PORT = 465
 MAIL_USE_SSL = True
 MAIL_USE_TLS = False
-´´´
+```
 4. Optionally, set a few other parameters as desired:
   * DEBUG
   * SECRET_KEY. This can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`. IMPORTANT: This should be set here in a production environment!
