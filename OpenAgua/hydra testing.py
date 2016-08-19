@@ -2,9 +2,10 @@ from connection import connection
 
 session = {}
 
-conn = connection(url='http://127.0.0.1:8080/json')
+#conn = connection(url='http://127.0.0.1:8080/json')
+conn = connection(url='http://hydra.openaguadss.org/json')
 conn.login(username = 'root', password = '')    
-projects = conn.call('get_projects',{})
+projects = conn.call('get_projects',{'userid':conn.user_id})
 templates = conn.call('get_templates',{})
 
 import random
