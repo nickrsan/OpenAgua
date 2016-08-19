@@ -4,25 +4,36 @@ See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 
 # Setup/use on local machine
 
-## Set up Hydra Platform
+## Hydra Platform
+
 * [general Hydra Platform information] (www.hydraplatform.org),
 * [download from GitHub] (https://github.com/UMWRG/HydraPlatform), or
 * [set up on Windows] (http://umwrg.github.io/HydraPlatform/tutorials/getting-started/server.html)
 
-## Set up OpenAgua
+## OpenAgua
 
-Technically, you can run OpenAgua on your local machine as is, without further configuration. However, you can change some local configuration settings thus:
+There are a few settings that should be set on a machine-specific basis, whether on a local machine or on a web server. These are stored in a folder called "instance" under the top-level OpenAguaDSS folder:
 
-1. Create an "/instance" folder.
-2. In "/instance", create config.py
-3. In the new config.py, you can now add the following, specified as, e.g. `DEBUG=True`.
-  * SECRET_KEY. This can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`.
-  * DEBUG
-  * HYDRA_URL
-  * USERNAME
-  * PASSWORD
-  * HYDRA_USERNAME
-  * HYDRA_PASSWORD
+1. Create an "/instance" folder. This folder stores machine-specific settings and the user database.
+2. In "/instance", create "config.py". This new file contains settings that will supercede settings in the main "config.py". For example, you can overwrite default debug settings, as: `DEBUG=True`.
+3. At a minimum, set the following parameters (values are examples only; your settings may be different):
+```
+# Flask-Mail settings
+MAIL_USERNAME = 'admin@mysite.com'
+MAIL_PASSWORD = 'password'
+MAIL_DEFAULT_SENDER = '"OpenAgua robot" <noreply@mysite.com>'
+MAIL_SERVER = 'smtp.mysite.com'
+MAIL_PORT = 465
+MAIL_USE_SSL = True
+MAIL_USE_TLS = False
+
+# Optionally, set other parameters as desired:
+HYDRA_URL = 'http://127.0.0.1:8080/json'
+DEBUG = False
+SECRET_KEY = 'T\xa0P\x00\xcf\xa4O\xea\x0bZ\xbd\xd6\xef\x03p\xc0w\x9c;\x01\xfd>\xc9\xc4'
+```
+
+Note that SECRET_KEY can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`. IMPORTANT: This should be set here in a production environment!
 
 ## Run
 
@@ -37,25 +48,30 @@ Technically, you can run OpenAgua on your local machine as is, without further c
 5. Go to 127.0.0.1:5000 in your web browser.
 6. Log in with "admin@gmail.com" and "password".
 
-# Setup/use on Linux
+# Setup/use as a web server on Linux
 
-This assumes a simple configuration, whereby 1) OpenAguaDSS and Hydra Platform are run from the same machine, 2) they are both served by the same Apache2 instance. Overall Apache2 configuration is not explained here. However, the following will help get things going, and should work.
+This assumes a simple configuration, whereby Hydra Platform and OpenAgua are run from the same machine (which may not be efficient) and where OpenAgua is served to the world by Apache2 on an Ubuntu machine. Setup of Hydra Platform, OpenAgua and Apache2 are described here.
 
-## Hydra Platform and OpenAgua configuration
+## Hydra Platform
 
-Of course, Hydra Platform and OpenAgua need to be installed on the server. Installing them on the same machine may or may not be efficient. Consult a web expert! If they are installed on the same machine, they could be installed, for example, in /var/www/HydraPlatform and /var/www/OpenAgua, respectively. Use git to do this.
+1. Install Hydra Platform and dependencies as described at https://github.com/UMWRG/HydraPlatform#hydraplatform.
+2. Specify the database that Hydra Platform will use in /HydraPlatform/config/hydra.ini. By default this is a local SQLite database, but any SQL database can be used, such as MySQL, which is what OpenAguaDSS.org uses.
+3. Decide on hosting configuration. Hydra Platform comes with its own web interface, so can be configured either as a server available only to the local machine (which OpenAgua can still access), or as a public web server with the built-in user interface exposed to the world.
+a. If a non-public server is used, follow step 4. on https://github.com/UMWRG/HydraPlatform#installation to run the server: `chmod +x run_server.sh i(i. ./run_server.sh`.
+b. If a public server is used, Apache2 needs to be configured as described below.
 
-### Hydra Platform
+## OpenAgua
 
-Aside from the general configuration needed on a linux machine as explained elsewhere, Hydra Platform needs to know where to look for the database. The default setting is to create a local SQLite database, which may or may not be desired. This can be changed in /HydraPlatform/config/hydra.ini.
+1. Install OpenAgua using git: From /var/www type `sudo git clone https://github.com/CentroDelAgua-Decisiones/OpenAguaDSS.git`
+2. Set up /instance/config.py. In addition to the settings as described above, make sure to add:
+  * HYDRA_URL (e.g., `HYDRA_URL = 'http://hydra-server.mysite.com/json'`)
+  * SECRET_KEY
+3. Change the owner of the instance folder to allow the web server to create/modify the user database (users.sqlite). From the main OpenAguaDSS folder, type `sudo chown www-data:www-data instance`. www-data is the Apache2 user, and would be different for other web servers.
+4. Set up Apache2, as described below.
 
-### OpenAgua
+## Apache2
 
-In the example configurations below, Hydra Server will be available on hydra-server.mysite.com. So, OpenAgua needs to know this. In your /OpenAgua/instance/config.py file, add `HYDRA_URL = 'http://hydra-server.mysite.com/json'`. This tells OpenAgua where to look.
-
-## Apache2 configuration
-
-Hydra Platform and OpenAgua can be hosted via Apache using virtual hosts. In this example, Hydra Platform is served on hydra-server.mysite.com, while OpenAgua is served on www.mysite.com.
+Both Hydra Platform and OpenAgua can be served by Apache2 to the public using virtual hosts. In this example, Hydra Platform is served on hydra-server.mysite.com, while OpenAgua is served on www.mysite.com. Of course, if only OpenAgua is to be available to the public, then Hydra Platform is simply omitted from this.
 
 On Ubuntu, two separate configuration files can be prepared, both located in /etc/apache2/sites-available. Each file might be called, for example, hydra-platform.conf and openagua.conf, respectively. The configuration file for **Hydra Platform** can be as follows (this assumes HydraPlatform is located in /var/www):
 
@@ -68,7 +84,7 @@ WSGIPythonPath /var/www/HydraPlatform/HydraServer/python:/var/www/HydraPlatform/
 
     WSGIScriptAlias / /var/www/HydraPlatform/HydraServer/hydra.wsgi
 
-    WSGIDaemonProcess hydra-server user=ubuntu processes=1 display-name=%{GROUP} python-path=/var/www/HydraPlatform/HydraServer/$
+    WSGIDaemonProcess hydra-server user=www-data processes=1 display-name=%{GROUP} python-path=/var/www/HydraPlatform/HydraServer/$
     WSGIProcessGroup hydra-server
 
     <Directory /var/www/HydraPlatform/HydraServer/>
@@ -82,6 +98,9 @@ WSGIPythonPath /var/www/HydraPlatform/HydraServer/python:/var/www/HydraPlatform/
         Deny from all
     </LocationMatch>
     
+	ErrorLog ${APACHE_LOG_DIR}/error-hydra-server.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
     LogLevel warn
     
 </VirtualHost>
@@ -91,18 +110,26 @@ openagua.conf, for **OpenAgua**, would look similar:
 
 ```
 <VirtualHost *:80>
-    ServerName www.mysite.com
+    ServerName test.mysite.com
     ServerAdmin admin@mysite.com
 
-    WSGIDaemonProcess openagua user=ubuntu threads=5 display-name=%{GROUP}
-    WSGIScriptAlias / /var/www/OpenAgua/openagua.wsgi
+    WSGIDaemonProcess openagua user=www-data threads=5 display-name=%{GROUP}
+    WSGIScriptAlias / /var/www/OpenAguaDSS/openagua.wsgi
 
-    <Directory /var/www/OpenAgua/OpenAgua/>
+    <Directory /var/www/OpenAguaDSS/OpenAgua/>
         WSGIProcessGroup openagua
         WSGIApplicationGroup %{GLOBAL}
         Order allow,deny
         Allow from all
     </Directory>
+
+    <LocationMatch ".*(py|pyc)$">
+        Order deny,allow
+        Deny from all
+    </LocationMatch>
+    
+	ErrorLog ${APACHE_LOG_DIR}/error-hydra-server.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
 
     LogLevel warn
     
@@ -111,11 +138,11 @@ openagua.conf, for **OpenAgua**, would look similar:
 
 To understand what these actually mean, you'll have to look elsewhere. One thing to note, however, is that both of these point to a .wsgi file. These are already included with the respective distributions.
 
-To enable these, use the command `a2ensite hydra-server` and `a2ensite openagua` (prepended with `sudo` as needed). Once these are enabled, restart Apache2 with `service apache2 restart`.
+To enable these, use the command `sudo a2ensite hydra-server` and `sudo a2ensite openagua`. Once these are enabled, restart Apache2 with `service apache2 restart`.
 
-Voila! OpenAgua should now be available on www<span></span>.mysite.com, while Hydra Server should be available at hydra-server.mysite.com. This assumes, of course, you have configured your site's DNS appropriately.
+Voila! OpenAgua should now be available on test.mysite.com while Hydra Server should be available at hydra-server.mysite.com. This assumes, of course, you have configured your site's DNS appropriately.
 
-Note that this configuration works on Ubuntu, which has a more advanced Apache configuration organization. There may be other configurations, depending on actual web server (i.e., not Apache) and/or machine (e.g., non-Ubuntu machines).
+Note that these configuration settings would differ between Linux distributions.
 
 # Documentation
 
