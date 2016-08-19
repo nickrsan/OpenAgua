@@ -50,7 +50,7 @@ class connection(object):
             err = 'Error. Username not provided.'
             # raise error
         response = self.call('login', {'username': username, 'password': password})
-        self.session_id = response.session_id
+        self.session_id = response.sessionid
         log.info("Session ID: %s", self.sessionid)
         return self.session_id
 
