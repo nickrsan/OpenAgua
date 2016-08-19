@@ -11,18 +11,27 @@ See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 
 ## Set up OpenAgua
 
-Technically, you can run OpenAgua on your local machine as is, without further configuration. However, you can change some local configuration settings thus:
+There are a few settings that should be set on a machine-specific basis, whether on a local machine or on a web server. These are stored in a folder called "instance" under the top-level OpenAguaDSS folder:
 
 1. Create an "/instance" folder.
-2. In "/instance", create config.py
-3. In the new config.py, you can now add the following, specified as, e.g. `DEBUG=True`.
-  * SECRET_KEY. This can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`.
+2. In "/instance", create "config.py". This new file contains settings that will supercede settings in the main "config.py". For example, you can overwrite default debug settings, as: `DEBUG=True`.
+3. At a minimum, set the following parameters (values are examples only; your settings may be different):
+´´´
+# Hydra Server settings
+HYDRA_URL = 'http://127.0.0.1:8080/json'
+
+# Flask-Mail settings
+MAIL_USERNAME = 'admin@mysite.com'
+MAIL_PASSWORD = 'password'
+MAIL_DEFAULT_SENDER = '"OpenAgua robot" <noreply@mysite.com>'
+MAIL_SERVER = 'smtp.mysite.com'
+MAIL_PORT = 465
+MAIL_USE_SSL = True
+MAIL_USE_TLS = False
+´´´
+4. Optionally, set a few other parameters as desired:
   * DEBUG
-  * HYDRA_URL
-  * USERNAME
-  * PASSWORD
-  * HYDRA_USERNAME
-  * HYDRA_PASSWORD
+  * SECRET_KEY. This can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`. IMPORTANT: This should be set here in a production environment!
 
 ## Run
 
@@ -37,13 +46,13 @@ Technically, you can run OpenAgua on your local machine as is, without further c
 5. Go to 127.0.0.1:5000 in your web browser.
 6. Log in with "admin@gmail.com" and "password".
 
-# Setup/use on Linux
+# Setup/use on Linux as a web server
 
 This assumes a simple configuration, whereby 1) OpenAguaDSS and Hydra Platform are run from the same machine, 2) they are both served by the same Apache2 instance. Overall Apache2 configuration is not explained here. However, the following will help get things going, and should work.
 
 ## Hydra Platform and OpenAgua configuration
 
-Of course, Hydra Platform and OpenAgua need to be installed on the server. Installing them on the same machine may or may not be efficient. Consult a web expert! If they are installed on the same machine, they could be installed, for example, in /var/www/HydraPlatform and /var/www/OpenAgua, respectively. Use git to do this.
+Of course, Hydra Platform and OpenAgua need to be installed on the server. Installing them on the same machine may or may not be efficient. Consult a web expert! If they are installed on the same machine, they could be installed, for example, in /var/www/HydraPlatform and /var/www/OpenAguaDSS, respectively. Use git to do this.
 
 ### Hydra Platform
 
@@ -51,7 +60,7 @@ Aside from the general configuration needed on a linux machine as explained else
 
 ### OpenAgua
 
-In the example configurations below, Hydra Server will be available on hydra-server.mysite.com. So, OpenAgua needs to know this. In your /OpenAgua/instance/config.py file, add `HYDRA_URL = 'http://hydra-server.mysite.com/json'`. This tells OpenAgua where to look.
+In the example configurations below, Hydra Server will be available on hydra-server.mysite.com. So, OpenAgua needs to know this. In your /OpenAgua/instance/config.py file (see above), add `HYDRA_URL = 'http://hydra-server.mysite.com/json'`.
 
 ## Apache2 configuration
 
@@ -68,7 +77,7 @@ WSGIPythonPath /var/www/HydraPlatform/HydraServer/python:/var/www/HydraPlatform/
 
     WSGIScriptAlias / /var/www/HydraPlatform/HydraServer/hydra.wsgi
 
-    WSGIDaemonProcess hydra-server user=ubuntu processes=1 display-name=%{GROUP} python-path=/var/www/HydraPlatform/HydraServer/$
+    WSGIDaemonProcess hydra-server user=www-data processes=1 display-name=%{GROUP} python-path=/var/www/HydraPlatform/HydraServer/$
     WSGIProcessGroup hydra-server
 
     <Directory /var/www/HydraPlatform/HydraServer/>
@@ -82,6 +91,9 @@ WSGIPythonPath /var/www/HydraPlatform/HydraServer/python:/var/www/HydraPlatform/
         Deny from all
     </LocationMatch>
     
+	ErrorLog ${APACHE_LOG_DIR}/error-hydra-server.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
     LogLevel warn
     
 </VirtualHost>
@@ -94,15 +106,23 @@ openagua.conf, for **OpenAgua**, would look similar:
     ServerName www.mysite.com
     ServerAdmin admin@mysite.com
 
-    WSGIDaemonProcess openagua user=ubuntu threads=5 display-name=%{GROUP}
-    WSGIScriptAlias / /var/www/OpenAgua/openagua.wsgi
+    WSGIDaemonProcess openagua user=www-data threads=5 display-name=%{GROUP}
+    WSGIScriptAlias / /var/www/OpenAguaDSS/openagua.wsgi
 
-    <Directory /var/www/OpenAgua/OpenAgua/>
+    <Directory /var/www/OpenAguaDSS/OpenAgua/>
         WSGIProcessGroup openagua
         WSGIApplicationGroup %{GLOBAL}
         Order allow,deny
         Allow from all
     </Directory>
+
+    <LocationMatch ".*(py|pyc)$">
+        Order deny,allow
+        Deny from all
+    </LocationMatch>
+    
+	ErrorLog ${APACHE_LOG_DIR}/error-hydra-server.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
 
     LogLevel warn
     
