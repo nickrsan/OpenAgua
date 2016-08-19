@@ -3,11 +3,11 @@ $("button#add_project").bind('click', function() {
 });
 
 $('.project_item').mouseover(function() {
-   $("#dropdown_project_"+this.value).show();
+   $(".project_dropdown #"+this.value).show();
 });
 
 $('.project_item').mouseout(function() {
-   $("#dropdown_project_"+this.value).hide();
+   $(".project_dropdown #"+this.value).hide();
 });
 
 $("button#add_network").bind('click', function() {
@@ -32,8 +32,8 @@ $("button#add_project_confirm").bind('click', function() {
         if ( status_code == -1 ) {
             $("#add_project_error").text('Name already in use. Please try again.');
         } else if ( status_code == 1 ){
-            $("#project_list ul").append('<li class="list-group-item project_item>'+proj.name+'</li>');
             $('#modal_add_project').modal('hide');
+            update_projects(active_project_id)
         };
     });
 });
@@ -74,27 +74,80 @@ $('button#purge_project_confirm').bind('click', function() {
   });
 });
 
-$( document ).ready(function() {
-    update_projects(active_project_id);
-    update_networks(active_project_id, active_network_id);
-    update_templates(active_network_id, active_template_id);
-});
+// project actions
+var project_actions =
+    $('<ul>').addClass("dropdown-menu")
+        .append($('<li>').html('<a href="#">Edit</a>'))
+        .append($('<li>').html('<a href="#">Delete</a>'))
+        //.append($('<li>').html('<a href="#">------</a>'))
+        .append($('<li>').html('<a href="#">Purge</a>'));
+        
+// network actions
+var network_actions =
+    $('<ul>').addClass("dropdown-menu")
+        .append($('<li>').html('<a href="#">Edit</a>'))
+        .append($('<li>').html('<a href="#">Delete</a>'))
+        .append($('<li>').html('<a href="#">Activate</a>'))
+        .append($('<li>').html('<a href="#">Clean up</a>'))
+        .append($('<li>').html('<a href="#">Export</a>'))
+        //.append($('<li>').html('<a href="#">------</a>'))
+        .append($('<li>').html('<a href="#">Purge</a>'));
+        
+// template actions
+var template_actions =
+    $('<ul>').addClass("dropdown-menu")
+        .append($('<li>').html('<a href="#">Edit</a>'))
+        .append($('<li>').html('<a href="#">Delete</a>'))
+        //.append($('<li>').html('<a href="#">------</a>'))
+        .append($('<li>').html('<a href="#">Purge</a>'));
+        
+function make_button_div(class_type, actions) {
+    var btn_div = $('<div>')
+    .addClass("btn-group pull-right")
+    .append(
+        $('<button>')
+            .addClass("btn btn-default btn-sm dropdown-toggle")
+            .addClass(class_type+"_dropdown")
+            .attr("type", "button")
+            .attr("data-toggle", "dropdown")
+            .text("Action")
+            .append($('<span>').addClass("caret"))
+    )
+    .append(actions);
+    return btn_div;
+};
+
+project_dropdown = make_button_div('project', project_actions);
+network_dropdown = make_button_div('network', network_actions);
+template_dropdown = make_button_div('template', template_actions);
 
 // update project list
 function update_projects(active_project_id) {
-    var func = 'get_projects'
-    var args = {}
+    var func = 'get_projects';
+    var args = {};
+            
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
         var projects = resp.result;
-        $('#project_list ul').empty();
+        var ul = $('#project_list ul');
+        
+        ul.empty();
         $.each(projects, function(index, project){
-            var li = '<li id=' + project.id + ' class="list-group-item network_item clearfix"></li>';
-            $('#project_list ul').append(li)
-            var me = $('#project_list ul #'+project.id);
-            me.text(project.name); 
-            if (project.id==active_project_id) {
-                me.addClass('active');
+        
+            var dropdown = project_dropdown.clone()
+                .find('button').attr('id', project.id)
+                .end();
+        
+            var li = $('<li>')
+                .text(project.name)
+                .addClass("list-group-item clearfix")
+                .addClass("project_item")
+                .val(project.id)
+                //.attr("id", project.id)
+                .append(dropdown);
+            if (project.id == active_project_id) {
+                li.addClass('active')
             };
+            ul.append(li);
             
         });
     });
@@ -105,18 +158,27 @@ function update_networks(active_project_id, active_network_id) {
     var func = 'get_networks'
     var args = {'project_id':active_project_id, 'include_data':'N'}
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
-        var networks = resp.result,
-            ul = $('#network_list ul');
+        var networks = resp.result;
+        var ul = $('#network_list ul');
+        
         ul.empty();
         $.each(networks, function(index, network){
-            var li = '<li id=' + network.id + ' class="list-group-item network_item clearfix"></li>';
-            ul.append(li);
-            var me = $('#network_list ul #'+network.id);
-            me.text(network.name); 
-            if (network.id==active_network_id) {
-                me.addClass('active');
+        
+            var dropdown = network_dropdown.clone()
+                .find('button').attr('id', network.id)
+                .end();
+        
+            var li = $('<li>')
+                .text(network.name)
+                .addClass("list-group-item clearfix")
+                .addClass("network_item")
+                .val(network.id)
+                //.attr("id", network.id)
+                .append(dropdown);
+            if (network.id == active_network_id) {
+                li.addClass('active')
             };
-            
+            ul.append(li);
         });
     });
 };
@@ -130,14 +192,29 @@ function update_templates(active_network_id, active_template_id) {
             ul = $('#template_list ul');
         ul.empty();
         $.each(templates, function(index, template){
-            var li = '<li id=' + template.id + ' class="list-group-item template_item clearfix"></li>';
-            ul.append(li);
-            var me = $('#template_list ul #'+template.id);
-            me.text(template.name);
-            if (template.id==active_template_id) {
-                me.addClass('active');
+
+            var dropdown = template_dropdown.clone()
+                .find('button').attr('id', template.id)
+                .end();
+        
+            var li = $('<li>')
+                .text(template.name)
+                .addClass("list-group-item clearfix")
+                .addClass("template_item")
+                .val(template.id)
+                //.attr("id", template.id)
+                .append(dropdown);
+            if (template.id == active_template_id) {
+                li.addClass('active')
             };
+            ul.append(li);
             
         });
     });
 };
+
+$( document ).ready(function() {
+    update_projects(active_project_id);
+    update_networks(active_project_id, active_network_id);
+    update_templates(active_network_id, active_template_id);
+});

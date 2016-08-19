@@ -33,9 +33,9 @@ def projects_manager():
     templates = conn.call('get_templates',{})
     template_names = [t.name for t in templates]
     
-    if 'WEAP' not in template_names:
-        zf = zipfile.ZipFile(os.path.join(here, 'static/hydra_templates/WEAP.zip'))
-        template_xml = zf.read('WEAP/template/template.xml')
+    if 'OpenAgua' not in template_names:
+        zf = zipfile.ZipFile(os.path.join(here, 'static/hydra_templates/OpenAgua.zip'))
+        template_xml = zf.read('OpenAgua/template/template.xml')
         conn.call('upload_template_xml', {'template_xml':template_xml})
         templates = conn.call('get_templates',{})
         
