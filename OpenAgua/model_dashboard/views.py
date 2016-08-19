@@ -49,7 +49,7 @@ def run_model():
         url = session['url'],
         #user = 'root',
         #pw = 'password',
-        sid = session['session_id'],
+        sid = session['sessionid'],
         nid = session['network_id'],
         tid = session['template_id'],
         scids = '"%s"' % scids,

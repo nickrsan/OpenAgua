@@ -9,15 +9,15 @@ log = logging.getLogger(__name__)
 
 class connection(object):
 
-    def __init__(self, url=None, session_id=None, app_name=None):
+    def __init__(self, url=None, sessionid=None, app_name=None):
         self.url = url
         self.app_name = app_name
-        self.session_id = session_id
+        self.sessionid = sessionid
 
     def call(self, func, args):
-        log.info("Calling: %s" % (func))
+        log.info("Calling: {} with args: {}".format(func, args))
         headers = {'Content-Type': 'application/json',
-                   'sessionid': self.session_id, # this lets us keep the session ID associated with the connection
+                   'sessionid': self.sessionid,
                    'appname': self.app_name}
         call_json = {func: args}
 
@@ -50,16 +50,9 @@ class connection(object):
             err = 'Error. Username not provided.'
             # raise error
         response = self.call('login', {'username': username, 'password': password})
-        self.session_id = response.sessionid
-        log.info("Session ID: %s", self.session_id)
-        return self.session_id
-
-    # specific methods
-    def get_user_by_name(self, username=None):
-        if username is None:
-            err = 'Error. Username not provided.'
-        resp = self.call('get_user_by_name', {'username': username})        
-        return resp  
+        self.sessionid = response.sessionid
+        self.userid = response.userid
+        log.info("Logged in with Session ID: %s", self.sessionid) 
     
     def get_project_by_name(self, project_name=None):
         if project_name is None:

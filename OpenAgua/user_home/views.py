@@ -15,25 +15,23 @@ def home():
     session['hydra_password'] = OpenAgua.app.config['HYDRA_PASSWORD']    
 
     # connect to hydra (login if we don't already have a session ID)
-    if 'session_id' in session:
-        conn = connection(url=session['url'], session_id=session['session_id'])
+    if 'sessionid' in session:
+        conn = connection(url=session['url'], sessionid=session['sessionid'])
     else:
         conn = connection(url=session['url'])
     
-    # this makes sure we are logged in, in case there is a leftover session_id
+    # this makes sure we are logged in, in case there is a leftover sessionid
     # in the Flask session. We shouldn't get here though.
     conn.login(username = session['hydra_username'], password = session['hydra_password'])    
-    session['session_id'] = conn.session_id
-        
-    user = conn.get_user_by_name(session['hydra_username'])
-    session['user_id'] = user.id
+    session['sessionid'] = conn.sessionid  
+    session['userid'] = conn.userid
 
     # add recent project/network/template to session (to be loaded from user data in the future)
     session['project_name'] = OpenAgua.app.config['HYDRA_PROJECT_NAME']
     session['network_name'] = OpenAgua.app.config['HYDRA_NETWORK_NAME'] 
     session['template_name'] = OpenAgua.app.config['HYDRA_TEMPLATE_NAME']
 
-    projects = conn.call('get_projects',{'user_id':session['user_id']})
+    projects = conn.call('get_projects',{'userid':session['userid']})
     project_names = [project.name for project in projects]
     return render_template('home.html',
                            project_names = project_names)
@@ -44,7 +42,7 @@ def home():
 @user_home.route('/_load_recent')
 def load_recent():
     
-    conn = connection(url=session['url'], session_id=session['session_id'])   
+    conn = connection(url=session['url'], sessionid=session['sessionid'])   
     
     # load / create project
     project = conn.get_project_by_name(session['project_name'])

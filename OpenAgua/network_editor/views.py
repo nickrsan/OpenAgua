@@ -14,7 +14,7 @@ def get_coords(network):
 @net_editor.route('/network_editor')
 @login_required
 def network_editor():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = connection(url=session['url'], sessionid=session['sessionid'])
     template = conn.call('get_template', {'template_id':session['template_id']})
     ntypes = [t.name for t in template.types if t.resource_type == 'NODE']
     ltypes = [t.name for t in template.types if t.resource_type == 'LINK']

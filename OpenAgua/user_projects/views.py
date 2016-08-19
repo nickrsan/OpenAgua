@@ -17,7 +17,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 @user_projects.route('/projects_manager')
 @login_required
 def projects_manager():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = connection(url=session['url'], sessionid=session['sessionid'])
     
     # get the list of project names and network names for the test project ('Monterrey')
     projects = conn.call('get_projects',{'user_id':session['user_id']})
@@ -118,7 +118,7 @@ def purge_project():
 
 @user_projects.route('/_hydra_call')
 def hydra_call():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = connection(url=session['url'], sessionid=session['session_id'])
     func = request.args.get('func')
     args = request.args.get('args')
     args = json.loads(args)
