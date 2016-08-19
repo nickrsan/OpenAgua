@@ -51,7 +51,7 @@ class connection(object):
             # raise error
         response = self.call('login', {'username': username, 'password': password})
         self.session_id = response.session_id
-        log.info("Session ID: %s", self.session_id)
+        log.info("Session ID: %s", self.sessionid)
         return self.session_id
 
     # specific methods
