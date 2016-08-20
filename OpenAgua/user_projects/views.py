@@ -30,17 +30,18 @@ def projects_manager():
         networks = []
         
     # get list of all templates
+    #template_id = conn.call('get_template_by_name', {'template_name':session['template_name']})
     templates = conn.call('get_templates',{})
-    template_names = [t.name for t in templates]
+    template_names = [t.name for t in templates]    
     
-    if 'OpenAgua' not in template_names:
+    if session['template_name'] not in template_names:
         zf = zipfile.ZipFile(os.path.join(here, 'static/hydra_templates/OpenAgua.zip'))
         template_xml = zf.read('OpenAgua/template/template.xml')
         conn.call('upload_template_xml', {'template_xml':template_xml})
-        templates = conn.call('get_templates',{})
         
-    print(session['project_name'], file=stderr)
-    
+    templates = conn.call('get_templates',{})
+    template_names = [t.name for t in templates]
+        
     return render_template('projects_manager.html',
                            projects=projects,
                            networks=networks,

@@ -30,11 +30,35 @@ def home():
     session['project_name'] = OpenAgua.app.config['HYDRA_PROJECT_NAME']
     session['network_name'] = OpenAgua.app.config['HYDRA_NETWORK_NAME'] 
     session['template_name'] = OpenAgua.app.config['HYDRA_TEMPLATE_NAME']
+    
+    # load / create project
+    project = conn.get_project_by_name(session['project_name'])
+    if 'id' in project.keys():
+        session['project_id'] = project.id
+    else:
+        return redirect(url_for('user_projects.projects_manager')) 
+    
+    # load / activate network
+    network = conn.get_network_by_name(session['project_id'], session['network_name'])
+    if 'id' in network.keys():
+        session['network_id'] = network.id
+    else:
+        return redirect(url_for('user_projects.projects_manager'))    
 
-    projects = conn.call('get_projects',{'user_id':session['user_id']})
-    project_names = [project.name for project in projects]
-    return render_template('home.html',
-                           project_names = project_names)
+    # load / activate template (temporary fix)
+    templates = conn.call('get_templates',{})
+    if len(templates)==0:
+        return redirect(url_for('user_projects.projects_manager')) 
+    
+    template_names = [t.name for t in templates]    
+    if session['template_name'] not in template_names:
+        return redirect(url_for('user_projects.projects_manager'))
+    
+    session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
+    
+    session['appname'] = 'pyomo_network_lp'
+
+    return render_template('home.html')
 
 # Load projects
 # in the future, we can (optionally) store the Hydra session ID with the user account
@@ -42,35 +66,34 @@ def home():
 @user_home.route('/_load_recent')
 def load_recent():
     
-    conn = connection(url=session['url'], session_id=session['session_id'])   
+    #conn = connection(url=session['url'], session_id=session['session_id'])   
     
-    # load / create project
-    project = conn.get_project_by_name(session['project_name'])
-    if 'id' in project.keys():
-        session['project_id'] = project.id
-    else:
-        return redirect(url_for('projects.project_settings'))
-    
-    # load / activate network
-    network = conn.get_network_by_name(session['project_id'], session['network_name'])
-    if 'id' in network.keys():
-        session['network_id'] = network.id
+    ## load / create project
+    #project = conn.get_project_by_name(session['project_name'])
+    #if 'id' in project.keys():
+        #session['project_id'] = project.id
     #else:
-        #return redirect(url_for('projects.project_settings'))
+        #return redirect(url_for('user_projects.projects_manager'))
     
-    activated = conn.call('activate_network', {'network_id':session['network_id']})
+    ## load / activate network
+    #network = conn.get_network_by_name(session['project_id'], session['network_name'])
+    #if 'id' in network.keys():
+        #session['network_id'] = network.id
+    #else:
+        #return redirect(url_for('user_projects.projects_manager'))
     
-    # load / activate template (temporary fix)
-    templates = conn.call('get_templates',{})
+    #activated = conn.call('activate_network', {'network_id':session['network_id']})
+    
+    ## load / activate template (temporary fix)
+    #templates = conn.call('get_templates',{})
     #if len(templates)==0:
-        #return redirect(url_for('projects.project_settings')) 
+        #return redirect(url_for('user_projects.projects_manager')) 
     
-    template_names = [t.name for t in templates]    
+    #template_names = [t.name for t in templates]    
     #if session['template_name'] not in template_names:
-        #return redirect(url_for('projects.project_settings'))
+        #return redirect(url_for('user_projects.projects_manager'))
+    #session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
     
-    session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
-    
-    session['appname'] = 'pyomo_network_lp'
+    #session['appname'] = 'pyomo_network_lp'
     
     return redirect(url_for('main_overview.overview'))
