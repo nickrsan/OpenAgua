@@ -1,27 +1,6 @@
 $("button#add_project").bind('click', function() {
   $('#modal_add_project').modal('show');
 });
-
-$('.project_item').mouseover(function() {
-   $(".project_dropdown #"+this.value).show();
-});
-
-$('.project_item').mouseout(function() {
-   $(".project_dropdown #"+this.value).hide();
-});
-
-$("button#add_network").bind('click', function() {
-  $('#modal_add_network').modal('show');
-});
-
-$('.network_item').mouseover(function() {
-   $("#dropdown_network_"+this.value).show();
-});
-
-$('.network_item').mouseout(function() {
-   $("#dropdown_network_"+this.value).hide();
-});
-
 $("button#add_project_confirm").bind('click', function() {
       var proj = {
         name: $('#project_name').val(),
@@ -38,6 +17,9 @@ $("button#add_project_confirm").bind('click', function() {
     });
 });
 
+$("button#add_network").bind('click', function() {
+  $('#modal_add_network').modal('show');
+});
 $("button#add_network_confirm").bind('click', function() {
       var net = {
         name: $('#network_name').val(),
@@ -127,8 +109,8 @@ function make_button_div(class_type, actions) {
     .addClass("btn-group pull-right")
     .append(
         $('<button>')
-            .addClass("btn btn-default btn-sm dropdown-toggle")
             .addClass(class_type+"_dropdown")
+            .addClass("btn btn-default btn-sm dropdown-toggle")
             .attr("type", "button")
             .attr("data-toggle", "dropdown")
             .text("Action")
@@ -156,16 +138,15 @@ function update_projects(active_project_id) {
             $.each(projects, function(index, project){
             
                 var dropdown = project_dropdown.clone()
-                    .find('a').attr('data-id', project.id)
-                    .end();
+                    .find('button').attr('id', project.id).end()
+                    .find('a').attr('data-id', project.id).end();
             
                 var li = $('<li>')
                     .text(project.name)
+                    .addClass("project")
                     .addClass("list-group-item clearfix")
-                    .addClass("project_item")
-                    .val(project.id)
-                    //.attr("id", project.id)
                     .append(dropdown);
+                    
                 if (project.id == active_project_id) {
                     li.addClass('active');
                     $("#network_list_description").html('Networks for '+project.name)
