@@ -56,23 +56,35 @@ $("button#add_network_confirm").bind('click', function() {
     });
 });
 
-function purge_project(project_id) {
-  $('#modal_purge_project').val(project_id);
-  $('#modal_purge_project').modal('show');
-};
-
-$('button#purge_project_confirm').bind('click', function() {
-  var project_id = $('#modal_purge_project').val()
-  $.getJSON($SCRIPT_ROOT+'/_purge_project', {project_id: project_id}, function(data) {
-      status_code = data.result.status_code;
-      if ( status_code == 1 ) { // there should be only success
-          $("#purge_project_name").text("");
-          $("#modal_purge_project").val(-1);
-          $('#project_list ul #'+project_id).remove();
-          $("#modal_purge_project").modal("hide");
-      };
-  });
+$('#modal_purge_project').on('shown.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var project_id = button.data('id');
+    $('#purge_project_confirm').bind('click', function() {
+      $.getJSON($SCRIPT_ROOT+'/_purge_project', {project_id: project_id}, function(data) {
+          status_code = data.result.status_code;
+          if ( status_code == 1 ) { // there should be only success
+              $("#purge_project_name").text("");
+              $("#modal_purge_project").val(-1);
+              $('#project_list ul #'+project_id).remove();
+              $("#modal_purge_project").modal("hide");
+              update_projects(active_project_id);
+          };
+      });
+    });
 });
+
+// create menu items that result in modals
+function menu_item_modal(text, title, target) {
+    var li = $('<li>')
+        .append($('<a>')
+            .attr('type','button')
+            .attr('data-target', target)
+            .attr('data-toggle', 'modal')
+            .attr('title', title)
+            .text(text)
+        );
+    return li;
+};
 
 // project actions
 var project_actions =
@@ -82,7 +94,7 @@ var project_actions =
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Rename this project.">Rename</a>'))
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Permanently delete previously deactivated networks.">Clean up</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
-        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Permanently delete this project.">Delete</a>'));
+        .append(menu_item_modal('Delete', 'Permanently delete this project', '#modal_purge_project'));
         
 // network actions
 var network_actions =
@@ -96,8 +108,8 @@ var network_actions =
         .append($('<li>').html('<a href="#">Export</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Delete this network from the project, but keep it in the database.">Deactivate</a>'))
-        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Permanently delete this network.">Delete</a>'));
-        
+        .append(menu_item_modal('Delete', 'Permanently delete this network', '#modal_purge_network'));
+
 // template actions
 var template_actions =
     $('<ul>').addClass("dropdown-menu")
@@ -144,7 +156,7 @@ function update_projects(active_project_id) {
             $.each(projects, function(index, project){
             
                 var dropdown = project_dropdown.clone()
-                    .find('button').attr('id', project.id)
+                    .find('a').attr('data-id', project.id)
                     .end();
             
                 var li = $('<li>')
@@ -179,7 +191,7 @@ function update_networks(active_project_id, active_network_id) {
             $.each(networks, function(index, network){
             
                 var dropdown = network_dropdown.clone()
-                    .find('button').attr('id', network.id)
+                    .find('a').attr('data-id', network.id)
                     .end();
             
                 var li = $('<li>')
@@ -212,7 +224,7 @@ function update_templates(active_network_id, active_template_id) {
         $.each(templates, function(index, template){
 
             var dropdown = template_dropdown.clone()
-                .find('button').attr('id', template.id)
+                .find('a').attr('data-id', template.id)
                 .end();
         
             var li = $('<li>')
