@@ -77,29 +77,38 @@ $('button#purge_project_confirm').bind('click', function() {
 // project actions
 var project_actions =
     $('<ul>').addClass("dropdown-menu")
-        .append($('<li>').html('<a href="#">Edit</a>'))
-        .append($('<li>').html('<a href="#">Delete</a>'))
-        //.append($('<li>').html('<a href="#">------</a>'))
-        .append($('<li>').html('<a href="#">Purge</a>'));
+        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share project with another OpenAgua user.">Share</a>'))
+        .append($('<li>').attr('role','separator').addClass('divider'))
+        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Rename this project.">Rename</a>'))
+        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Permanently delete previously deactivated networks.">Clean up</a>'))
+        .append($('<li>').attr('role','separator').addClass('divider'))
+        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Permanently delete this project.">Delete</a>'));
         
 // network actions
 var network_actions =
     $('<ul>').addClass("dropdown-menu")
+        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share network with another OpenAgua user.">Share</a>'))
+        .append($('<li>').attr('role','separator').addClass('divider'))
         .append($('<li>').html('<a href="#">Edit</a>'))
-        .append($('<li>').html('<a href="#">Delete</a>'))
-        .append($('<li>').html('<a href="#">Activate</a>'))
+        .append($('<li>').html('<a href="#">Rename</a>'))
+        .append($('<li>').html('<a href="#">Attach template</a>'))
         .append($('<li>').html('<a href="#">Clean up</a>'))
         .append($('<li>').html('<a href="#">Export</a>'))
-        //.append($('<li>').html('<a href="#">------</a>'))
-        .append($('<li>').html('<a href="#">Purge</a>'));
+        .append($('<li>').attr('role','separator').addClass('divider'))
+        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Delete this network from the project, but keep it in the database.">Deactivate</a>'))
+        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Permanently delete this network.">Delete</a>'));
         
 // template actions
 var template_actions =
     $('<ul>').addClass("dropdown-menu")
+        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share template with another OpenAgua user.">Share</a>'))
+        .append($('<li>').attr('role','separator').addClass('divider'))
         .append($('<li>').html('<a href="#">Edit</a>'))
-        .append($('<li>').html('<a href="#">Delete</a>'))
-        //.append($('<li>').html('<a href="#">------</a>'))
-        .append($('<li>').html('<a href="#">Purge</a>'));
+        .append($('<li>').html('<a href="#">Rename</a>'))
+        .append($('<li>').html('<a href="#">Attach to network</a>'))
+        .append($('<li>').html('<a href="#">Export</a>'))
+        .append($('<li>').attr('role','separator').addClass('divider'))
+        .append($('<li>').html('<a href="#">Delete</a>'));
         
 function make_button_div(class_type, actions) {
     var btn_div = $('<div>')
