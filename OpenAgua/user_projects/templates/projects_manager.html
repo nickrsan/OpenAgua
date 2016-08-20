@@ -8,6 +8,21 @@
     
 {% block main %}
 
+<script>
+var active_project_id = -1;
+var active_network_id = -1;
+var active_template_id = -1;
+  {% if 'project_id' in session %}
+    var active_project_id = {{ session['project_id'] }};
+  {% endif %}
+  {% if 'network_id' in session %}
+    active_network_id = {{ session['network_id'] }};
+  {% endif %} 
+  {% if 'template_id' in session %}
+    var active_template_id = {{ session['template_id'] }};
+  {% endif %}
+</script>
+
 <div class="container-fluid">
   
   <div class="row">
@@ -21,7 +36,7 @@
   <div class="row">
   
     <!--select/add project-->
-    <div class="col sm-4 col-md-3">
+    <div class="col sm-4 col-md-4">
       <div class="panel panel-default">
         <div class="panel-heading clearfix" style="padding:3px">
           <button id="add_project" class="btn btn-default btn-sm pull-right">Add project</button>
@@ -37,21 +52,18 @@
     </div>
       
     <!--select/add network-->
-    <div class="col sm-4 col-md-3">
+    <div class="col sm-4 col-md-4">
       <div class="panel panel-default">
         <div class="panel-heading clearfix" style="padding:3px">
           <button id="add_network" class="btn btn-default btn-sm pull-right">Add network</button>
           <h4 style="margin:7px">Networks</h4>
         </div>
         <div class="panel-body">
-          {% if networks %}
+            <p id="network_list_description"></p>
             <div id="network_list">
-            <ul class="list-group">
-            </ul>
+              <ul class="list-group">
+              </ul>
             </div>
-          {% else %}
-            <p>No networks yet.</p>
-          {% endif %}
         </div>
       </div>
       
@@ -82,13 +94,7 @@
   </div>    
 </div>
   
-{% include "modals.html" %}  
-
-<script>
-  var active_project_id = {{ session['project_id'] }};
-  var active_network_id = {{ session['network_id'] }};
-  var active_template_id = {{ session['template_id'] }};
-</script>
+{% include "modals.html" %}
   
 <script src="{{ url_for('user_projects.static', filename='js/user_projects.js') }}"></script>
 

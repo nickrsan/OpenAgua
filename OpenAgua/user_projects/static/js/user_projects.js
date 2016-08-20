@@ -128,28 +128,32 @@ function update_projects(active_project_id) {
             
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
         var projects = resp.result;
-        var ul = $('#project_list ul');
         
-        ul.empty();
-        $.each(projects, function(index, project){
-        
-            var dropdown = project_dropdown.clone()
-                .find('button').attr('id', project.id)
-                .end();
-        
-            var li = $('<li>')
-                .text(project.name)
-                .addClass("list-group-item clearfix")
-                .addClass("project_item")
-                .val(project.id)
-                //.attr("id", project.id)
-                .append(dropdown);
-            if (project.id == active_project_id) {
-                li.addClass('active')
-            };
-            ul.append(li);
+        if (projects.length) {
+            var ul = $('#project_list ul');
+            ul.empty();
+            $.each(projects, function(index, project){
             
-        });
+                var dropdown = project_dropdown.clone()
+                    .find('button').attr('id', project.id)
+                    .end();
+            
+                var li = $('<li>')
+                    .text(project.name)
+                    .addClass("list-group-item clearfix")
+                    .addClass("project_item")
+                    .val(project.id)
+                    //.attr("id", project.id)
+                    .append(dropdown);
+                if (project.id == active_project_id) {
+                    li.addClass('active');
+                    $("#network_list_description").html('Networks for '+project.name)
+                };
+                ul.append(li);
+            });
+        } else {
+            $('#project_list').html('<p>No projects. Please create a project.</p>')            
+        };
     });
 };
 
@@ -159,27 +163,32 @@ function update_networks(active_project_id, active_network_id) {
     var args = {'project_id':active_project_id, 'include_data':'N'}
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
         var networks = resp.result;
-        var ul = $('#network_list ul');
         
-        ul.empty();
-        $.each(networks, function(index, network){
+         if (networks.length) {
+            var ul = $('#network_list ul');        
+            ul.empty();
+            $.each(networks, function(index, network){
+            
+                var dropdown = network_dropdown.clone()
+                    .find('button').attr('id', network.id)
+                    .end();
+            
+                var li = $('<li>')
+                    .text(network.name)
+                    .addClass("list-group-item clearfix")
+                    .addClass("network_item")
+                    .val(network.id)
+                    //.attr("id", network.id)
+                    .append(dropdown);
+                if (network.id == active_network_id) {
+                    li.addClass('active')
+                };
+                ul.append(li);
+            });
         
-            var dropdown = network_dropdown.clone()
-                .find('button').attr('id', network.id)
-                .end();
-        
-            var li = $('<li>')
-                .text(network.name)
-                .addClass("list-group-item clearfix")
-                .addClass("network_item")
-                .val(network.id)
-                //.attr("id", network.id)
-                .append(dropdown);
-            if (network.id == active_network_id) {
-                li.addClass('active')
-            };
-            ul.append(li);
-        });
+        } else {
+            $('#network_list').text('No networks yet.')            
+        };
     });
 };
 
