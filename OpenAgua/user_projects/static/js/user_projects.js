@@ -50,8 +50,8 @@ $("button#add_network_confirm").bind('click', function() {
         if ( status_code == -1 ) {
             $("#add_network_error").text('Name already in use. Please try again.');
         } else if ( status_code == 1 ){
-            $("#network_list ul").append('<li>'+net.name+'</li>');
             $('#modal_add_network').modal('hide');
+            update_networks(active_project_id)
         };
     });
 });

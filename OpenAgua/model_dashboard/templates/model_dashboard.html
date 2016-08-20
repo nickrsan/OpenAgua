@@ -60,17 +60,44 @@
          
             <div class="container">
                 <div class='col-md-3'>
-                    <label for "scenario_sets">Select scenarios to run</label>
-                    <div id="scenario_sets"class="form-group">
-                        <div class="checkbox">
-                            <label><input type="checkbox" value="">Base scenario</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input type="checkbox" value="">Cuchillo expansion</label>
-                        </div>
-                        <div class="checkbox">
-                            <label><input type="checkbox" value="">New dam</label>
-                        </div>
+                    <label for "management_scenarios">Select management scenario sets</label>
+                    <div id="management_scenarios"class="form-group">
+                        <select class="selectpicker" multiple data-selected-text-format="count">
+                            <option>Historical operations</option>
+                            <optgroup label="New infrastructure">
+                                <option>New reservoir</option>
+                                <option>Expanded aqueduct</option>
+                            </optgroup>
+                            <optgroup label="Re-operations">
+                                <option>Environmental flows 1</option>
+                                <option>Environmental flows 2</option>
+                            </optgroup>
+                            <optgroup label="Efficiency improvements">
+                                <option>Toilet replacement program</option>
+                                <option>Aqueduct lining project</option>
+                            </optgroup>
+                            <optgroup label="Water markets">
+                                <option>Demand response - residential</option>
+                                <option>Demand response - industrial</option>
+                                <option>Environmental water markets</option>
+                            </optgroup>
+                            <optgroup label="Combinations - new dam">
+                                <option>New dam + economic incentives</option>
+                                <option>New dam w/ environmental operations</option>
+                                <option>New dam w/ efficiency improvements</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+                <div class='col-md-3'>
+                    <label for "climate_scenarios">Select climate scenarios</label>
+                    <div id="climate_scenarios"class="form-group">
+                        <select class="selectpicker" multiple data-selected-text-format="count">
+                            <option>Historical</option>
+                            <option>Warm, wet</option>
+                            <option>Warm, medium</option>
+                            <option>Warm, dry</option>
+                        </select>
                     </div>
                 </div>
             </div>

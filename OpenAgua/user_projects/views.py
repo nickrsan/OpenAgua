@@ -75,7 +75,6 @@ def add_network():
     networks = conn.call('get_networks', {'project_id':session['project_id'], 'include_data':'N'})
     network_names = [network.name for network in networks]
     #activate_net = request.args.get('activate_network')
-    activate_net = True
     
     # add network
     new_net = request.args.get('net')
