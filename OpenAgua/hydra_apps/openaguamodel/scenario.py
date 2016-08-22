@@ -109,7 +109,7 @@ def run_scenario(scenario, args=None):
     # load scenario data
     # ===========================
    
-    conn.
+    #conn.
 
     # ===========================
     # create the optimization solver

@@ -116,7 +116,7 @@ def purge_project():
         status_code = -1
     return jsonify(result={'status_code': status_code})
 
-@user_projects.route('/_hydra_call')
+@user_projects.route('/_hydra_call', methods=['GET', 'POST'])
 def hydra_call():
     conn = connection(url=session['url'], session_id=session['session_id'])
     func = request.args.get('func')
