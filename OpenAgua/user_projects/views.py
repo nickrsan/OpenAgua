@@ -75,7 +75,6 @@ def add_network():
     networks = conn.call('get_networks', {'project_id':session['project_id'], 'include_data':'N'})
     network_names = [network.name for network in networks]
     #activate_net = request.args.get('activate_network')
-    activate_net = True
     
     # add network
     new_net = request.args.get('net')
@@ -117,7 +116,7 @@ def purge_project():
         status_code = -1
     return jsonify(result={'status_code': status_code})
 
-@user_projects.route('/_hydra_call')
+@user_projects.route('/_hydra_call', methods=['GET', 'POST'])
 def hydra_call():
     conn = connection(url=session['url'], session_id=session['session_id'])
     func = request.args.get('func')

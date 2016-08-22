@@ -112,11 +112,17 @@ var nodeIcon = L.Icon.extend({
 refreshCurrentItems = function() {
     currentItems.eachLayer(function(layer) {
         var prop = layer.feature.properties;
-        layer.bindPopup(prop.name); // add popup
+        //layer.bindPopup(prop.name); // add popup
+        layer.bindLabel(prop.name, {
+            noHide: true,
+            offset: [20,-15]
+        });
         layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu
         if (layer.feature.geometry.type == 'Point') {
             var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/" + prop.image;
-            var icon = new nodeIcon({iconUrl: iconUrl});
+            var icon = new nodeIcon({
+                iconUrl: iconUrl
+            });
             layer.setIcon(icon); // add icon
         } else {
             layer.setStyle({

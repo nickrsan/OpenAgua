@@ -158,7 +158,7 @@ if __name__=='__main__':
 
     logfile = join(args.log_dir, 'log.log')
     log = create_logger(args.app_name, logfile)
-        
+
     log.info('started model run with args: %s' % str(args))
     
     # delete old scenario log files

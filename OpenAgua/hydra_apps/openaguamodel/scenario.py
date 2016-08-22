@@ -18,6 +18,7 @@ def create_model(data):
     
     # spatial sets (nodes and arcs)
     
+    
     # piecewise linear sets
     
     #
@@ -104,14 +105,17 @@ def run_scenario(scenario, args=None):
     log.info('running scenario {} for {} months: {} to {}'
              .format(scenario, len(dates), args.initial_timestep, args.final_timestep))
 
-    # create the optimization solver
-    solver = SolverFactory(args.solver)
-    
     # ===========================
     # load scenario data
     # ===========================
    
+    #conn.
 
+    # ===========================
+    # create the optimization solver
+    # ===========================
+
+    solver = SolverFactory(args.solver)
    
     # ===========================
     # start the per timestep loop
