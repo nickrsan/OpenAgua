@@ -89,15 +89,10 @@ def add_network():
         # add the template
         conn.call('apply_template_to_network', {'template_id': tpl_id, 'network_id': network.id})
         
-        # add a default scenario
-        #scen = {'name':'Baseline', 'return_summary':'N'}
-        #conn.call('add_scenario', {'network_id':network.id, 'scen':scen})
-        #network = conn.call('get_network', {'network_id':network.id})
-        #print(network, file=stderr)
-        
-        if activate_net:
-            session['network_name'] = network.name
-            session['network_id'] = network.id
+        # add a default scenario (similar to Hydra Modeller)
+        scen = {'name':'Baseline', 'return_summary':'N'}
+        conn.call('add_scenario', {'network_id':network.id, 'scen':scen})
+        network = conn.call('get_network', {'network_id':network.id})
             
         return jsonify(result={'status_code': 1})
 

@@ -33,25 +33,8 @@ $("button#add_network_confirm").bind('click', function() {
             $("#add_network_error").text('Name already in use. Please try again.');
         } else if ( status_code == 1 ){
             $('#modal_add_network').modal('hide');
-            update_networks(active_project_id)
+            update_networks(active_project_id, active_network_id)
         };
-    });
-});
-
-$('#modal_purge_project').on('shown.bs.modal', function (event) {
-    var button = $(event.relatedTarget);
-    var project_id = button.data('id');
-    $('#purge_project_confirm').bind('click', function() {
-      $.getJSON($SCRIPT_ROOT+'/_purge_project', {project_id: project_id}, function(data) {
-          status_code = data.result.status_code;
-          if ( status_code == 1 ) { // there should be only success
-              $("#purge_project_name").text("");
-              $("#modal_purge_project").val(-1);
-              $('#project_list ul #'+project_id).remove();
-              $("#modal_purge_project").modal("hide");
-              update_projects(active_project_id);
-          };
-      });
     });
 });
 
@@ -68,6 +51,19 @@ function menu_item_modal(text, title, target) {
     return li;
 };
 
+// create menu item
+function menu_item(action, text, tooltip) {
+    var li = $('<li>')
+        .append($('<a>')
+            .attr('href', '')
+            .attr('type','button')
+            .addClass(action)
+            .attr('title', tooltip)
+            .text(text)
+        );
+    return li;
+};
+
 // project actions
 var project_actions =
     $('<ul>').addClass("dropdown-menu")
@@ -76,7 +72,8 @@ var project_actions =
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Rename this project.">Rename</a>'))
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Permanently delete previously deactivated networks.">Clean up</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
-        .append(menu_item_modal('Delete', 'Permanently delete this project', '#modal_purge_project'));
+        //.append(menu_item_modal('Delete', 'Permanently delete this project', '#modal_purge_project'));
+        .append(menu_item('purge_project', 'Delete', 'Permanently delete this project.'));
         
 // network actions
 var network_actions =
@@ -90,7 +87,8 @@ var network_actions =
         .append($('<li>').html('<a href="#">Export</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Delete this network from the project, but keep it in the database.">Deactivate</a>'))
-        .append(menu_item_modal('Delete', 'Permanently delete this network', '#modal_purge_network'));
+        //.append(menu_item_modal('Delete', 'Permanently delete this network', '#modal_purge_network'));
+        .append(menu_item('purge_network', 'Delete', 'Permanently delete this network.'));
 
 // template actions
 var template_actions =
@@ -102,7 +100,8 @@ var template_actions =
         .append($('<li>').html('<a href="#">Attach to network</a>'))
         .append($('<li>').html('<a href="#">Export</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
-        .append($('<li>').html('<a href="#">Delete</a>'));
+        //.append($('<li>').html('<a href="#">Delete</a>'));
+        .append(menu_item('delete_template', 'Delete', 'Permanently delete this template.'));
         
 function make_button_div(class_type, actions) {
     var btn_div = $('<div>')
@@ -138,8 +137,11 @@ function update_projects(active_project_id) {
             $.each(projects, function(index, project){
             
                 var dropdown = project_dropdown.clone()
-                    .find('button').attr('id', project.id).end()
-                    .find('a').attr('data-id', project.id).end();
+                    //.find('button').attr('id', project.id).end()
+                    .find('a')
+                        .attr('data-name', project.name)
+                        .attr('data-id', project.id)
+                    .end();
             
                 var li = $('<li>')
                     .text(project.name)
@@ -166,9 +168,10 @@ function update_networks(active_project_id, active_network_id) {
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
         var networks = resp.result;
         
-         if (networks.length) {
-            var ul = $('#network_list ul');        
-            ul.empty();
+        var network_list = $('#network_list')
+        network_list.empty();
+        if (networks.length) {
+            var ul = $('<ul>').addClass('list-group');
             $.each(networks, function(index, network){
             
                 var dropdown = network_dropdown.clone()
@@ -179,17 +182,16 @@ function update_networks(active_project_id, active_network_id) {
                     .text(network.name)
                     .addClass("list-group-item clearfix")
                     .addClass("network_item")
-                    .val(network.id)
-                    //.attr("id", network.id)
                     .append(dropdown);
                 if (network.id == active_network_id) {
                     li.addClass('active')
                 };
                 ul.append(li);
             });
-        
+            network_list.append(ul)
+            
         } else {
-            $('#network_list').text('No networks yet.')            
+            network_list.text('No networks yet.')            
         };
     });
 };
@@ -223,6 +225,37 @@ function update_templates(active_network_id, active_template_id) {
         });
     });
 };
+
+// purge project
+$(document).on('click', '.purge_project', function(e) {
+    e.preventDefault();
+    var id = Number($(this).attr('data-id'));
+    var name = $(this).attr('data-name');
+    var msg = 'Permanently delete project "'+name+'?"<br><b>WARNING: This cannot be undone!<b>'
+    bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+            result = hydra_call('purge_project', {project_id: id});
+            update_projects(active_project_id);
+            update_networks(active_project_id, active_network_id);
+            notify('success','Success!', 'Project "'+name+'" has been permanently deleted.');
+        };
+    });
+});
+
+// purge network
+$(document).on('click', '.purge_network', function(e) {
+    e.preventDefault();
+    var id = Number($(this).attr('data-id'));
+    var name = $(this).attr('data-name');
+    var msg = 'Permanently delete network "'+name+'?"<br><b>WARNING: This cannot be undone!<b>'
+    bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+            result = hydra_call('purge_network', {network_id: id});
+            update_networks(active_project_id, active_network_id);
+            notify('success','Success!', 'Network "'+name+'" has been permanently deleted.');
+        };
+    });
+});
 
 $( document ).ready(function() {
     update_projects(active_project_id);
