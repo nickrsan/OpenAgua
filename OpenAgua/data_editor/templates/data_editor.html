@@ -26,47 +26,50 @@
   <div class="row" style="margin-bottom:15px">
   
     <!--select a scenario-->
-    <div class="col-sm-6 col-md-2">    
+    <div class="col-sm-9 col-md-3">  
+    <div class="form-group">
       <label for="scenarios">Select a scenario to edit</label>
-      <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="auto" title="Select a scenario">
+      <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a scenario">
       {% for scenario in scenarios %}
         <option data-tokens="{{scenario.id}}">{{scenario.name}}</option>
       {% endfor %}
       </select>
     </div>
+    </div>
 
     <!--select a feature-->
-    <div class="col-sm-6 col-md-2">    
+    <div class="col-sm-9 col-md-3">    
+    <div class="form-group">
       <label for="features">Select a feature to edit</label>
-      <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="auto" disabled="true" title="Select a feature">
+      <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled="true" title="Select a feature">
 
-      <optgroup label="Nodes">
-      {% for node in nodes %}
-        <option data-tokens={{node.id}}>{{node.name}}</option>
-      {% endfor %}
-      </optgroup>
-      <optgroup label="Links">
-        {% for link in links %}
-          <option data-tokens={{link.id}}>{{link.name}}</option>
+      {% for (type_id, type_name, feature_type), feats in features.iteritems() %}
+        <optgroup label="{{ type_name }}">
+        {% for f in feats %}
+          <option data-tokens='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
         {% endfor %}
-      </optgroup>
+        </optgroup>
+      {% endfor %}
       </select>
+    </div>
     </div>
     
     <!--select a variable-->
-    <div class="col-sm-6 col-md-2">
+    <div class="col-sm-9 col-md-3">
+    <div class="form-group">
       <label for="variables">Select a variable to edit</label>
-      <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="auto" disabled="true" title="Select a variable">
+      <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled="true" title="Select a variable">
         <optgroup label="No feature selected">
         <option>Select a feature first!</option>
         </optgroup>
       </select>
     </div>
+    </div>
 
   </div>
 
   <div class="row">
-    <div class="col-md-7 col-sm-10">
+    <div class="col-md-9 col-sm-9">
 
       <div class="panel panel-default">
           <div class="panel-heading">
@@ -97,64 +100,6 @@
 var template_id = {{session['template_id']}}
 </script>
 
-<script>
-var editor = ace.edit("editor");
-editor.setTheme("ace/theme/chrome");
-editor.getSession().setMode("ace/mode/python");
-document.getElementById('editor').style.fontSize='16px';
-
-var feature_id;
-var scenario_id;
-var template_id;
-var variable_id;
-$(document).ready(function(){
-
-  // load the scenarios
-  $('#scenarios').on('hide.bs.select', function (e) {
-    scenario_id = Number($('#scenarios option:selected').attr("data-tokens"));
-    $('#features').attr('disabled',false);
-  });
-
-  // load the variables when the feature is clicked
-  $('#features').on('hide.bs.select', function (e) {
-    var feature_type = 'node'; // NEED TO UPDATE THIS!!!
-    feature_id = Number($('#features option:selected').attr("data-tokens"));
-    if (!isNaN(feature_id)) {
-      load_variables(feature_type, feature_id);
-    };    
-  });
-
-  // load the variable data when the variable is clicked
-  $('#variables').on('hide.bs.select', function (e) {
-    variable_id = Number($('#variables option:selected').attr("data-tokens"));
-    if (!isNaN(variable_id)) {
-      load_data(variable_id, scenario_id);
-    };    
-  });  
-  
-});
-
-// load the variables (aka attributes in Hydra)
-function load_variables(feature_type, feature_id) {
-  var data = {feature_type: feature_type, feature_id: feature_id}
-  $.getJSON($SCRIPT_ROOT+'/_get_variables', data, function(resp) {
-      var variables = resp.result;
-      var vpicker = $('#variables')
-      vpicker.empty();
-      $.each(variables, function(index, variable) {
-        vpicker
-          .append($('<option>')
-            .attr('data-tokens',variable.attr_id)
-            .text(variable.attr_name.replace(/_/g,' '))
-          );
-      });
-      vpicker.attr('disabled',false);
-      vpicker.selectpicker('refresh');
-  });
-};
-
-// load the variable data
-    
-</script>
+<script src="{{ url_for('.static', filename='js/data_editor.js') }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}
