@@ -17,10 +17,6 @@ def index():
         return redirect(url_for('user_home.home'))
     else:
         return render_template('index.html')
-    
-@app.route('/after_registration')
-def after_registration():
-    return render_template('after_registration.html')
 
 @app.route('/template')
 @login_required
