@@ -12,7 +12,8 @@ $("button#add_project_confirm").bind('click', function() {
             $("#add_project_error").text('Name already in use. Please try again.');
         } else if ( status_code == 1 ){
             $('#modal_add_project').modal('hide');
-            update_projects(active_project_id)
+            update_projects(active_project_id);
+            notify('success', 'Success!', 'Project "'+name+'" added.');
         };
     });
 });
@@ -33,7 +34,8 @@ $("button#add_network_confirm").bind('click', function() {
             $("#add_network_error").text('Name already in use. Please try again.');
         } else if ( status_code == 1 ){
             $('#modal_add_network').modal('hide');
-            update_networks(active_project_id, active_network_id)
+            update_networks(active_project_id, active_network_id);
+            notify('success', 'Success!', 'Network "'+name+'" added.');
         };
     });
 });
