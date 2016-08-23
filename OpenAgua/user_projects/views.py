@@ -3,6 +3,7 @@ import os
 from flask import render_template, request, session, json, jsonify, redirect
 from flask_user import login_required
 import zipfile
+import datetime
 
 from ..connection import connection
 #from ..decorators import *
@@ -81,7 +82,7 @@ def add_network():
     new_net = json.loads(new_net)
     tpl_id = int(request.args.get('tpl_id'))
     if new_net['name'] in network_names:
-        return jsonify(result={status_code: -1})
+        return jsonify(result={'status_code': -1})
     else:
         new_net['project_id'] = session['project_id']
         network = conn.call('add_network', {'net':new_net})
@@ -90,8 +91,12 @@ def add_network():
         conn.call('apply_template_to_network', {'template_id': tpl_id, 'network_id': network.id})
         
         # add a default scenario (similar to Hydra Modeller)
-        scen = {'name':'Baseline', 'return_summary':'N'}
-        conn.call('add_scenario', {'network_id':network.id, 'scen':scen})
+        scenario = dict(
+            name = 'Baseline',
+            description = 'Baseline scenario'
+        )
+
+        result = conn.call('add_scenario', {'network_id':network.id, 'scen':scenario})
         network = conn.call('get_network', {'network_id':network.id})
             
         return jsonify(result={'status_code': 1})

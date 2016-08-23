@@ -22,7 +22,7 @@ class connection(object):
                    'appname': self.app_name}
         call_json = {func: args}
 
-        response = requests.post(self.url, json=call_json, headers=headers)
+        response = requests.post(self.url, data=json.dumps(call_json), headers=headers)
         if not response.ok:
             try:
                 fc, fs = response['faultcode'], response['faultstring']

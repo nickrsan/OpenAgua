@@ -38,7 +38,7 @@
     <!--select a feature-->
     <div class="col-sm-6 col-md-2">    
       <label for="features">Select a feature to edit</label>
-      <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="auto" title="Select a feature">
+      <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="auto" disabled="true" title="Select a feature">
 
       <optgroup label="Nodes">
       {% for node in nodes %}
@@ -56,7 +56,7 @@
     <!--select a variable-->
     <div class="col-sm-6 col-md-2">
       <label for="variables">Select a variable to edit</label>
-      <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="auto" title="Select a variable">
+      <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="auto" disabled="true" title="Select a variable">
         <optgroup label="No feature selected">
         <option>Select a feature first!</option>
         </optgroup>
@@ -112,16 +112,25 @@ $(document).ready(function(){
   // load the scenarios
   $('#scenarios').on('hide.bs.select', function (e) {
     scenario_id = Number($('#scenarios option:selected').attr("data-tokens"));
+    $('#features').attr('disabled',false);
   });
 
   // load the variables when the feature is clicked
   $('#features').on('hide.bs.select', function (e) {
     var feature_type = 'node'; // NEED TO UPDATE THIS!!!
     feature_id = Number($('#features option:selected').attr("data-tokens"));
-    load_variables(feature_type, feature_id);
+    if (!isNaN(feature_id)) {
+      load_variables(feature_type, feature_id);
+    };    
   });
 
   // load the variable data when the variable is clicked
+  $('#variables').on('hide.bs.select', function (e) {
+    variable_id = Number($('#variables option:selected').attr("data-tokens"));
+    if (!isNaN(variable_id)) {
+      load_data(variable_id, scenario_id);
+    };    
+  });  
   
 });
 
@@ -130,15 +139,17 @@ function load_variables(feature_type, feature_id) {
   var data = {feature_type: feature_type, feature_id: feature_id}
   $.getJSON($SCRIPT_ROOT+'/_get_variables', data, function(resp) {
       var variables = resp.result;
-      $('#variables').empty();
+      var vpicker = $('#variables')
+      vpicker.empty();
       $.each(variables, function(index, variable) {
-        $('#variables')
+        vpicker
           .append($('<option>')
             .attr('data-tokens',variable.attr_id)
-            .text(variable.attr_name)
+            .text(variable.attr_name.replace(/_/g,' '))
           );
       });
-      $('#variables').selectpicker('refresh');
+      vpicker.attr('disabled',false);
+      vpicker.selectpicker('refresh');
   });
 };
 
