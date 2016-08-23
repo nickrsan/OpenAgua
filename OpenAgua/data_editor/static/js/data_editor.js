@@ -68,7 +68,15 @@ function load_data(feature_id, feature_type, attr_id, scenario_id) {
     scen_id: scenario_id
   };
   $.getJSON($SCRIPT_ROOT+'_get_variable_data', data, function(resp) {
-    var attr_data = resp.attr_data;
-    editor.setValue(attr_data);
+    var attr_data = resp.result;
+    var value;
+    if (attr_data != null) {
+      value = attr_data.value.value;
+    } else {
+      value = '';
+    };
+    editor.setValue(value);
+    editor.gotoLine(1);
+
   });
 };

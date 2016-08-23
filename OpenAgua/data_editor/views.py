@@ -43,6 +43,12 @@ def get_variable_data():
     type_id = int(request.args.get('type_id'))
 
     args = {'%s_id' % feature_type: feature_id, 'scenario_id': scen_id, 'type_id': type_id}
-    data = conn.call('get_%s_data' % feature_type, args)
+    feature_data = conn.call('get_%s_data' % feature_type, args)
     
-    return jsonify(results=data)
+    attr_data = [row for row in feature_data if row.attr_id==attr_id]
+    if attr_data:
+        attr_data = attr_data[0]
+    else:
+        attr_data = None
+    
+    return jsonify(result=attr_data)
