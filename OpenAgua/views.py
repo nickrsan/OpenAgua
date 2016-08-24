@@ -1,7 +1,7 @@
 from __future__ import print_function
 from flask import jsonify, Response, json, request, session, redirect, url_for, escape, send_file, render_template, flash
 from flask_user import login_required
-from flask.ext.login import current_user
+from flask_login import current_user
 import requests
 import sys
 

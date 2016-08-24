@@ -5,6 +5,9 @@ from flask import Flask
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter
+from flask_login import current_user
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 
 # import blueprints
 from .user_projects import user_projects
@@ -68,3 +71,25 @@ app.register_blueprint(data_editor, url_prefix='')
 app.register_blueprint(net_editor, url_prefix='')
 app.register_blueprint(model_dashboard, url_prefix='')
 app.register_blueprint(chart_maker, url_prefix='')
+
+# ============
+# set up admin
+# ============
+
+admin = Admin(app, name='OpenAgua', template_mode='bootstrap3')
+
+class UserView(ModelView):
+    
+    column_exclude_list = ['password', ]
+    column_searchable_list = ['username', 'email']
+    
+    def is_accessible(self):
+        return current_user.is_authenticated
+
+    def inaccessible_callback(self, name, **kwargs):
+        # redirect to login page if user doesn't have access
+        return redirect(url_for('login', next=request.url))    
+    
+# Add administrative views here
+admin.add_view(UserView(User, db.session))
+
