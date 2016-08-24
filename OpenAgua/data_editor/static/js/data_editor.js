@@ -69,6 +69,7 @@ function load_variables(type_id) {
 };
 
 // load the variable data
+var attr_data = null;
 function load_data(feature_id, feature_type, attr_id, scenario_id) {
   var data = {
     type_id: type_id,
@@ -90,3 +91,15 @@ function load_data(feature_id, feature_type, attr_id, scenario_id) {
 
   });
 };
+
+// save data
+$(document).on('click', '#save_changes', function() {
+  var new_value = editor.getValue();
+  attr_data.value.value = new_value;
+  $.getJSON('/_save_variable_data', {attr_data:attr_data}, function(resp) {
+    var status = resp.status;
+    if (status==1) {
+      notify('success','Success!','Edits saved.')
+    };
+  });
+});

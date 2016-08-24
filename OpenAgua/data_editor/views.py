@@ -33,6 +33,7 @@ def get_variables():
     return jsonify(result=attrs)
 
 @data_editor.route('/_get_variable_data')
+@login_required
 def get_variable_data():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
@@ -52,3 +53,17 @@ def get_variable_data():
         attr_data = None
     
     return jsonify(result=attr_data)
+
+@data_editor.route('/_save_variable_data')
+def _save_variable_data():
+    conn = connection(url=session['url'], session_id=session['session_id'])
+    
+    attr_id = int(request.args.get('attr_id'))
+    scen_id = int(request.args.get('scen_id'))
+    dataset = request.args.get('attr_data')
+    dataset = jsonify(dataset)
+    
+    args = {'scenario_id': scen_id, 'resource_attr_id': attr_id, 'dataset': dataset}
+    result = conn.call('add_data_to_attribute', args)
+    
+    return jsonify(result=result)
