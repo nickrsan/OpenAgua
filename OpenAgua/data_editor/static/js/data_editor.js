@@ -8,6 +8,14 @@ var scenario_id;
 var template_id;
 var attr_id;
 var type_id;
+
+// monitor the editor
+
+function reset_editor() {
+  editor.setValue('');
+  $('#save_status').text('');
+};
+
 $(document).ready(function(){
 
   // load the scenarios
@@ -15,10 +23,12 @@ $(document).ready(function(){
     scenario_id = Number($('#scenarios option:selected').attr("data-tokens"));
     $('#features').attr('disabled',false);
     $('#features').selectpicker('refresh');
+    reset_editor();
   });
 
   // load the variables when the feature is clicked
   $('#features').on('hide.bs.select', function (e) {
+    reset_editor();
     var data_tokens = $('#features option:selected').attr("data-tokens");
     var feature_data = $.parseJSON(data_tokens);
     type_id = feature_data.type_id;
@@ -26,7 +36,7 @@ $(document).ready(function(){
     feature_type = feature_data.feature_type;
     if (!isNaN(feature_id)) {
       load_variables(type_id);
-    };    
+    };
   });
 
   // load the variable data when the variable is clicked
@@ -35,7 +45,7 @@ $(document).ready(function(){
     if (!isNaN(attr_id)) {
       load_data(feature_id, feature_type, attr_id, scenario_id);
     };    
-  });  
+  });
   
 });
 

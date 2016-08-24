@@ -13,6 +13,7 @@ from .data_editor import data_editor
 from .network_editor import net_editor
 from .main_overview import main_overview
 from .model_dashboard import model_dashboard
+from .chart_maker import chart_maker
 
 app = Flask('OpenAgua', instance_relative_config=True)
 
@@ -66,3 +67,4 @@ app.register_blueprint(main_overview, url_prefix='')
 app.register_blueprint(data_editor, url_prefix='')
 app.register_blueprint(net_editor, url_prefix='')
 app.register_blueprint(model_dashboard, url_prefix='')
+app.register_blueprint(chart_maker, url_prefix='')
