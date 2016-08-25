@@ -15,11 +15,24 @@ def data_editor_main():
     conn = connection(url=session['url'], session_id=session['session_id'])
     network = conn.call('get_network', {'network_id':session['network_id'],'include_data':'N'})
     template = conn.call('get_template',{'template_id':session['template_id']})
-    features = OrderedDict()
-    for t in template.types:
-        resources = conn.call('get_resources_of_type', {'network_id':network.id, 'type_id':t.id})
-        if resources:
-            features[(t.id, t.name, t.resource_type)] = resources
+    features = OrderedDict()   
+    
+    for res_type in ['NETWORK','NODE','LINK']:
+        for ttype in template.types:
+            #resources = conn.call('get_resources_of_type', {'network_id':network.id, 'type_id':t.id})
+            if ttype.resource_type=='NETWORK':
+                nodes = [n for n in network.nodes if ttype.id in [t.id for t in n.types]]
+                if nodes:
+                    features[(ttype.id, ttype.name, ttype.resource_type)] = nodes
+            elif ttype.resource_type=='NODE':
+                nodes = [n for n in network.nodes if ttype.id in [t.id for t in n.types]]
+                if nodes:
+                    features[(ttype.id, ttype.name, ttype.resource_type)] = nodes
+            elif ttype.resource_type=='LINK':
+                nodes = [n for n in network.nodes if ttype.id in [t.id for t in n.types]]
+                if nodes:
+                    features[(ttype.id, ttype.name, ttype.resource_type)] = nodes
+        
             
     # create an attribute lookup dictionary
     global attr_dict

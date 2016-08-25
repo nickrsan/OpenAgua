@@ -15,7 +15,7 @@ function reset_editor() {
 $(document).ready(function(){
 
   // load the scenarios
-  $('#scenarios').on('hide.bs.select', function (e) {
+  $('#scenarios').on('changed.bs.select', function (e) {
     scen_id = Number($('#scenarios option:selected').attr("data-tokens"));
     $('#features').attr('disabled',false);
     $('#features').selectpicker('refresh');
@@ -23,7 +23,7 @@ $(document).ready(function(){
   });
 
   // load the variables when the feature is clicked
-  $('#features').on('hide.bs.select', function (e) {
+  $('#features').on('changed.bs.select', function (e) {
     reset_editor();
     var data_tokens = $('#features option:selected').attr("data-tokens");
     var feature_data = $.parseJSON(data_tokens);
@@ -36,13 +36,12 @@ $(document).ready(function(){
   });
 
   // load the variable data when the variable is clicked
-  $('#variables').on('hide.bs.select', function (e) {
-    var data_tokens = JSON.parse($('#variables option:selected').attr("data-tokens"))
+  $('#variables').on('changed.bs.select', function (e) {
+    var selected = $('#variables option:selected');
+    var data_tokens = JSON.parse(selected.attr("data-tokens"));
     res_attr_id = data_tokens.res_attr_id;
     attr_id = data_tokens.attr_id;
-    if (!isNaN(attr_id)) {
-      load_data(feature_id, feature_type, attr_id, scen_id);
-    };    
+    load_data(feature_id, feature_type, attr_id, scen_id);
   });
   
 });
