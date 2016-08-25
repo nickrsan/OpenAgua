@@ -1,6 +1,7 @@
 from collections import OrderedDict
-from flask import render_template, request, session, jsonify
+from flask import render_template, request, session, jsonify, json
 from flask_user import login_required
+from flask_login import current_user
 from ..connection import connection
 
 # import blueprint definition
@@ -54,8 +55,43 @@ def get_variable_data():
     
     return jsonify(result=attr_data)
 
-@data_editor.route('/_save_variable_data')
-def _save_variable_data():
+# add a new variable from user input
+@data_editor.route('/_add_variable_data')
+@login_required
+def _add_variable_data():
+    conn = connection(url=session['url'], session_id=session['session_id'])
+    
+    attr_id = int(request.args.get('attr_id'))
+    scen_id = int(request.args.get('scen_id'))
+    val = request.args.get('val')
+    
+    # we need to create Dataset. Since we are attaching it to an existing attribute, we will
+    # use the same dimensions, units, etc. as that attribute.
+    attr = conn.call('get_attribute_by_id', {'ID':attr_id})
+    
+    dataset = dict(
+        id=None,
+        type = 'descriptor',
+        name = attr.name,
+        unit = None,
+        dimension = attr.dimen,
+        hidden = 'N',
+        value = json.dumps({'desc_val':val}),
+        metadata = json.dumps({'source':'OpenAgua/%s' % current_user.username})
+    )    
+    
+    args = {'scenario_id': scen_id, 'resource_attr_id': attr_id, 'dataset': dataset}
+    result = conn.call('add_data_to_attribute', args)
+    if 'faultcode' in result.keys():
+        status = -1
+    else:
+        status = 1
+    
+    return jsonify(status=status)
+
+@data_editor.route('/_update_variable_data')
+@login_required
+def _update_variable_data():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
     attr_id = int(request.args.get('attr_id'))

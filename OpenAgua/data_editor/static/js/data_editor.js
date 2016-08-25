@@ -4,7 +4,7 @@ editor.getSession().setMode("ace/mode/python");
 document.getElementById('editor').style.fontSize='16px';
 
 var feature_id;
-var scenario_id;
+var scen_id;
 var template_id;
 var attr_id;
 var type_id;
@@ -20,7 +20,7 @@ $(document).ready(function(){
 
   // load the scenarios
   $('#scenarios').on('hide.bs.select', function (e) {
-    scenario_id = Number($('#scenarios option:selected').attr("data-tokens"));
+    scen_id = Number($('#scenarios option:selected').attr("data-tokens"));
     $('#features').attr('disabled',false);
     $('#features').selectpicker('refresh');
     reset_editor();
@@ -43,7 +43,7 @@ $(document).ready(function(){
   $('#variables').on('hide.bs.select', function (e) {
     attr_id = Number($('#variables option:selected').attr("data-tokens"));
     if (!isNaN(attr_id)) {
-      load_data(feature_id, feature_type, attr_id, scenario_id);
+      load_data(feature_id, feature_type, attr_id, scen_id);
     };    
   });
   
@@ -69,24 +69,24 @@ function load_variables(type_id) {
 };
 
 // load the variable data
+var original_value;
 var attr_data = null;
-function load_data(feature_id, feature_type, attr_id, scenario_id) {
+function load_data(feature_id, feature_type, attr_id, scen_id) {
   var data = {
     type_id: type_id,
     feature_type: feature_type,
     feature_id: feature_id,
     attr_id: attr_id,
-    scen_id: scenario_id
+    scen_id: scen_id
   };
   $.getJSON($SCRIPT_ROOT+'_get_variable_data', data, function(resp) {
-    var attr_data = resp.result;
-    var value;
+    attr_data = resp.result;
     if (attr_data != null) {
-      value = attr_data.value.value;
+      original_value = attr_data.value.value;
     } else {
-      value = '';
+      original_value = '';
     };
-    editor.setValue(value);
+    editor.setValue(original_value);
     editor.gotoLine(1);
 
   });
@@ -95,11 +95,24 @@ function load_data(feature_id, feature_type, attr_id, scenario_id) {
 // save data
 $(document).on('click', '#save_changes', function() {
   var new_value = editor.getValue();
-  attr_data.value.value = new_value;
-  $.getJSON('/_save_variable_data', {attr_data:attr_data}, function(resp) {
-    var status = resp.status;
-    if (status==1) {
-      notify('success','Success!','Edits saved.')
+  if (new_value != original_value) {
+    if (attr_data == null) {
+      var val = new_value;
+      $.getJSON('/_add_variable_data', {scen_id:scen_id, attr_id:attr_id, val:val}, function(resp) {
+        var status = resp.status;
+        if (status==1) {
+          notify('success','Success!','Variable updated.')
+        };
+      });
+    } else {
+      $.getJSON('/_update_variable_data', {attr_data:attr_data}, function(resp) {
+        var status = resp.status;
+        if (status==1) {
+          notify('success','Success!','Variable updated.')
+        };
+      });
     };
-  });
+  } else {
+    notify('info','Nothing saved.','No edits detected.')
+  };
 });

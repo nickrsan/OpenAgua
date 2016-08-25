@@ -32,6 +32,7 @@ db = SQLAlchemy(app)                            # Initialize Flask-SQLAlchemy
 mail = Mail(app)                                # Initialize Flask-Mail
 
 # Define the User data model. Make sure to add flask.ext.user UserMixin !!!
+# Define the User data model. Make sure to add flask.ext.user UserMixin!!
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
 
@@ -46,13 +47,31 @@ class User(db.Model, UserMixin):
 
     # User information
     active = db.Column('is_active', db.Boolean(), nullable=False, server_default='0')
+    first_name = db.Column(db.String(100), nullable=False, server_default='')
+    last_name = db.Column(db.String(100), nullable=False, server_default='')
+
+    # Relationships
+    roles = db.relationship('Role', secondary='user_roles',
+            backref=db.backref('users', lazy='dynamic'))
+
+
+# Define the Role data model
+class Role(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+
+# Define the UserRoles data model
+class UserRoles(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
+    role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
 
 # Create all database tables
 db.create_all()
 
 # Setup Flask-User
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
-user_manager = UserManager(db_adapter, app)     # Initialize Flask-User
+user_manager = UserManager(db_adapter, app)    # Initialize Flask-User
 
 # ====================
 # Load top-level views
