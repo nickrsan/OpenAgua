@@ -144,14 +144,111 @@ Voila! OpenAgua should now be available on test.mysite.com while Hydra Server sh
 
 Note that these configuration settings would differ between Linux distributions.
 
-# Documentation
+# OpenAgua technologies and methods
 
-## OpenAguaDSS
+For now, this documentation is organized around the main user areas of the website, focusing on technical aspects (technologies involved, methods used, etc.). Help for the registered user is found on the site itself, under "Help".
 
-OpenAguaDSS is in the beginning stages of development. Documentation forthcoming.
+## General
 
-## Hydra web service API
-
-Documentation for Hydra Platform is under development. However, the following seem to be reliable:
+### Data management - Hydra Platform
+As mentioned above, OpenAgua is built on Hydra Platform for data organization and management. Documentation for Hydra Platform is under development. However, the following seem to be reliable:
 * API functions: http://umwrg.github.io/HydraPlatform/devdocs/HydraServer/index.html#api-functions
 * Example usage with JSON: http://umwrg.github.io/HydraPlatform/tutorials/plug-in/tutorial_json.html
+
+### Back end
+
+OpenAgua uses a mix of JavaScript and Jquery for client-side work and Flask (Python) for server-side work, including serving individual webpages and interactions with Hydra Platform. OpenAgua also takes advantage of the Jinja2 templating system that Flask uses.
+
+Many extensions have been written for Flask. Some of these are used by OpenAgua, as explained below.
+
+## Site security: registration, login, etc.
+Site security is managed by Flask_User. Flask_User, in turn, uses a mix of other Flask extensions.
+
+## Home
+
+Documentation forthcoming.
+
+## Manage
+
+The "Manage" section allows the user to manage HP _projects_, _networks_, and _templates_.
+
+The overall steps in creating a project + template + network are as follows (main HP functions involved in parentheses):
+1. Add a project (*add_project*)
+2. Add a network (*add_network*), selecting a template to add at the same time. The only available template for now is "OpenAgua"; this is created automatically if it doesn't already exist. During network creation, a default "Baseline" scenario (*add_scenario*) is created for the new network, similar to Hydra Modeller. 
+
+For project/network creation, HP functions are called as follows:
+1. *add_project*
+2. *add_network*
+3. *apply_template_to_network*
+4. *add_scenario*
+
+### Projects
+
+* **Add Project**: This uses HP's _add_project_ function.
+
+### Networks
+
+* **Add Network**: This uses HP's _add_network_ function with the user's active project.
+
+### Templates
+
+The OpenAgua user cannot currently add a template via the interface.
+
+## Network Editor
+
+* **Add node**: The HP functions *add_node* is used, with the user's active *network_id*.
+* **Add link**: The HP function *add_link* is used, with the user's active *network_id*.
+
+## Data Editor
+
+Documentation forthcoming.
+
+## Scenario Builder
+
+Not built yet.
+
+## Model Dashboard
+
+Documentation forthcoming.
+
+## Results Overview
+
+Not built yet.
+
+## Chart Maker
+
+Not built yet. For now, there is an example chart built using [Plotly] (http://plot.ly). The intent is to build a control panel for building Plotly graphs.
+
+## My Charts
+
+Not built yet.
+
+## Charts Dashboard
+
+Not built yet.
+
+## Advanced
+
+## Data Exporter
+
+Not built yet. This might be best deferred to the Hydra Platform Web Interface.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
