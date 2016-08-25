@@ -3,11 +3,7 @@ editor.setTheme("ace/theme/chrome");
 editor.getSession().setMode("ace/mode/python");
 document.getElementById('editor').style.fontSize='16px';
 
-var feature_id;
-var scen_id;
-var template_id;
-var attr_id;
-var type_id;
+var feature_id, scen_id, template_id, res_attr_id, attr_id, type_id;
 
 // monitor the editor
 
@@ -41,7 +37,9 @@ $(document).ready(function(){
 
   // load the variable data when the variable is clicked
   $('#variables').on('hide.bs.select', function (e) {
-    attr_id = Number($('#variables option:selected').attr("data-tokens"));
+    var data_tokens = JSON.parse($('#variables option:selected').attr("data-tokens"))
+    res_attr_id = data_tokens.res_attr_id;
+    attr_id = data_tokens.attr_id;
     if (!isNaN(attr_id)) {
       load_data(feature_id, feature_type, attr_id, scen_id);
     };    
@@ -51,16 +49,22 @@ $(document).ready(function(){
 
 // load the variables (aka attributes in Hydra)
 function load_variables(type_id) {
-  var data = {type_id: type_id}
+  var data = {
+    type_id: type_id,
+    feature_id: feature_id,
+    feature_type: feature_type
+    };
   $.getJSON($SCRIPT_ROOT+'/_get_variables', data, function(resp) {
-      var variables = resp.result;
-      var vpicker = $('#variables')
+      var res_attrs = resp.res_attrs;
+      var attr_dict = resp.attr_dict;
+      var vpicker = $('#variables');
       vpicker.empty();
-      $.each(variables, function(index, variable) {
+      $.each(res_attrs, function(index, res_attr) {
+        var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id};
         vpicker
           .append($('<option>')
-            .attr('data-tokens',variable.attr_id)
-            .text(variable.attr_name.replace(/_/g,' '))
+            .attr('data-tokens',JSON.stringify(data_tokens))
+            .text(attr_dict[res_attr.attr_id].replace(/_/g,' '))
           );
       });
       vpicker.attr('disabled',false);
@@ -79,7 +83,7 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     attr_id: attr_id,
     scen_id: scen_id
   };
-  $.getJSON($SCRIPT_ROOT+'_get_variable_data', data, function(resp) {
+  $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     attr_data = resp.result;
     if (attr_data != null) {
       original_value = attr_data.value.value;
@@ -97,17 +101,23 @@ $(document).on('click', '#save_changes', function() {
   var new_value = editor.getValue();
   if (new_value != original_value) {
     if (attr_data == null) {
-      var val = new_value;
-      $.getJSON('/_add_variable_data', {scen_id:scen_id, attr_id:attr_id, val:val}, function(resp) {
+      var data = {
+        scen_id: scen_id,
+        res_attr_id: res_attr_id,
+        attr_id: attr_id,
+        val: new_value
+      };
+      $.getJSON('/_add_variable_data', data, function(resp) {
         var status = resp.status;
         if (status==1) {
           notify('success','Success!','Variable updated.')
         };
       });
     } else {
-      $.getJSON('/_update_variable_data', {attr_data:attr_data}, function(resp) {
-        var status = resp.status;
-        if (status==1) {
+      attr_data.value.value = new_value;
+      var data = {scen_id: scen_id, attr_data: JSON.stringify(attr_data)}
+      $.getJSON('/_update_variable_data', data, function(resp) {
+        if (resp.status==1) {
           notify('success','Success!','Variable updated.')
         };
       });

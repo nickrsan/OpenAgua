@@ -7,6 +7,8 @@ from ..connection import connection
 # import blueprint definition
 from . import data_editor
 
+global attr_dict
+
 @data_editor.route('/data_editor')
 @login_required
 def data_editor_main():    
@@ -18,6 +20,13 @@ def data_editor_main():
         resources = conn.call('get_resources_of_type', {'network_id':network.id, 'type_id':t.id})
         if resources:
             features[(t.id, t.name, t.resource_type)] = resources
+            
+    # create an attribute lookup dictionary
+    global attr_dict
+    attrs = conn.call('get_template_attributes', {'template_id':session['template_id']})
+    attr_dict = {}
+    for a in attrs:
+        attr_dict[a.id] = a.name    
     
     return render_template('data_editor.html',
                            features=features,
@@ -26,12 +35,15 @@ def data_editor_main():
 @data_editor.route('/_get_variables', methods=['GET','POST'])
 @login_required
 def get_variables():
+    global attr_dict
+    
     conn = connection(url=session['url'], session_id=session['session_id'])
     type_id = int(request.args.get('type_id'))
-    type_ = conn.call('get_templatetype', {'type_id':type_id})
-    attrs = [a for a in type_.typeattrs if a.is_var=='N']
+    feature_id = int(request.args.get('feature_id'))
+    feature_type = request.args.get('feature_type').lower()
+    res_attrs = conn.call('get_%s_attributes'%feature_type, {'%s_id'%feature_type: feature_id, 'type_id':type_id})
     
-    return jsonify(result=attrs)
+    return jsonify(res_attrs=res_attrs, attr_dict=attr_dict)
 
 @data_editor.route('/_get_variable_data')
 @login_required
@@ -58,9 +70,10 @@ def get_variable_data():
 # add a new variable from user input
 @data_editor.route('/_add_variable_data')
 @login_required
-def _add_variable_data():
+def add_variable_data():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
+    res_attr_id = int(request.args.get('res_attr_id'))
     attr_id = int(request.args.get('attr_id'))
     scen_id = int(request.args.get('scen_id'))
     val = request.args.get('val')
@@ -75,12 +88,11 @@ def _add_variable_data():
         name = attr.name,
         unit = None,
         dimension = attr.dimen,
-        hidden = 'N',
-        value = json.dumps({'desc_val':val}),
+        value = val,
         metadata = json.dumps({'source':'OpenAgua/%s' % current_user.username})
     )    
     
-    args = {'scenario_id': scen_id, 'resource_attr_id': attr_id, 'dataset': dataset}
+    args = {'scenario_id': scen_id, 'resource_attr_id': res_attr_id, 'dataset': dataset}
     result = conn.call('add_data_to_attribute', args)
     if 'faultcode' in result.keys():
         status = -1
@@ -94,12 +106,16 @@ def _add_variable_data():
 def _update_variable_data():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
-    attr_id = int(request.args.get('attr_id'))
     scen_id = int(request.args.get('scen_id'))
     dataset = request.args.get('attr_data')
-    dataset = jsonify(dataset)
+    dataset = json.loads(dataset)
+    dataset['metadata'] = json.dumps({'source':'OpenAgua/%s' % current_user.username})
     
-    args = {'scenario_id': scen_id, 'resource_attr_id': attr_id, 'dataset': dataset}
+    args = {'scenario_id': scen_id, 'resource_attr_id': dataset['resource_attr_id'], 'dataset': dataset['value']}
     result = conn.call('add_data_to_attribute', args)
+    if 'faultcode' in result.keys():
+        status = -1
+    else:
+        status = 1
     
-    return jsonify(result=result)
+    return jsonify(status=status)
