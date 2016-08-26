@@ -1,7 +1,7 @@
 import os
 
 # app.py or app/__init__.py
-from flask import Flask
+from flask import Flask, session
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
 from flask_user import login_required, UserManager, UserMixin, SQLAlchemyAdapter

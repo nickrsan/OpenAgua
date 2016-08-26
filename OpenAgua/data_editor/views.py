@@ -75,13 +75,13 @@ def get_variable_data():
         attr_data = attr_data[0]
         
         # evaluate the data
-        eval_data = evaluate(attr_data.value.value, n_years=10, ts_per_year=12, ti='01/2000')
+        eval_data = evaluate(attr_data.value.value)
         
     else:
         attr_data = None
         eval_data = None
     
-    return jsonify(result=attr_data, eval_data=eval_data)
+    return jsonify(attr_data=attr_data, eval_data=eval_data)
 
 # add a new variable from user input
 @data_editor.route('/_add_variable_data')
@@ -116,7 +116,7 @@ def add_variable_data():
         status = 1
         
     # evaluate the data
-    eval_data = evaluate(val, n_years=10, ts_per_year=12, ti='01/2000')
+    eval_data = evaluate(val)
     
     return jsonify(status=status, eval_data=eval_data)
 
@@ -138,6 +138,6 @@ def _update_variable_data():
         status = 1
     
     # evaluate the data
-    eval_data = evaluate(dataset['value'].value, n_years=10, ts_per_year=12, ti='01/2000')
+    eval_data = evaluate(dataset['value']['value'])
     
     return jsonify(status=status, eval_data=eval_data)

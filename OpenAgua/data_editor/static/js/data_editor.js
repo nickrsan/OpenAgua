@@ -1,10 +1,9 @@
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/chrome");
 editor.getSession().setMode("ace/mode/python");
-document.getElementById('editor').style.fontSize='16px';
+document.getElementById('editor').style.fontSize='14px';
 
 var feature_id, scen_id, template_id, res_attr_id, res_attr_name, attr_id, type_id;
-var eval_data;
 
 // monitor the editor
 
@@ -87,8 +86,7 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     scen_id: scen_id
   };
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
-    attr_data = resp.value;
-    eval_data = resp.eval_data;
+    attr_data = resp.attr_data;
     if (attr_data != null) {
       original_value = attr_data.value.value;
     } else {
@@ -96,7 +94,7 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     };
     editor.setValue(original_value);
     editor.gotoLine(1);
-    updateChart()
+    updateChart(res_attr_name, resp.eval_data)
   });
 };
 
@@ -104,7 +102,6 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
 $(document).on('click', '#save_changes', function() {
   var new_value = editor.getValue();
   if (new_value != original_value) {
-    var eval_data;
     if (attr_data == null) {
       var data = {
         scen_id: scen_id,
@@ -113,44 +110,136 @@ $(document).on('click', '#save_changes', function() {
         val: new_value
       };
       $.getJSON('/_add_variable_data', data, function(resp) {
-        var status = resp.status;
-        if (status==1) {
-          notify('success','Success!','Data added.')
-          eval_data = resp.eval_data;
+        if (resp.status==1) {
+          notify('success','Success!','Data added.');
+          updateChart(res_attr_name, resp.eval_data);
         };
       });
     } else {
       attr_data.value.value = new_value;
-      var data = {scen_id: scen_id, attr_data: JSON.stringify(attr_data)}
+      var data = {scen_id: scen_id, attr_data: JSON.stringify(attr_data)};
       $.getJSON('/_update_variable_data', data, function(resp) {
         if (resp.status==1) {
-          notify('success','Success!','Data updated.')
+          notify('success','Success!','Data updated.');
           original_value = new_value;
-          eval_data = resp.eval_data;
+          updateChart(res_attr_name, resp.eval_data);
         };
       });
     };
-    updateChart();
   } else {
     notify('info','Nothing saved.','No edits detected.')
   };
 });
 
-function updateChart() {
+// chart functions
+var myChart = null;
 
+function updateChart(title, eval_data) {
+  if (eval_data != null) {
+    //chartjs(title, eval_data)
+    highstock(title, eval_data)
+  } else {
+    hideCharts()  
+  };
+};
+
+function hideCharts() {
+  //$('#chartjs').hide();
+  $('#highstock').hide();
+};
+
+// make chartjs chart
+function chartjs(title, eval_data) {
+  $('#chartjs').show();
+  if (myChart != null) { myChart.destroy() }
   var ctx = document.getElementById("monthly_chart");
-  var myChart = new Chart(ctx, {
+  myChart = new Chart(ctx, {
       type: 'line',
       data: {
-          labels: eval_data.labels,
+          //labels: eval_data.dates,
           datasets: [{
-              label: res_attr_name,
-              data: eval_data.data,
+              label: title,
+              data: eval_data.values,
           }]
       },
       options: {
           responsive: true,
       }
   });
+
+};
+
+// make highstock chart
+function highstock(title, eval_data) {
+
+    // prepare the data - this could be done server side instead if plotly uses the same format
+    // On the other hand, Lodash makes it easy!
+    var data = _.zip(eval_data.dates, eval_data.values);
+
+    $('#highstock').show();
+    
+    // Create the chart
+    $('#highstock').highcharts('StockChart', {
+
+        rangeSelector : {
+            selected : 1
+        },
+
+        //title : {
+            //text : title
+        //},
+        
+        chart: {
+            height: 300
+        },
+
+        series : [{
+            name : title,
+            data : data,
+            tooltip: {
+                valueDecimals: 2
+            },
+            marker : {
+                    enabled : true,
+                    radius : 3
+            }
+        }],
+        
+        yAxis: {
+          opposite: false
+        },
+        
+        rangeSelector : {
+            allButtonsEnabled: true,
+            buttons: [{
+                type: 'month',
+                count: 12,
+                text: '1 year',
+                dataGrouping: {
+                    forced: true,
+                    units: [['day', [1]]]
+                }
+            }, {
+                type: 'year',
+                count: 5,
+                text: '5 years',
+                dataGrouping: {
+                    forced: true,
+                    units: [['week', [1]]]
+                }
+            }, {
+                type: 'all',
+                text: 'All',
+                dataGrouping: {
+                    forced: true,
+                    units: [['month', [1]]]
+                }
+            }],
+            buttonTheme: {
+                width: 60
+            },
+            selected: 0
+        },
+    });
 
 };
