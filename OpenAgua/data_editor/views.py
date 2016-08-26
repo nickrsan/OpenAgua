@@ -56,7 +56,12 @@ def get_variables():
     feature_type = request.args.get('feature_type').lower()
     res_attrs = conn.call('get_%s_attributes'%feature_type, {'%s_id'%feature_type: feature_id, 'type_id':type_id})
     
-    return jsonify(res_attrs=res_attrs, attr_dict=attr_dict)
+    # add a name to each resource_attr based on the associated attribute id
+    for i in range(len(res_attrs)):
+        res_attr_name = attr_dict[res_attrs[i].attr_id].replace('_',' ')
+        res_attrs[i]['name'] = res_attr_name
+    
+    return jsonify(res_attrs=res_attrs)
 
 @data_editor.route('/_get_variable_data')
 @login_required

@@ -54,17 +54,18 @@ function load_variables(type_id) {
     feature_type: feature_type
     };
   $.getJSON($SCRIPT_ROOT+'/_get_variables', data, function(resp) {
-      var res_attrs = resp.res_attrs;
-      var attr_dict = resp.attr_dict;
+      var res_attrs = _.sortBy(resp.res_attrs, 'name');
       var vpicker = $('#variables');
       vpicker.empty();
       $.each(res_attrs, function(index, res_attr) {
-        var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id};
-        vpicker
-          .append($('<option>')
-            .attr('data-tokens',JSON.stringify(data_tokens))
-            .text(attr_dict[res_attr.attr_id].replace(/_/g,' '))
-          );
+        if (res_attr.attr_is_var == 'N') {
+          var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id};
+          vpicker
+            .append($('<option>')
+              .attr('data-tokens',JSON.stringify(data_tokens))
+              .text(res_attr.name)
+            );
+          };
       });
       vpicker.attr('disabled',false);
       vpicker.selectpicker('refresh');
