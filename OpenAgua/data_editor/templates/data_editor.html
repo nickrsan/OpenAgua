@@ -8,6 +8,7 @@
         height: 100px;
     }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.bundle.min.js"></script>
 <script src="{{ url_for('.static', filename='lib/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 {% endblock %}
 
@@ -27,43 +28,43 @@
   
     <!--select a scenario-->
     <div class="col-sm-9 col-md-3">  
-    <div class="form-group">
-      <label for="scenarios">Select a scenario to edit</label>
-      <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a scenario">
-      {% for scenario in scenarios %}
-        <option data-tokens="{{scenario.id}}">{{scenario.name}}</option>
-      {% endfor %}
-      </select>
-    </div>
+      <div class="form-group">
+        <label for="scenarios">Select a scenario to edit</label>
+        <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a scenario">
+        {% for scenario in scenarios %}
+          <option data-tokens="{{scenario.id}}">{{scenario.name}}</option>
+        {% endfor %}
+        </select>
+      </div>
     </div>
 
     <!--select a feature-->
     <div class="col-sm-9 col-md-3">    
-    <div class="form-group">
-      <label for="features">Select a feature to edit</label>
-      <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled="true" title="Select a feature">
-
-      {% for (type_id, type_name, feature_type), feats in features.iteritems() %}
-        <optgroup label="{{ type_name }}">
-        {% for f in feats %}
-          <option data-tokens='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
+      <div class="form-group">
+        <label for="features">Select a feature to edit</label>
+        <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled="true" title="Select a feature">
+  
+        {% for (type_id, type_name, feature_type), feats in features.iteritems() %}
+          <optgroup label="{{ type_name }}">
+          {% for f in feats %}
+            <option data-tokens='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
+          {% endfor %}
+          </optgroup>
         {% endfor %}
-        </optgroup>
-      {% endfor %}
-      </select>
-    </div>
+        </select>
+      </div>
     </div>
     
     <!--select a variable-->
     <div class="col-sm-9 col-md-3">
-    <div class="form-group">
-      <label for="variables">Select a variable to edit</label>
-      <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled="true" title="Select a variable">
-        <optgroup label="No feature selected">
-        <option>Select a feature first!</option>
-        </optgroup>
-      </select>
-    </div>
+      <div class="form-group">
+        <label for="variables">Select a variable to edit</label>
+        <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled="true" title="Select a variable">
+          <optgroup label="No feature selected">
+          <option>Select a feature first!</option>
+          </optgroup>
+        </select>
+      </div>
     </div>
 
   </div>
@@ -71,24 +72,25 @@
   <div class="row">
     <div class="col-md-9 col-sm-9">
 
-      <div class="panel panel-default">
-          <div class="panel-heading">
-               <h3 class="panel-title">Edit data<b class="pull-right" style="color:red;" id="save_status"></b></h3>
-          </div>
-          <div class="panel-body">
-            <div id="editor" style="border-style:solid; border-width:1px; border-color:black"></div>
-            <div>Please enter statements using Python syntax. See <a href="/help/syntax_instructions">instructions and examples</a>.</div>
-          </div>
-          <div class="panel-footer">
-              <button id="undo_all" class="btn btn-default">Undo all</button>
-              <button id="check_code" class="btn btn-default">Check code</button>
-              <button id="view_graph" class="btn btn-default">View graph</button>
-              <button id="save_changes" class="btn btn-primary">Save changes</button>
-            </div>
-          </div>
+      <div class='row'>
+        <label for="editor">Edit data</label>
+        <div>Use Python syntax. See <a href="/help/syntax_instructions">instructions and examples</a>.</div>
+        <div id="editor" style="border-style:solid; border-width:1px; border-color:black"></div>
+        <br>
+        <div id="graph" style="border-style:solid; border-width:1px; border-color:black"><canvas id="monthly_chart" width="300" height="100"></canvas></div>
       </div>
-    
+      <br>
+      <div class="row">
+        <div class="form-group">
+          <button id="undo_all" class="btn btn-default">Undo all</button>
+          <button id="check_code" class="btn btn-default">Check code</button>
+          <button id="update_graph" class="btn btn-default">Update graph</button>
+          <button id="save_changes" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+            
     </div>
+    
   </div>
 
 </div>

@@ -3,6 +3,7 @@ from flask import render_template, request, session, jsonify, json
 from flask_user import login_required
 from flask_login import current_user
 from ..connection import connection
+from ..evaluator import evaluate
 
 # import blueprint definition
 from . import data_editor
@@ -18,21 +19,13 @@ def data_editor_main():
     features = OrderedDict()   
     
     for res_type in ['NETWORK','NODE','LINK']:
-        for ttype in template.types:
-            #resources = conn.call('get_resources_of_type', {'network_id':network.id, 'type_id':t.id})
+        for ttype in template.types:            
             if ttype.resource_type=='NETWORK':
-                nodes = [n for n in network.nodes if ttype.id in [t.id for t in n.types]]
-                if nodes:
-                    features[(ttype.id, ttype.name, ttype.resource_type)] = nodes
-            elif ttype.resource_type=='NODE':
-                nodes = [n for n in network.nodes if ttype.id in [t.id for t in n.types]]
-                if nodes:
-                    features[(ttype.id, ttype.name, ttype.resource_type)] = nodes
-            elif ttype.resource_type=='LINK':
-                nodes = [n for n in network.nodes if ttype.id in [t.id for t in n.types]]
-                if nodes:
-                    features[(ttype.id, ttype.name, ttype.resource_type)] = nodes
-        
+                pass # not sure how to load these
+            elif ttype.resource_type==res_type:
+                feats = [r for r in eval('network.{}s'.format(res_type.lower())) if ttype.id in [t.id for t in r.types]]
+                if feats:
+                    features[(ttype.id, ttype.name.replace('_', ' '), ttype.resource_type)] = feats        
             
     # create an attribute lookup dictionary
     global attr_dict
@@ -80,10 +73,15 @@ def get_variable_data():
     attr_data = [row for row in feature_data if row.attr_id==attr_id]
     if attr_data:
         attr_data = attr_data[0]
+        
+        # evaluate the data
+        eval_data = evaluate(attr_data.value.value, n_years=10, ts_per_year=12, ti='01/2000')
+        
     else:
         attr_data = None
+        eval_data = None
     
-    return jsonify(result=attr_data)
+    return jsonify(result=attr_data, eval_data=eval_data)
 
 # add a new variable from user input
 @data_editor.route('/_add_variable_data')
@@ -116,8 +114,11 @@ def add_variable_data():
         status = -1
     else:
         status = 1
+        
+    # evaluate the data
+    eval_data = evaluate(val, n_years=10, ts_per_year=12, ti='01/2000')
     
-    return jsonify(status=status)
+    return jsonify(status=status, eval_data=eval_data)
 
 @data_editor.route('/_update_variable_data')
 @login_required
@@ -136,4 +137,7 @@ def _update_variable_data():
     else:
         status = 1
     
-    return jsonify(status=status)
+    # evaluate the data
+    eval_data = evaluate(dataset['value'].value, n_years=10, ts_per_year=12, ti='01/2000')
+    
+    return jsonify(status=status, eval_data=eval_data)

@@ -3,7 +3,8 @@ editor.setTheme("ace/theme/chrome");
 editor.getSession().setMode("ace/mode/python");
 document.getElementById('editor').style.fontSize='16px';
 
-var feature_id, scen_id, template_id, res_attr_id, attr_id, type_id;
+var feature_id, scen_id, template_id, res_attr_id, res_attr_name, attr_id, type_id;
+var eval_data;
 
 // monitor the editor
 
@@ -25,7 +26,8 @@ $(document).ready(function(){
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
     reset_editor();
-    var data_tokens = $('#features option:selected').attr("data-tokens");
+    var selected = $('#features option:selected');
+    var data_tokens = selected.attr("data-tokens");
     var feature_data = $.parseJSON(data_tokens);
     type_id = feature_data.type_id;
     feature_id = feature_data.feature_id;
@@ -40,6 +42,7 @@ $(document).ready(function(){
     var selected = $('#variables option:selected');
     var data_tokens = JSON.parse(selected.attr("data-tokens"));
     res_attr_id = data_tokens.res_attr_id;
+    res_attr_name = data_tokens.res_attr_name;
     attr_id = data_tokens.attr_id;
     load_data(feature_id, feature_type, attr_id, scen_id);
   });
@@ -59,7 +62,7 @@ function load_variables(type_id) {
       vpicker.empty();
       $.each(res_attrs, function(index, res_attr) {
         if (res_attr.attr_is_var == 'N') {
-          var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id};
+          var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id, res_attr_name: res_attr.name};
           vpicker
             .append($('<option>')
               .attr('data-tokens',JSON.stringify(data_tokens))
@@ -84,7 +87,8 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     scen_id: scen_id
   };
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
-    attr_data = resp.result;
+    attr_data = resp.value;
+    eval_data = resp.eval_data;
     if (attr_data != null) {
       original_value = attr_data.value.value;
     } else {
@@ -92,7 +96,7 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     };
     editor.setValue(original_value);
     editor.gotoLine(1);
-
+    updateChart()
   });
 };
 
@@ -100,6 +104,7 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
 $(document).on('click', '#save_changes', function() {
   var new_value = editor.getValue();
   if (new_value != original_value) {
+    var eval_data;
     if (attr_data == null) {
       var data = {
         scen_id: scen_id,
@@ -110,7 +115,8 @@ $(document).on('click', '#save_changes', function() {
       $.getJSON('/_add_variable_data', data, function(resp) {
         var status = resp.status;
         if (status==1) {
-          notify('success','Success!','Variable updated.')
+          notify('success','Success!','Data added.')
+          eval_data = resp.eval_data;
         };
       });
     } else {
@@ -118,11 +124,33 @@ $(document).on('click', '#save_changes', function() {
       var data = {scen_id: scen_id, attr_data: JSON.stringify(attr_data)}
       $.getJSON('/_update_variable_data', data, function(resp) {
         if (resp.status==1) {
-          notify('success','Success!','Variable updated.')
+          notify('success','Success!','Data updated.')
+          original_value = new_value;
+          eval_data = resp.eval_data;
         };
       });
     };
+    updateChart();
   } else {
     notify('info','Nothing saved.','No edits detected.')
   };
 });
+
+function updateChart() {
+
+  var ctx = document.getElementById("monthly_chart");
+  var myChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+          labels: eval_data.labels,
+          datasets: [{
+              label: res_attr_name,
+              data: eval_data.data,
+          }]
+      },
+      options: {
+          responsive: true,
+      }
+  });
+
+};
