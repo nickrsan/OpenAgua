@@ -35,6 +35,11 @@ $(document).ready(function(){
       }
       if (scen_id != null) {
         load_data(feature_id, feature_type, attr_id, scen_id);
+      } else {
+      var vbutton = $('button[data-id="scenarios"]');
+      var stitle = 'Select a scenario'
+      vbutton.attr('title',stitle)
+      vbutton.children('.filter-option').text(stitle)
       }
     }
   });
@@ -78,7 +83,11 @@ function load_variables(type_id) {
           }
       });
       vpicker.attr('disabled',false);
-      vpicker.selectpicker('refresh');
+      $('#variables').selectpicker('refresh');
+      var vbutton = $('button[data-id="variables"]')
+      vbutton.children('.filter-option').text('Select a variable')
+      vbutton.parent().children('.dropdown-menu').children('.inner').children('.selected')
+        .removeClass('selected')
   });
 }
 
@@ -183,7 +192,6 @@ function highstock(title, eval_data) {
     // prepare the data - this could be done server side instead if plotly uses the same format
     // On the other hand, Lodash makes it easy!
     var data = _.zip(eval_data.dates, eval_data.values);
-    data = _.map(data, function(item) {return [Date.parse(item[0]), item[1]]});
 
     $('#highstock').show();
     
