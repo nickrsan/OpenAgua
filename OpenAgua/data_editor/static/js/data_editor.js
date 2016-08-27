@@ -1,64 +1,72 @@
 var editor = ace.edit("editor");
 editor.setTheme("ace/theme/chrome");
 editor.getSession().setMode("ace/mode/python");
+editor.$blockScrolling = Infinity // disable error message; cursor is placed at the beginning below
 document.getElementById('editor').style.fontSize='14px';
 
-var feature_id, scen_id, template_id, res_attr_id, res_attr_name, attr_id, type_id;
-
-// monitor the editor
-
-function reset_editor() {
-  editor.setValue('');
-  $('#save_status').text('');
-};
+var feature_id, scen_id, scen_name, template_id, res_attr_id, res_attr_name, attr_id, type_id;
 
 $(document).ready(function(){
 
-  // load the scenarios
-  $('#scenarios').on('changed.bs.select', function (e) {
-    scen_id = Number($('#scenarios option:selected').attr("data-tokens"));
-    $('#features').attr('disabled',false);
-    $('#features').selectpicker('refresh');
-    reset_editor();
-  });
-
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
-    reset_editor();
     var selected = $('#features option:selected');
-    var data_tokens = selected.attr("data-tokens");
-    var feature_data = $.parseJSON(data_tokens);
-    type_id = feature_data.type_id;
-    feature_id = feature_data.feature_id;
-    feature_type = feature_data.feature_type;
-    if (!isNaN(feature_id)) {
+    if (selected.length) {
+      var data_tokens = $.parseJSON(selected.attr("data-tokens"));
+      type_id = data_tokens.type_id;
+      feature_id = data_tokens.feature_id;
+      feature_type = data_tokens.feature_type;
       load_variables(type_id);
-    };
+    }
   });
 
   // load the variable data when the variable is clicked
   $('#variables').on('changed.bs.select', function (e) {
     var selected = $('#variables option:selected');
-    var data_tokens = JSON.parse(selected.attr("data-tokens"));
-    res_attr_id = data_tokens.res_attr_id;
-    res_attr_name = data_tokens.res_attr_name;
-    attr_id = data_tokens.attr_id;
-    load_data(feature_id, feature_type, attr_id, scen_id);
+    if (selected.length) {
+      var data_tokens = JSON.parse(selected.attr("data-tokens"));
+      res_attr_id = data_tokens.res_attr_id;    
+      res_attr_name = data_tokens.res_attr_name;
+      attr_id = data_tokens.attr_id;
+      var spicker = $('#scenarios');
+      if (spicker.attr('disabled')) {
+        spicker.attr('disabled',false);
+        spicker.selectpicker('refresh');
+      }
+      if (scen_id != null) {
+        load_data(feature_id, feature_type, attr_id, scen_id);
+      }
+    }
   });
   
+  // load the scenarios
+  $('#scenarios').on('hide.bs.select', function (e) {
+    var selected = $('#scenarios option:selected');
+    if (selected.length) {
+      var data_tokens = JSON.parse(selected.attr("data-tokens"));
+      scen_id = data_tokens.scen_id;
+      scen_name = data_tokens.scen_name;
+      load_data(feature_id, feature_type, attr_id, scen_id);
+    } else {
+      scen_id = null;
+      scen_name = null;
+      hideCharts();
+      editor.setValue('');
+    }
+  });
 });
 
 // load the variables (aka attributes in Hydra)
 function load_variables(type_id) {
+  var vpicker = $('#variables');
+  vpicker.empty();
   var data = {
     type_id: type_id,
     feature_id: feature_id,
     feature_type: feature_type
-    };
+    }
   $.getJSON($SCRIPT_ROOT+'/_get_variables', data, function(resp) {
       var res_attrs = _.sortBy(resp.res_attrs, 'name');
-      var vpicker = $('#variables');
-      vpicker.empty();
       $.each(res_attrs, function(index, res_attr) {
         if (res_attr.attr_is_var == 'N') {
           var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id, res_attr_name: res_attr.name};
@@ -67,12 +75,12 @@ function load_variables(type_id) {
               .attr('data-tokens',JSON.stringify(data_tokens))
               .text(res_attr.name)
             );
-          };
+          }
       });
       vpicker.attr('disabled',false);
       vpicker.selectpicker('refresh');
   });
-};
+}
 
 // load the variable data
 var original_value;
@@ -94,7 +102,7 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     };
     editor.setValue(original_value);
     editor.gotoLine(1);
-    updateChart(res_attr_name, resp.eval_data)
+    updateChart(scen_name, resp.eval_data)
   });
 };
 
@@ -112,7 +120,7 @@ $(document).on('click', '#save_changes', function() {
       $.getJSON('/_add_variable_data', data, function(resp) {
         if (resp.status==1) {
           notify('success','Success!','Data added.');
-          updateChart(res_attr_name, resp.eval_data);
+          updateChart(scen_name, resp.eval_data);
         };
       });
     } else {
@@ -122,7 +130,7 @@ $(document).on('click', '#save_changes', function() {
         if (resp.status==1) {
           notify('success','Success!','Data updated.');
           original_value = new_value;
-          updateChart(res_attr_name, resp.eval_data);
+          updateChart(scen_name, resp.eval_data);
         };
       });
     };
@@ -175,6 +183,7 @@ function highstock(title, eval_data) {
     // prepare the data - this could be done server side instead if plotly uses the same format
     // On the other hand, Lodash makes it easy!
     var data = _.zip(eval_data.dates, eval_data.values);
+    data = _.map(data, function(item) {return [Date.parse(item[0]), item[1]]});
 
     $('#highstock').show();
     
@@ -204,6 +213,15 @@ function highstock(title, eval_data) {
                     radius : 3
             }
         }],
+        
+        dataGrouping: {
+            approximation: "sum",
+            enabled: true,
+            forced: true,
+            units: [['month',[1]]]
+
+        },
+
         
         yAxis: {
           opposite: false

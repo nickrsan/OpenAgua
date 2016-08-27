@@ -8,7 +8,7 @@
         height: 100px;
     }
 </style>
-<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.2.1/Chart.bundle.min.js"></script>-->
+
 <script src="https://code.highcharts.com/stock/highstock.js"></script>
 <script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
 <script src="{{ url_for('.static', filename='lib/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
@@ -28,24 +28,11 @@
 
   <div class="row" style="margin-bottom:15px">
   
-    <!--select a scenario-->
-    <div class="col-sm-9 col-md-3">  
-      <div class="form-group">
-        <label for="scenarios">Select a scenario to edit</label>
-        <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a scenario">
-        {% for scenario in scenarios %}
-          <option data-tokens="{{scenario.id}}">{{scenario.name}}</option>
-        {% endfor %}
-        </select>
-      </div>
-    </div>
-
     <!--select a feature-->
     <div class="col-sm-9 col-md-3">    
       <div class="form-group">
         <label for="features">Select a feature to edit</label>
-        <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled="true" title="Select a feature">
-  
+        <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a feature">  
         {% for (type_id, type_name, feature_type), feats in features.iteritems() %}
           <optgroup label="{{ type_name }}">
           {% for f in feats %}
@@ -61,10 +48,19 @@
     <div class="col-sm-9 col-md-3">
       <div class="form-group">
         <label for="variables">Select a variable to edit</label>
-        <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled="true" title="Select a variable">
-          <optgroup label="No feature selected">
-          <option>Select a feature first!</option>
-          </optgroup>
+        <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled= title="Select a variable">
+        </select>
+      </div>
+    </div>
+
+    <!--select a scenario-->
+    <div class="col-sm-9 col-md-3">  
+      <div class="form-group">
+        <label for="scenarios">Select a scenario to edit</label>
+        <select id="scenarios" class="selectpicker show-menu-arrow" multiple data-selected-text-format="count"  data-live-search="true" data-width="100%" disabled title="Select a scenario">
+        {% for scenario in scenarios %}
+          <option data-tokens='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
+        {% endfor %}
         </select>
       </div>
     </div>
@@ -91,9 +87,6 @@
       </div>
       
       <div class="row">
-        <!--Alternative 1 (<a href="http://www.chartjs.org">Chart.js</a>)-->
-        <!--<div id="chartjs" style="border-style:solid; border-width:1px; border-color:black"><canvas id="monthly_chart" width="300" height="100"></canvas></div>-->
-        <!--<br>Alternative 2 (<a href="http://www.highcharts.com/products/highstock">Highstock</a>)-->
         <div id="highstock" style="border-style:solid; border-width:3px; border-color:grey"></div>
       </div>
             

@@ -1,7 +1,45 @@
 {% extends "master.html" %}
 {% block title %} - Network{% endblock %}
 {% block head_main %}
-{% include 'head_leaflet.html' %}
+
+<!--Leaflet-->
+<!--<link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />-->
+<!--<script src="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>-->
+<link rel="stylesheet" href="https://npmcdn.com/leaflet@0.7.7/dist/leaflet.css" />
+<script src="https://npmcdn.com/leaflet@0.7.7/dist/leaflet.js"></script>
+
+<!--draw-->
+<link rel="stylesheet" href="{{ url_for('.static', filename='lib/leaflet/draw/leaflet.draw.css') }}" />
+<script src="{{ url_for('.static', filename='lib/leaflet/draw/leaflet.draw.js') }}"></script>
+
+<!--geometryutil-->
+<script src="{{ url_for('.static', filename='lib/leaflet/geometryutil/leaflet.geometryutil.js') }}"></script>
+
+<!--snap-->
+<script src="{{ url_for('.static', filename='lib/leaflet/snap/leaflet.snap.js') }}"></script>
+
+<!--locate-->
+<link rel="stylesheet" href="{{ url_for('.static', filename='lib/leaflet/locate/L.Control.Locate.min.css') }}" />
+<script src="{{ url_for('.static', filename='lib/leaflet/locate/L.Control.Locate.min.js') }}"></script>
+
+<!--boxzoom-->
+<link rel="stylesheet" href="{{ url_for('.static', filename='lib/leaflet/boxzoom/leaflet-control-boxzoom.css') }}" />
+<script src="{{ url_for('.static', filename='lib/leaflet/boxzoom/leaflet-control-boxzoom.js') }}"></script>
+
+<!--contextmenu-->
+<link rel="stylesheet" href="{{ url_for('.static', filename='lib/leaflet/contextmenu/leaflet.contextmenu.min.css') }}" />
+<script src="{{ url_for('.static', filename='lib/leaflet/contextmenu/leaflet.contextmenu.min.js') }}"></script>
+
+<!--label-->
+<link rel="stylesheet" href="{{ url_for('.static', filename='lib/leaflet/label/leaflet.label.css') }}" />
+<script src="{{ url_for('.static', filename='lib/leaflet/label/leaflet.label.js') }}"></script>
+
+<!--spin-->
+<script src="{{ url_for('.static', filename='lib/leaflet/spin/leaflet.spin.js') }}"></script>
+
+<!--openagua-->
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/openagua-leaflet.css') }}" />
+
 {% endblock %}
 
 {% block content %}
