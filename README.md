@@ -88,14 +88,14 @@ WSGIPythonPath /var/www/HydraPlatform/HydraServer/python:/var/www/HydraPlatform/
     WSGIProcessGroup hydra-server
 
     <Directory /var/www/HydraPlatform/HydraServer/>
-        WSGIApplicationGroup %{GLOBAL}
-        Order deny,allow
-        Allow from all
+	WSGIApplicationGroup %{GLOBAL}
+	Order deny,allow
+	Allow from all
     </Directory>
 
     <LocationMatch ".*(py|pyc)$">
-        Order deny,allow
-        Deny from all
+	Order deny,allow
+	Deny from all
     </LocationMatch>
     
 	ErrorLog ${APACHE_LOG_DIR}/error-hydra-server.log
@@ -117,15 +117,15 @@ openagua.conf, for **OpenAgua**, would look similar:
     WSGIScriptAlias / /var/www/OpenAguaDSS/openagua.wsgi
 
     <Directory /var/www/OpenAguaDSS/OpenAgua/>
-        WSGIProcessGroup openagua
-        WSGIApplicationGroup %{GLOBAL}
-        Order allow,deny
-        Allow from all
+	WSGIProcessGroup openagua
+	WSGIApplicationGroup %{GLOBAL}
+	Order allow,deny
+	Allow from all
     </Directory>
 
     <LocationMatch ".*(py|pyc)$">
-        Order deny,allow
-        Deny from all
+	Order deny,allow
+	Deny from all
     </LocationMatch>
     
 	ErrorLog ${APACHE_LOG_DIR}/error-hydra-server.log
@@ -146,20 +146,24 @@ Note that these configuration settings would differ between Linux distributions.
 
 # OpenAgua technologies and methods
 
-For now, this documentation is organized around the main user areas of the website, focusing on technical aspects (technologies involved, methods used, etc.). Help for the registered user is found on the site itself, under "Help".
+For now, this documentation is organized around the main user areas of the website, focusing on technical aspects (technologies involved, methods used, etc.), but also use in some cases. General help for the registered user is found on the site itself, under "Help".
 
 ## General
 
 ### Data management - Hydra Platform
 As mentioned above, OpenAgua is built on Hydra Platform for data organization and management. Documentation for Hydra Platform is under development. However, the following seem to be reliable:
-* API functions: http://umwrg.github.io/HydraPlatform/devdocs/HydraServer/index.html#api-functions
-* Example usage with JSON: http://umwrg.github.io/HydraPlatform/tutorials/plug-in/tutorial_json.html
+* [API functions](http://umwrg.github.io/HydraPlatform/devdocs/HydraServer/index.html#api-functions)
+* [Example usage with JSON](http://umwrg.github.io/HydraPlatform/tutorials/plug-in/tutorial_json.html)
 
 ### Back end
 
-OpenAgua uses a mix of JavaScript and Jquery for client-side work and Flask (Python) for server-side work, including serving individual webpages and interactions with Hydra Platform. OpenAgua also takes advantage of the Jinja2 templating system that Flask uses.
+OpenAgua uses a mix of [**JavaScript**](https://www.javascript.com) and [**jQuery**](https://jquery.com/) for client-side work and [**Flask**](http://flask.pocoo.org), "a microframework for [**Python**](https://www.python.org) based on [**Werkzeug**](http://werkzeug.pocoo.org), [**Jinja 2**](http://jinja.pocoo.org/docs/dev/) and good intentions. Server-side work includes serving individual webpages and interactions with Hydra Platform, among other various functions. The use of Python enables easy introduction of custom Python modules as needed. OpenAgua takes as much advantage as possible of the Jinja 2 templating system that Flask uses.
 
 Many extensions have been written for Flask. Some of these are used by OpenAgua, as explained below.
+
+### Front end
+
+OpenAgua's front end is built using [**Bootstrap 3**](http://getbootstrap.com).
 
 ## Site security: registration, login, etc.
 Site security is managed by Flask_User. Flask_User, in turn, uses a mix of other Flask extensions.
@@ -201,7 +205,53 @@ The OpenAgua user cannot currently add a template via the interface.
 
 ## Data Editor
 
-Documentation forthcoming.
+The basic data editor consists of three areas:
+
+1. Variable selector,
+2. Data editor and
+3. Data preview
+
+### Variable selector
+The variable selector consists of dropdowns using [**boostrap-select**](https://silviomoreto.github.io/bootstrap-select/).
+
+### Data editor
+Currently, the data editor only allows editing the "descriptor" field of the database. Text data is displayed and edited using the [**Ace** code editor](https://ace.c9.io).
+
+Python code is entered here. This code is evaluated using the evaluate function found in evaluator.py. Essentially, a string representation of a function is created, with the entered code as the body of the function. All lines are indented appropriately as needed for Python. The function is then called by the evaluator and assigned to a variable. The function is run once per time step.
+
+The last line of the user-entered code is automatically prepended with "return ", such that the user doesn't need to. This is most useful for simple cases, such as a constant value:
+
+```python
+5
+```
+
+However, the evaluator also automatically detects the presence of a "return " in the last line, such that the user may also include a return as desired. So `return x` on the last line is the same as `x`. In many cases, including `return` is simply a matter of personal preference. But this is particularly useful if a return is nested in the last part of a conditional statement. To demonstrate, the following three versions of code input yield the exact same result when evaluated:
+
+```python
+if date.month in [6,7,8]:
+    x = 0.5
+else:
+    x = 1
+x
+```
+```python
+if date.month in [6,7,8]:
+    x = 0.5
+else:
+    x = 1
+return x
+```
+
+```python
+if date.month in [6,7,8]:
+    return 0.5
+else:
+    return 1
+```
+
+This scheme enables the user to import, enter custom functions directly into the code, etc. In the future, this will also enable offering a range of custom Python functions. It will also allow the user to create, store, re-use, and share custom functions.
+
+The last three examples above should raise a question: where does "date" come from? OpenAgua will include several built-in variables available for use. For now, this only includes the date of the function call. In the future, however, this will expand to include others as needed.
 
 ## Scenario Builder
 
@@ -217,7 +267,7 @@ Not built yet.
 
 ## Chart Maker
 
-Not built yet. For now, there is an example chart built using [Plotly] (http://plot.ly). The intent is to build a control panel for building Plotly graphs.
+Not built yet. For now, there is an example chart built using [**Plotly**](http://plot.ly). The intent is to build a control panel for building Plotly graphs.
 
 ## My Charts
 
