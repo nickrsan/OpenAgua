@@ -16,8 +16,11 @@
       <li class="nav-item"><a class="nav-link" href="#">Help</a></li>
       </ul>  
       <ul class="nav navbar-nav navbar-right">
+        {% if current_user.has_role('admin') or current_user.has_role('superuser') %}
+          <li class="nav-item"><a class="nav-link" href="/admin"><span class="glyphicon glyphicon-wrench"></span> Admin</a></li>
+        {% endif %}
         <li class="nav-item"><a class="nav-link" href="/user/profile"><span class="glyphicon glyphicon-user"></span> {{ current_user.username }}</a></li>
-        <li class="nav-item"><a class="nav-link" href="/user/sign-out"><span class="glyphicon glyphicon-log-in"></span> Sign out</a></li>
+        <li class="nav-item"><a class="nav-link" href="/user/sign-out"><span class="glyphicon glyphicon-log-out"></span> Sign out</a></li>
       </ul>  
     </div>
   </div>

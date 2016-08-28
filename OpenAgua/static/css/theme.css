@@ -103,3 +103,11 @@ body {
   display: inline-block;
   border-radius: 50%;
 }
+
+/*
+ * Flash messages
+ */
+ 
+ /*.alert {*/
+  /*margin-top: 5px;*/
+ /**/}
