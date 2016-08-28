@@ -58,7 +58,10 @@ def home():
     
     session['appname'] = 'pyomo_network_lp'
 
-    return render_template('home.html')
+    # if we've made it this far, let's send the user directly to the overview of
+    # their most recent project, pending more interesting stuff
+    #return render_template('home.html')
+    return redirect(url_for('main_overview.overview'))
 
 # Load projects
 # in the future, we can (optionally) store the Hydra session ID with the user account

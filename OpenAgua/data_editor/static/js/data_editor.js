@@ -186,8 +186,10 @@ var chart = AmCharts.makeChart("previewchart", {
         "ignoreAxisWidth":true
     }],
     "balloon": {
-        "borderThickness": 1,
-        "shadowAlpha": 0
+        "cornerRadius": 5,
+        "horizontalPadding": 5,
+        "verticalPadding": 5,
+        //"drop": true
     },
     "graphs": [{
         "id": "g1",
@@ -205,7 +207,7 @@ var chart = AmCharts.makeChart("previewchart", {
         "title": "red line",
         "useLineColorForBulletBorder": true,
         "valueField": "value",
-        "balloonText": "<span style='font-size:18px;'>[[value]]</span>"
+        "balloonText": "<span style='font-size:11px;'>[[value]]</span>"
     }],
     "chartScrollbar": {
         "graph": "g1",
@@ -226,11 +228,14 @@ var chart = AmCharts.makeChart("previewchart", {
         "pan": true,
         "valueLineEnabled": true,
         "valueLineBalloonEnabled": true,
-        "cursorAlpha":1,
+        //"cursorAlpha":1,
         "cursorColor":"#258cbb",
         "limitToGraph":"g1",
         "valueLineAlpha":0.2,
-        "valueZoomable":true
+        "valueZoomable":true,
+        "categoryBalloonDateFormat": "MMM YYYY",
+        "cursorAlpha": 0,
+        "fullWidth": true
     },
     "valueScrollbar":{
       "oppositeAxis":false,
@@ -246,7 +251,8 @@ var chart = AmCharts.makeChart("previewchart", {
     "export": {
         "enabled": true
     },
-    "dataProvider": data
+    "dataProvider": data,
+    "precision": 2
 });
 
 chart.addListener("rendered", zoomChart);
@@ -254,7 +260,7 @@ chart.addListener("rendered", zoomChart);
 zoomChart();
 
 function zoomChart() {
-    chart.zoomToIndexes(chart.dataProvider.length - 40, chart.dataProvider.length - 1);
+    chart.zoomToIndexes(0, 11);
 }
 
 }

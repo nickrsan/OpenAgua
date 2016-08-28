@@ -57,7 +57,7 @@
     <div class="col-sm-6 col-md-3">  
       <div class="form-group">
         <label for="scenarios">Select a scenario to edit</label>
-        <select id="scenarios" class="selectpicker show-menu-arrow" multiple data-selected-text-format="count > 1"  data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
+        <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
         {% for scenario in scenarios %}
           <option data-tokens='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
         {% endfor %}
