@@ -48,7 +48,7 @@ def evaluate(s, flavor = 'javaScript'):
     # =============
 
     if flavor=='javaScript':
-        dates = [int(mktime(d.timetuple())) * 1000 for d in dates]    
+        dates = [date.strftime('%Y-%m-%d') for date in dates]    
        
     # create final result: a dict of values and dates          
     # r = result

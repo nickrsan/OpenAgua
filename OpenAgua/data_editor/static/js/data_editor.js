@@ -74,7 +74,7 @@ function load_variables(type_id) {
       var res_attrs = _.sortBy(resp.res_attrs, 'name');
       $.each(res_attrs, function(index, res_attr) {
         if (res_attr.attr_is_var == 'N') {
-          var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id, res_attr_name: res_attr.name};
+          var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id, res_attr_name: res_attr.name}
           vpicker
             .append($('<option>')
               .attr('data-tokens',JSON.stringify(data_tokens))
@@ -101,19 +101,19 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     feature_id: feature_id,
     attr_id: attr_id,
     scen_id: scen_id
-  };
+  }
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     attr_data = resp.attr_data;
     if (attr_data != null) {
       original_value = attr_data.value.value;
     } else {
       original_value = '';
-    };
+    }
     editor.setValue(original_value);
     editor.gotoLine(1);
     updateChart(scen_name, resp.eval_data)
   });
-};
+}
 
 // save data
 $(document).on('click', '#save_changes', function() {
@@ -125,147 +125,136 @@ $(document).on('click', '#save_changes', function() {
         res_attr_id: res_attr_id,
         attr_id: attr_id,
         val: new_value
-      };
+      }
       $.getJSON('/_add_variable_data', data, function(resp) {
         if (resp.status==1) {
           notify('success','Success!','Data added.');
           updateChart(scen_name, resp.eval_data);
-        };
+        }
       });
     } else {
       attr_data.value.value = new_value;
-      var data = {scen_id: scen_id, attr_data: JSON.stringify(attr_data)};
+      var data = {scen_id: scen_id, attr_data: JSON.stringify(attr_data)}
       $.getJSON('/_update_variable_data', data, function(resp) {
         if (resp.status==1) {
           notify('success','Success!','Data updated.');
           original_value = new_value;
           updateChart(scen_name, resp.eval_data);
-        };
+        }
       });
-    };
+    }
   } else {
     notify('info','Nothing saved.','No edits detected.')
-  };
+  }
 });
 
 // chart functions
-var myChart = null;
 
 function updateChart(title, eval_data) {
   if (eval_data != null) {
-    //chartjs(title, eval_data)
-    highstock(title, eval_data)
+    amchart(title, eval_data)
   } else {
     hideCharts()  
-  };
-};
+  }
+}
 
 function hideCharts() {
-  //$('#chartjs').hide();
-  $('#highstock').hide();
-};
+  $('#previewchart').empty().text('Add some data!')
+}
 
-// make chartjs chart
-function chartjs(title, eval_data) {
-  $('#chartjs').show();
-  if (myChart != null) { myChart.destroy() }
-  var ctx = document.getElementById("monthly_chart");
-  myChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-          //labels: eval_data.dates,
-          datasets: [{
-              label: title,
-              data: eval_data.values,
-          }]
-      },
-      options: {
-          responsive: true,
-      }
-  });
+// make amchart
+function amchart(title, eval_data) {
 
-};
-
-// make highstock chart
-function highstock(title, eval_data) {
-
-    // prepare the data - this could be done server side instead if plotly uses the same format
-    // On the other hand, Lodash makes it easy!
+    // prepare the data using Lodash
     var data = _.zip(eval_data.dates, eval_data.values);
-
-    $('#highstock').show();
-    
-    // Create the chart
-    $('#highstock').highcharts('StockChart', {
-
-        rangeSelector : {
-            selected : 1
+    data = _.map(data, function(item) {
+      return {date: item[0], value: item[1]}    
+    })
+  
+var chart = AmCharts.makeChart("previewchart", {
+    "type": "serial",
+    "theme": "light",
+    "marginRight": 40,
+    "marginLeft": 40,
+    "autoMarginOffset": 20,
+    "mouseWheelZoomEnabled":true,
+    "dataDateFormat": "YYYY-MM-DD",
+    "valueAxes": [{
+        "id": "v1",
+        "axisAlpha": 0,
+        "position": "left",
+        "ignoreAxisWidth":true
+    }],
+    "balloon": {
+        "borderThickness": 1,
+        "shadowAlpha": 0
+    },
+    "graphs": [{
+        "id": "g1",
+        "balloon":{
+          "drop":true,
+          "adjustBorderColor":false,
+          "color":"#ffffff"
         },
+        "bullet": "round",
+        "bulletBorderAlpha": 1,
+        "bulletColor": "#FFFFFF",
+        "bulletSize": 5,
+        "hideBulletsCount": 50,
+        "lineThickness": 2,
+        "title": "red line",
+        "useLineColorForBulletBorder": true,
+        "valueField": "value",
+        "balloonText": "<span style='font-size:18px;'>[[value]]</span>"
+    }],
+    "chartScrollbar": {
+        "graph": "g1",
+        "oppositeAxis":false,
+        "offset":30,
+        "scrollbarHeight": 80,
+        "backgroundAlpha": 0,
+        "selectedBackgroundAlpha": 0.1,
+        "selectedBackgroundColor": "#888888",
+        "graphFillAlpha": 0,
+        "graphLineAlpha": 0.5,
+        "selectedGraphFillAlpha": 0,
+        "selectedGraphLineAlpha": 1,
+        "autoGridCount":true,
+        "color":"#AAAAAA"
+    },
+    "chartCursor": {
+        "pan": true,
+        "valueLineEnabled": true,
+        "valueLineBalloonEnabled": true,
+        "cursorAlpha":1,
+        "cursorColor":"#258cbb",
+        "limitToGraph":"g1",
+        "valueLineAlpha":0.2,
+        "valueZoomable":true
+    },
+    "valueScrollbar":{
+      "oppositeAxis":false,
+      "offset":50,
+      "scrollbarHeight":10
+    },
+    "categoryField": "date",
+    "categoryAxis": {
+        "parseDates": true,
+        "dashLength": 1,
+        "minorGridEnabled": true
+    },
+    "export": {
+        "enabled": true
+    },
+    "dataProvider": data
+});
 
-        //title : {
-            //text : title
-        //},
-        
-        chart: {
-            height: 300
-        },
+chart.addListener("rendered", zoomChart);
 
-        series : [{
-            name : title,
-            data : data,
-            tooltip: {
-                valueDecimals: 2
-            },
-            marker : {
-                    enabled : true,
-                    radius : 3
-            }
-        }],
-        
-        dataGrouping: {
-            approximation: "sum",
-            enabled: true,
-            forced: true,
-            units: [['month',[1]]]
+zoomChart();
 
-        },
+function zoomChart() {
+    chart.zoomToIndexes(chart.dataProvider.length - 40, chart.dataProvider.length - 1);
+}
 
-        
-        yAxis: {
-          opposite: false
-        },
-        
-        rangeSelector : {
-            allButtonsEnabled: true,
-            buttons: [{
-                type: 'month',
-                count: 12,
-                text: '1 year',
-                dataGrouping: {
-                    forced: true,
-                    units: [['day', [1]]]
-                }
-            }, {
-                type: 'year',
-                count: 5,
-                text: '5 years',
-                dataGrouping: {
-                    forced: true,
-                    units: [['week', [1]]]
-                }
-            }, {
-                type: 'all',
-                text: 'All',
-                dataGrouping: {
-                    forced: true,
-                    units: [['month', [1]]]
-                }
-            }],
-            buttonTheme: {
-                width: 60
-            },
-            selected: 0
-        },
-    });
-
-};
+}
