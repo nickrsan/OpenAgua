@@ -21,7 +21,7 @@ def projects_manager():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
     # get the list of project names and network names for the test project ('Monterrey')
-    projects = conn.call('get_projects',{'user_id':session['user_id']})
+    projects = conn.call('get_projects',{'user_id':session['hydra_user_id']})
     project_names = [project.name for project in projects]
     if session['project_name'] in project_names:
         project = conn.get_project_by_name(project_name=session['project_name'])
@@ -51,7 +51,7 @@ def projects_manager():
 @user_projects.route('/_add_project')
 def add_project():
     conn = connection(url=session['url'], session_id=session['session_id'])
-    projects = conn.call('get_projects', {'user_id':session['user_id']})
+    projects = conn.call('get_projects', {'user_id':session['hydra_user_id']})
     project_names = [project.name for project in projects]
     activate = request.args.get('activate')
     proj = request.args.get('proj')

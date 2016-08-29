@@ -24,7 +24,7 @@ def home():
     # in the Flask session. We shouldn't get here though.
     conn.login(username = session['hydra_username'], password = session['hydra_password'])    
     session['session_id'] = conn.session_id
-    session['user_id'] = conn.user_id
+    session['hydra_user_id'] = conn.user_id
 
     # add recent project/network/template to session (to be loaded from user data in the future)
     session['project_name'] = OpenAgua.app.config['HYDRA_PROJECT_NAME']

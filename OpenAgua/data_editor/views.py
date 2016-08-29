@@ -1,7 +1,6 @@
 from collections import OrderedDict
 from flask import render_template, request, session, jsonify, json
-from flask_user import login_required
-from flask_login import current_user
+from flask_user import login_required, current_user
 from ..connection import connection
 from ..evaluator import evaluate
 

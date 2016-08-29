@@ -9,44 +9,34 @@
 {% block main %}
 
 <div class="container-fluid">
+  <div class="row" style="margin-top:20px">   
+    <div class="col-sm-12 col-md-10 col-sm-offset-0 col-md-offset-1">
+      {{ macros.messages()}}
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid">
   
   <div class="row">
-    <div class="col sm-12 col-md-12">
+    <div class="col-sm-12 col-md-10 col-md-offset-1">
       <div class="page-header">
         <h3>Welcome!</h3>
       </div>
-    </div>
-  </div>
-
-  <div class="row">
-    <div class="col-sm-6 col-md-6">
-      <div class="panel panel-default">
-        <div class="panel-heading">Recent project / network</div>
-        <div class="panel-body">
-          <ul>
-            <li><p><a href="/_load_recent">Monterrey / base_network / OpenAgua-WEAP template</a></li>
-          </ul>
+      
+      <div class="row">
+        <div class="col-sm-6 col-md-6">
+          <div class="panel panel-default">
+            <div class="panel-heading">Recent project / network</div>
+            <div class="panel-body">
+              <ul>
+                <li><p><a href="/_load_recent">Monterrey / base_network / OpenAgua-WEAP template</a></li>
+              </ul>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-  
-  <div class="row">
-    <div class="col-sm-6 col-md-3">
-      <div class="panel panel-default">
-        <div class="panel-heading">Model status</div>
-        <div class="panel-body">
-          <p>No recent model activity.</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-sm-6 col-md-3">
-      <div class="panel panel-default">
-        <div class="panel-heading">Recent Hydra apps</div>
-        <div class="panel-body">
-          <p>No recently used apps.</p>
-        </div>
-      </div>
+      </div>      
+      
     </div>
   </div>
   
