@@ -31,7 +31,7 @@
     <!--select a feature-->
     <div class="col-sm-6 col-md-3">    
       <div class="form-group">
-        <label for="features">Select a feature to edit</label>
+        <label for="features">Feature</label>
         <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a feature">  
         {% for (type_id, type_name, feature_type), feats in features.iteritems() %}
           <optgroup label="{{ type_name }}">
@@ -47,7 +47,7 @@
     <!--select a variable-->
     <div class="col-sm-6 col-md-3">
       <div class="form-group">
-        <label for="variables">Select a variable to edit</label>
+        <label for="variables">Variable</label>
         <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature first">
         </select>
       </div>
@@ -56,7 +56,7 @@
     <!--select a scenario-->
     <div class="col-sm-6 col-md-3">  
       <div class="form-group">
-        <label for="scenarios">Select a scenario to edit</label>
+        <label for="scenarios">Scenario</label>
         <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
         {% for scenario in scenarios %}
           <option data-tokens='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
