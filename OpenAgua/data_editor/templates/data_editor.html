@@ -4,14 +4,13 @@
 
 <!--Ace code editor-->
 <style type="text/css" media="screen">
-    #editor {
-        height: 100px;
-    }
+    #editor {height: 100px;}
 </style>
-
-<!--Ace code editor-->
 <script src="{{ url_for('.static', filename='lib/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
-<!--<script src="{{ url_for('static', filename='lib/amcharts/amcharts.js') }}" type="text/javascript" charset="utf-8"></script>-->
+
+<!--Handsontable-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.26.1/handsontable.full.min.css" type="text/css" media="all" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.26.1/handsontable.full.min.js" type="text/javascript" charset="utf-8"></script>
 
 <!--amCharts-->
 <script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
@@ -19,7 +18,8 @@
 <script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
 <link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
 <script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
-<div id="chartdiv"></div>		
+<div id="chartdiv"></div>
+
 {% endblock %}
 
 {% block content %}
@@ -54,13 +54,13 @@
     </div>
 
     <!--select a scenario-->
-    <div class="col-sm-6 col-md-3">  
+    <div class="col-sm-6 col-md-3">
       <div class="form-group">
-        <label for="scenarios">Scenario</label>
-        <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
-        {% for scenario in scenarios %}
-          <option data-tokens='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
-        {% endfor %}
+        <label for="datatypes">Data type</label>
+        <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%">
+          <option data-tokens='{"data_type_id": 1}'>Integer</option>
+          <option data-tokens='{"data_type_id": 2}'>Time series</option>
+          <option data-tokens='{"data_type_id": 3}'>Function</option>
         </select>
       </div>
     </div>
@@ -69,6 +69,14 @@
 
   <div class="row" style="margin-bottom:20px">
     <div class="col-md-6 col-sm-12">
+      <div class="form-group">
+        <label for="scenarios">Scenario</label>
+        <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
+        {% for scenario in scenarios %}
+          <option data-tokens='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
+        {% endfor %}
+        </select>
+      </div>
       <label for="editor">Edit data</label>
       <div id="editor" style="border-style:solid; border-width:1px; border-color:black; margin-bottom: 5px"></div>
       <div style="margin-bottom:15px">
