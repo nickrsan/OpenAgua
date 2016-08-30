@@ -10,6 +10,8 @@ var heights = {
   array: "220px",
 }
 
+var default_data_type = 'descriptor'; // setting this is subjective
+
 // initialize Ace code editor
 var aceEditor = ace.edit("descriptor");
 aceEditor.setTheme("ace/theme/chrome");
@@ -26,11 +28,11 @@ $(document).ready(function(){
   $('#features').on('changed.bs.select', function (e) {
     clearEditor();
     clearPreview();
+    
     selectDataType("scalar");
-    $('#datatypes').attr('disabled', true);
-    $('#datatypes').selectpicker('refresh');
-    $('#scenarios').attr('disabled', true);
-    $('#scenarios').selectpicker('refresh');
+    
+    $('#datatypes').attr('disabled', true).selectpicker('refresh');
+    $('#scenarios').attr('disabled', true).selectpicker('refresh');
     var selected = $('#features option:selected');
     if (selected.length) {
       var data_tokens = $.parseJSON(selected.attr("data-tokens"));
@@ -51,16 +53,14 @@ $(document).ready(function(){
       attr_id = data_tokens.attr_id;
       var spicker = $('#scenarios');
       if (spicker.attr('disabled')) {
-        spicker.attr('disabled',false);
-        spicker.selectpicker('refresh');
+        spicker.attr('disabled',false).selectpicker('refresh');
       }
       if (scen_id != null) {
         load_data(feature_id, feature_type, attr_id, scen_id);
       } else {
-      var vbutton = $('button[data-id="scenarios"]');
       var stitle = 'Select a scenario'
-      vbutton.attr('title',stitle)
-      vbutton.children('.filter-option').text(stitle)
+      $('button[data-id="scenarios"]')
+        .attr('title',stitle).children('.filter-option').text(stitle)
       }
     }
   });
@@ -70,9 +70,7 @@ $(document).ready(function(){
     var selected = $('#datatypes option:selected');
     if (selected.length) {
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
-      //data_type_id = data_tokens.data_type_id;
       data_type_name = data_tokens.data_type_name;
-      
       toggleEditors(data_type_name);
     }
   });
@@ -122,6 +120,8 @@ function load_variables(type_id) {
       });
       vpicker.attr('disabled',false);
       $('#variables').selectpicker('refresh');
+      
+      // deselect all variables (select offers no function for this)
       var vbutton = $('button[data-id="variables"]')
       vbutton.children('.filter-option').text('Select a variable')
       vbutton.parent().children('.dropdown-menu')
@@ -149,11 +149,11 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     if (attr_data != null) {
       data_type_name = attr_data.value.type;
     } else {
-      // this automatically selects the first data type in the list
-      var selected = $('#datatypes option:selected');
-      var data_tokens = JSON.parse(selected.attr("data-tokens"));
-      data_type_name = data_tokens.data_type_name;
+      // default data type is defined at beginning of script
+      data_type_name = default_data_type;
     }
+    
+    // set the data type selector
     selectDataType(data_type_name);
     
     // toggle the editors
@@ -163,18 +163,17 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     dataActions(data_type_name, attr_data, resp.timeseries)
     
     // turn on the data type selector
-    $("#datatypes").attr("disabled", false);
-    $("#datatypes").selectpicker("refresh");
+    $("#datatypes").attr("disabled", false).selectpicker("refresh");
     
   });
 }
 
+// set the data type selector
 function selectDataType(data_type) {
-  $('#datatypes option')
-       .removeAttr('selected')
-       .filter('[value='+data_type+']')
-           .attr('selected', true)
-  $('#datatypes').selectpicker('refresh')
+  var selector = $('#datatypes')
+  selector.children().removeAttr('selected')
+  selector.val(data_type);
+  selector.selectpicker('refresh')
 }
 
 function dataActions(data_type_name, attr_data, plot_data) {
