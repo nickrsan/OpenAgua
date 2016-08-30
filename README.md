@@ -1,8 +1,11 @@
-# Project information
+This describes how to set up and run OpenAgua.
 
-See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
+See technical details and general usage [here](http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 
-# Setup/use on local machine
+
+# Setup/run on local machine
+
+OpenAgua connects to Hydra Platform. So, Hydra Platform needs to be available, either locally or remotely. This assumes Hydra Platform will be run locally. In this case, the first step is to make sure Hydra Platform is running, after which OpenAgua may be run. 
 
 ## Hydra Platform
 
@@ -11,6 +14,28 @@ See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 * [set up on Windows] (http://umwrg.github.io/HydraPlatform/tutorials/getting-started/server.html)
 
 ## OpenAgua
+
+### Requirements
+
+__Windows-specific__:
+* [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx) is needed to install *flask_user* (or *PyCrypto*, a dependency of *flask_user*, to be more precise).
+
+__All platforms__:
+* Python 3.5
+* Python modules (see also requirements.txt):
+```
+flask
+flask_sqlalchemy
+flask_user
+flask_admin
+flask_migrate
+pandas
+webcolors
+pyomo
+```
+
+
+### Settings
 
 There are a few settings that should be set on a machine-specific basis, whether on a local machine or on a web server. These are stored in a folder called "instance" under the top-level OpenAguaDSS folder:
 
@@ -38,17 +63,12 @@ Note that SECRET_KEY can be created in Python with the urandom function in the o
 ## Run
 
 1. See below to set up OpenAguaDSS in your github folder.
-2. For now, use Hydra Modeller to set up a test project, as follows:
-  a. Create a project called "Monterrey"
-  b. Import the template [WEAP.zip on GitHub] (https://github.com/rheinheimer/Hydra-WEAPTemplate).
-  c. Create a network "base_network", using the WEAP template.
-  d. Exit Hydra Modeller
-3. Run Hydra Platform
-4. Run run.py (or run.bat on Windows)
-5. Go to 127.0.0.1:5000 in your web browser.
-6. Log in with "admin@gmail.com" and "password".
+2. Run Hydra Platform, or make sure HYDRA_URL points to a working Hydra Platform server (Hydra Server).
+3. Run OpenAguaDSS/run.py (or run.bat on Windows)
+4. Go to 127.0.0.1:5000 in your web browser.
+5. Register and/or login. Note that internet access is required during registration, as an email confirmation is sent for confirmation during the process (though this could be changed in the future for local setups).
 
-# Setup/use as a web server on Linux
+# Setup/run on Linux
 
 This assumes a simple configuration, whereby Hydra Platform and OpenAgua are run from the same machine (which may not be efficient) and where OpenAgua is served to the world by Apache2 on an Ubuntu machine. Setup of Hydra Platform, OpenAgua and Apache2 are described here.
 
