@@ -7,7 +7,11 @@ function notify(type, title, message) {
                 message: message
         },{
                 // settings
-                type: type
+                type: type,
+                placement: {
+                        from: "top",
+                        align: "center"
+                }
         });
 };
 

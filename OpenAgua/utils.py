@@ -38,7 +38,7 @@ def evaluate(s, flavor = 'javaScript'):
     fs = 'def f(date):\n    %s' % '\n    '.join(lines)
         
     # execute the string to create the wrapper function
-    exec(fs)
+    exec(fs, globals())
     
     # finally, call the wrapper function
     # Future: move date to globals, as we might want to add many more variables

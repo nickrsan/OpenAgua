@@ -3,11 +3,11 @@ var feature_id, scen_id, scen_name, template_id, res_attr_id, res_attr_name,
   attr_id, type_id, data_type_name;
 
 var heights = {
-  descriptor: "100px",
-  timeseries: "300px",
-  eqtimeseries: "200px",
+  descriptor: "220px",
+  timeseries: "220px",
+  eqtimeseries: "220px",
   scalar: "70px",
-  array: "50px",
+  array: "220px",
 }
 
 // initialize Ace code editor
@@ -19,9 +19,12 @@ document.getElementById("descriptor").style.fontSize='14px';
 
 $(document).ready(function(){
 
+  clearEditor();
+  clearPreview();
+
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
-    $('.editor').hide();
+    clearEditor();
     clearPreview();
     selectDataType("scalar");
     $('#datatypes').attr('disabled', true);
@@ -219,7 +222,7 @@ function dataActions(data_type_name, attr_data, plot_data) {
 }
 
 // save data
-$(document).on('click', '#save_changes', function() {
+$(document).on('click', '#save', function() {
 
   switch(data_type_name) {
   
@@ -280,17 +283,25 @@ function toggleEditors(data_type_name) {
   var div = $('#'+data_type_name)
   div.css("height", heights[data_type_name])
   div.show()
+  $('#editor').show()
+  $('#editor_status').empty();
 }
 
 // chart functions
 
 function updateChart(title, timeseries) {
   if (timeseries != null) {
+    $('#preview').text();
     dateFormat = "MM/YYYY" // need to get this from the model setup
     amchart(title, timeseries, dateFormat, "preview")
   } else {
-    hideCharts()  
+    clearPreview() // actually, we shouldn't get here
   }
+}
+
+function clearEditor() {
+  $('#editor').hide()
+  $('#editor_status').text('No variable loaded')
 }
 
 function clearPreview() {
