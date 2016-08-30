@@ -272,7 +272,7 @@ $(document).on('click', '.delete_template', function(e) {
     bootbox.confirm(msg, function(confirm) {
         if (confirm) {
             result = hydra_call('delete_template', {template_id: id});
-            update_networks(active_project_id, active_network_id);
+            update_templates(active_network_id, active_template_id);
             notify('success','Success!', 'Template "'+name+'" has been permanently deleted.');
         };
     });
