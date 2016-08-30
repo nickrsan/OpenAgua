@@ -1,8 +1,10 @@
 from collections import OrderedDict
+from datetime import datetime
+
 from flask import render_template, request, session, jsonify, json, g
 from flask_user import login_required, current_user
 from ..connection import connection
-from ..evaluator import evaluate
+from ..utils import evaluate, daterange
 
 # import blueprint definition
 from . import data_editor
@@ -49,12 +51,14 @@ def get_variables():
                       {'template_id':session['template_id']})
     attr_dict = {}
     for a in attrs:
-        attr_dict[a.id] = a.name    
+        attr_dict[a.id] = dict(
+            name = a.name
+        )    
     
     # add a name to each resource_attr based on the associated attribute id
     for i in range(len(res_attrs)):
-        res_attr_name = attr_dict[res_attrs[i].attr_id].replace('_',' ')
-        res_attrs[i]['name'] = res_attr_name
+        res_attrs[i]['name'] = \
+            attr_dict[res_attrs[i].attr_id]['name'].replace('_',' ')
     
     return jsonify(res_attrs=res_attrs)
 
@@ -76,16 +80,19 @@ def get_variable_data():
     
     attr_data = [row for row in feature_data if row.attr_id==attr_id]
     if attr_data:
+        
         attr_data = attr_data[0]
         
         # evaluate the data
-        eval_data = evaluate(attr_data.value.value)
+        timeseries = evaluate(attr_data.value.value)
         
     else:
         attr_data = None
-        eval_data = None
+        
+        # create some blank data for plotting
+        timeseries = evaluate('')
     
-    return jsonify(attr_data=attr_data, eval_data=eval_data)
+    return jsonify(attr_data=attr_data, timeseries=timeseries)
 
 # add a new variable from user input
 @data_editor.route('/_add_variable_data')
@@ -128,7 +135,7 @@ def add_variable_data():
 
 @data_editor.route('/_update_variable_data')
 @login_required
-def _update_variable_data():
+def update_variable_data():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
     scen_id = int(request.args.get('scen_id'))

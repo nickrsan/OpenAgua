@@ -116,6 +116,21 @@ def purge_project():
         status_code = -1
     return jsonify(result={'status_code': status_code})
 
+@user_projects.route('/_delete_template')
+def delete_template():
+    conn = connection(url=session['url'], session_id=session['session_id'])
+    template_id = int(request.args.get('template_id'))
+    
+    resp = conn.call('delete_template', {'delete_template':template_id})
+    if resp=='OK':
+        status_code = 1
+        if session['template_id'] == template_id:
+            session['template_name'] = None
+            session['template_id'] = None        
+    else:
+        status_code = -1
+    return jsonify(result={'status_code': status_code})
+
 @user_projects.route('/_hydra_call', methods=['GET', 'POST'])
 def hydra_call():
     conn = connection(url=session['url'], session_id=session['session_id'])

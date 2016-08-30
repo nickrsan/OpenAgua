@@ -1,10 +1,21 @@
-var editor = ace.edit("editor");
-editor.setTheme("ace/theme/chrome");
-editor.getSession().setMode("ace/mode/python");
-editor.$blockScrolling = Infinity // disable error message; cursor is placed at the beginning below
-document.getElementById('editor').style.fontSize='14px';
+// global variables
+var feature_id, scen_id, scen_name, template_id, res_attr_id, res_attr_name, 
+  attr_id, type_id, data_type_name;
 
-var feature_id, scen_id, scen_name, template_id, res_attr_id, res_attr_name, attr_id, type_id;
+var heights = {
+  descriptor: "100px",
+  timeseries: "300px",
+  eqtimeseries: "200px",
+  scalar: "70px",
+  array: "50px",
+}
+
+// initialize Ace code editor
+var aceEditor = ace.edit("descriptor");
+aceEditor.setTheme("ace/theme/chrome");
+aceEditor.getSession().setMode("ace/mode/python");
+aceEditor.$blockScrolling = Infinity // disable error message; cursor is placed at the beginning below
+document.getElementById("descriptor").style.fontSize='14px';
 
 $(document).ready(function(){
 
@@ -44,6 +55,18 @@ $(document).ready(function(){
     }
   });
   
+  // select the data class
+  $('#datatypes').on('changed.bs.select', function (e) {
+    var selected = $('#datatypes option:selected');
+    if (selected.length) {
+      var data_tokens = JSON.parse(selected.attr("data-tokens"));
+      data_type_id = data_tokens.data_type_id;
+      data_type_name = data_tokens.data_type_name;
+      toggleEditors(data_type_name);
+    }
+  });
+  
+  
   // load the scenarios
   $('#scenarios').on('hide.bs.select', function (e) {
     var selected = $('#scenarios option:selected');
@@ -56,7 +79,7 @@ $(document).ready(function(){
       scen_id = null;
       scen_name = null;
       hideCharts();
-      editor.setValue('');
+      aceEditor.setValue('');
     }
   });
 });
@@ -74,7 +97,11 @@ function load_variables(type_id) {
       var res_attrs = _.sortBy(resp.res_attrs, 'name');
       $.each(res_attrs, function(index, res_attr) {
         if (res_attr.attr_is_var == 'N') {
-          var data_tokens = {attr_id: res_attr.attr_id, res_attr_id: res_attr.id, res_attr_name: res_attr.name}
+          var data_tokens = {
+            attr_id: res_attr.attr_id,
+            res_attr_id: res_attr.id,
+            res_attr_name: res_attr.name
+          }
           vpicker
             .append($('<option>')
               .attr('data-tokens',JSON.stringify(data_tokens))
@@ -86,8 +113,10 @@ function load_variables(type_id) {
       $('#variables').selectpicker('refresh');
       var vbutton = $('button[data-id="variables"]')
       vbutton.children('.filter-option').text('Select a variable')
-      vbutton.parent().children('.dropdown-menu').children('.inner').children('.selected')
-        .removeClass('selected')
+      vbutton.parent().children('.dropdown-menu')
+        .children('.inner')
+          .children('.selected')
+            .removeClass('selected')
   });
 }
 
@@ -95,6 +124,7 @@ function load_variables(type_id) {
 var original_value;
 var attr_data = null;
 function load_data(feature_id, feature_type, attr_id, scen_id) {
+  $(".editor").attr('disabled', false);
   var data = {
     type_id: type_id,
     feature_type: feature_type,
@@ -104,20 +134,91 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
   }
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     attr_data = resp.attr_data;
+    var original_value;
     if (attr_data != null) {
-      original_value = attr_data.value.value;
+      data_type_name = attr_data.value.type;
     } else {
-      original_value = '';
+      var selector = $("#datatypes")
+      selector.attr("disabled", false)
+      selector.selectpicker("refresh")
+      var selected = $('#datatypes option:selected');
+      var data_tokens = JSON.parse(selected.attr("data-tokens"));
+      data_type_name = data_tokens.data_type_name;
     }
-    editor.setValue(original_value);
-    editor.gotoLine(1);
-    updateChart(scen_name, resp.eval_data)
+    
+    toggleEditors(data_type_name);
+    
+    // what should we do? In each case, we should provide some default data
+    // if the attr_data == null
+    switch(data_type_name) {
+        
+      case 'descriptor':
+        if (attr_data == null) {
+          original_value = '';
+        } else {
+          original_value = attr_data.value.value;
+        }
+        updateAceEditor(original_value)
+        updateChart(scen_name, resp.timeseries)
+        break;
+    
+      case 'timeseries':
+        var data = resp.timeseries
+        
+        // create some blank data using lodash
+        var colHeaders = ['Month',scen_name]
+        handsontable(data_type_name, data, colHeaders, heights[data_type_name]);
+        updateChart(scen_name, resp.timeseries)
+        break;
+        
+      case 'eqtimeseries':
+        updateChart(scen_name, resp.timeseries);
+        break;
+        
+      case 'scalar':
+        if (attr_data == null) {
+          original_value = ''
+        } else {
+          original_value = attr_data.value.value;       
+        }
+        scalarInput(original_value)
+        break;
+        
+      case 'array':
+        break;
+        
+      default:
+        break;
+    }    
+    
   });
 }
 
 // save data
 $(document).on('click', '#save_changes', function() {
-  var new_value = editor.getValue();
+
+  switch(data_type_name) {
+  
+    case "descriptor":
+      var new_value = aceEditor.getValue(); 
+      break;
+      
+    case "timeseries":
+      break;
+
+    case "eqtimeseries":
+      break;
+
+    case "scalar":
+      break;
+
+    case "array":
+      break;
+
+    default:
+      break;
+  }
+
   if (new_value != original_value) {
     if (attr_data == null) {
       var data = {
@@ -129,7 +230,7 @@ $(document).on('click', '#save_changes', function() {
       $.getJSON('/_add_variable_data', data, function(resp) {
         if (resp.status==1) {
           notify('success','Success!','Data added.');
-          updateChart(scen_name, resp.eval_data);
+          updateChart(scen_name, resp.timeseries);
         }
       });
     } else {
@@ -139,7 +240,7 @@ $(document).on('click', '#save_changes', function() {
         if (resp.status==1) {
           notify('success','Success!','Data updated.');
           original_value = new_value;
-          updateChart(scen_name, resp.eval_data);
+          updateChart(scen_name, resp.timeseries);
         }
       });
     }
@@ -148,11 +249,20 @@ $(document).on('click', '#save_changes', function() {
   }
 });
 
+// toggle the editors, depending on the data class selected
+function toggleEditors(data_type_name) {
+  $('.editor').hide()
+  var div = $('#'+data_type_name)
+  div.css("height", heights[data_type_name])
+  div.show()
+}
+
 // chart functions
 
 function updateChart(title, eval_data) {
   if (eval_data != null) {
-    amchart(title, eval_data)
+    dateFormat = "MM/YYYY" // need to get this from the model setup
+    amchart(title, eval_data, dateFormat)
   } else {
     hideCharts()  
   }
@@ -162,105 +272,14 @@ function hideCharts() {
   $('#previewchart').empty().text('Add some data!')
 }
 
-// make amchart
-function amchart(title, eval_data) {
-
-    // prepare the data using Lodash
-    var data = _.zip(eval_data.dates, eval_data.values);
-    data = _.map(data, function(item) {
-      return {date: item[0], value: item[1]}    
-    })
-  
-var chart = AmCharts.makeChart("previewchart", {
-    "type": "serial",
-    "theme": "light",
-    "marginRight": 40,
-    "marginLeft": 40,
-    "autoMarginOffset": 20,
-    "mouseWheelZoomEnabled":true,
-    "dataDateFormat": "YYYY-MM-DD",
-    "valueAxes": [{
-        "id": "v1",
-        "axisAlpha": 0,
-        "position": "left",
-        "ignoreAxisWidth":true
-    }],
-    "balloon": {
-        "cornerRadius": 5,
-        "horizontalPadding": 5,
-        "verticalPadding": 5,
-        //"drop": true
-    },
-    "graphs": [{
-        "id": "g1",
-        "balloon":{
-          "drop":true,
-          "adjustBorderColor":false,
-          "color":"#ffffff"
-        },
-        "bullet": "round",
-        "bulletBorderAlpha": 1,
-        "bulletColor": "#FFFFFF",
-        "bulletSize": 5,
-        "hideBulletsCount": 50,
-        "lineThickness": 2,
-        "title": "red line",
-        "useLineColorForBulletBorder": true,
-        "valueField": "value",
-        "balloonText": "<span style='font-size:11px;'>[[value]]</span>"
-    }],
-    "chartScrollbar": {
-        "graph": "g1",
-        "oppositeAxis":false,
-        "offset":30,
-        "scrollbarHeight": 80,
-        "backgroundAlpha": 0,
-        "selectedBackgroundAlpha": 0.1,
-        "selectedBackgroundColor": "#888888",
-        "graphFillAlpha": 0,
-        "graphLineAlpha": 0.5,
-        "selectedGraphFillAlpha": 0,
-        "selectedGraphLineAlpha": 1,
-        "autoGridCount":true,
-        "color":"#AAAAAA"
-    },
-    "chartCursor": {
-        "pan": true,
-        "valueLineEnabled": true,
-        "valueLineBalloonEnabled": true,
-        //"cursorAlpha":1,
-        "cursorColor":"#258cbb",
-        "limitToGraph":"g1",
-        "valueLineAlpha":0.2,
-        "valueZoomable":true,
-        "categoryBalloonDateFormat": "MMM YYYY",
-        "cursorAlpha": 0,
-        "fullWidth": true
-    },
-    "valueScrollbar":{
-      "oppositeAxis":false,
-      "offset":50,
-      "scrollbarHeight":10
-    },
-    "categoryField": "date",
-    "categoryAxis": {
-        "parseDates": true,
-        "dashLength": 1,
-        "minorGridEnabled": true
-    },
-    "export": {
-        "enabled": true
-    },
-    "dataProvider": data,
-    "precision": 2
-});
-
-chart.addListener("rendered", zoomChart);
-
-zoomChart();
-
-function zoomChart() {
-    chart.zoomToIndexes(0, 11);
+// update updateAceEditor
+function updateAceEditor(original_value) {
+  aceEditor.setValue(original_value);
+  aceEditor.gotoLine(1);  
 }
 
+
+// function scalar input
+function scalarInput(original_value) {
+  $("#scalar_input").text(original_value)
 }

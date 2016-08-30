@@ -1,3 +1,5 @@
+import pandas as pd
+
 from flask import session
 from datetime import datetime
 from dateutil import rrule
@@ -41,19 +43,24 @@ def evaluate(s, flavor = 'javaScript'):
     # finally, call the wrapper function
     # Future: move date to globals, as we might want to add many more variables
     # than just date. Of course, we'll then have to exec(fs) in each date loop.
-    vals = [f(date) for date in dates]
+    #vals = [f(date) for date in dates]
     
-    # =============
     # convert dates
-    # =============
-
     if flavor=='javaScript':
-        dates = [date.strftime('%Y-%m-%d') for date in dates]    
+        dates = [date.strftime(session['date_format']) for date in dates]
        
     # create final result: a dict of values and dates          
     # r = result
-    result = {'dates': dates, 'values': vals}
+    #result = {'dates': dates, 'values': vals}
+    result = [{'date': date, 'value': f(date)} for date in dates]
     
     return result
     
+def daterange(ti, tf, date_format_in, date_format_out):
     
+    start = datetime.strptime(session['ti'], date_format_in)
+    end = datetime.strptime(session['tf'], date_format_in)    
+    daterange = pd.date_range(start, end, freq='M').tolist()
+    daterange = [d.date().strftime(date_format_out) for d in daterange]
+    
+    return daterange

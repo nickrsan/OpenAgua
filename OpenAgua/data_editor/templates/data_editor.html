@@ -2,10 +2,12 @@
 {% block title %} - Data Editor{% endblock %}
 {% block head_main %}
 
-<!--Ace code editor-->
 <style type="text/css" media="screen">
-    #editor {height: 100px;}
+    .editor {border-style:solid; border-width:1px; border-color:black; margin-bottom: 5px}
+    .editor {display: none}
 </style>
+
+<!--Ace code editor-->
 <script src="{{ url_for('.static', filename='lib/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
 
 <!--Handsontable-->
@@ -53,22 +55,8 @@
       </div>
     </div>
 
-    <!--select a scenario-->
     <div class="col-sm-6 col-md-3">
-      <div class="form-group">
-        <label for="datatypes">Data type</label>
-        <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%">
-          <option data-tokens='{"data_type_id": 1}'>Integer</option>
-          <option data-tokens='{"data_type_id": 2}'>Time series</option>
-          <option data-tokens='{"data_type_id": 3}'>Function</option>
-        </select>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="row" style="margin-bottom:20px">
-    <div class="col-md-6 col-sm-12">
+      <!--select a scenario-->
       <div class="form-group">
         <label for="scenarios">Scenario</label>
         <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
@@ -77,8 +65,39 @@
         {% endfor %}
         </select>
       </div>
+    </div>
+
+  </div>
+
+  <div class="row" style="margin-bottom:20px">
+    <div class="col-md-6 col-sm-12">
+      
+      <!--select a data type-->
+      <div class="form-group">
+        <label for="datatypes">Data type</label>
+        <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%" disabled>
+          <option data-tokens='{"data_type_id": 1, "data_type_name": "scalar"}'>Number</option>
+          <option data-tokens='{"data_type_id": 2, "data_type_name": "descriptor"}'>Function/code</option>
+          <option data-tokens='{"data_type_id": 3, "data_type_name": "timeseries"}'>Time series</option>
+          <!--<option data-tokens='{"data_type_id": 4, "data_type_name": "eqtimeseries"}'>Time series</option>-->
+          <!--<option data-tokens='{"data_type_id": 5, "data_type_name": "array"}'>Array</option>-->
+        </select>
+      </div>
+      
       <label for="editor">Edit data</label>
-      <div id="editor" style="border-style:solid; border-width:1px; border-color:black; margin-bottom: 5px"></div>
+      <div id="editor">
+        <div id="descriptor" class="editor"></div>
+        <div id="timeseries" class="editor"></div>
+        <div id="eqtimeseries" class="editor"></div>
+        <div id="scalar" class="editor">
+          <div class="form-group">
+            <label for="scalar_input">Number:</label>
+            <input type="text" class="form-control" id="scalar_input">
+          </div>               
+        </div>
+        <div id="array" class="editor"></div>
+      </div>
+      
       <div style="margin-bottom:15px">
         See <a href="/help/syntax_instructions">instructions and examples</a>.
         <div class="pull-right">
@@ -87,6 +106,7 @@
           <div class="btn-group"><button id="save_changes" class="btn btn-primary btn-md">Save changes</button></div>
         </div>
       </div>
+      
     </div>
     
     <div class="col-md-6 col-sm-12">
@@ -106,5 +126,7 @@ var template_id = {{session['template_id']}}
 </script>
 
 <script src="{{ url_for('.static', filename='js/data_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}

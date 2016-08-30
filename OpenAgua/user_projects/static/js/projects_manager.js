@@ -177,7 +177,9 @@ function update_networks(active_project_id, active_network_id) {
             $.each(networks, function(index, network){
             
                 var dropdown = network_dropdown.clone()
-                    .find('a').attr('data-id', network.id)
+                    .find('a')
+                    .attr('data-name', network.name)
+                    .attr('data-id', network.id)
                     .end();
             
                 var li = $('<li>')
@@ -209,7 +211,9 @@ function update_templates(active_network_id, active_template_id) {
         $.each(templates, function(index, template){
 
             var dropdown = template_dropdown.clone()
-                .find('a').attr('data-id', template.id)
+                .find('a')
+                .attr('data-name', template.name)
+                .attr('data-id', template.id)
                 .end();
         
             var li = $('<li>')
@@ -255,6 +259,21 @@ $(document).on('click', '.purge_network', function(e) {
             result = hydra_call('purge_network', {network_id: id});
             update_networks(active_project_id, active_network_id);
             notify('success','Success!', 'Network "'+name+'" has been permanently deleted.');
+        };
+    });
+});
+
+// delete template
+$(document).on('click', '.delete_template', function(e) {
+    e.preventDefault();
+    var id = Number($(this).attr('data-id'));
+    var name = $(this).attr('data-name');
+    var msg = 'Permanently delete template "'+name+'?"<br><b>WARNING: This cannot be undone!<b>'
+    bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+            result = hydra_call('delete_template', {template_id: id});
+            update_networks(active_project_id, active_network_id);
+            notify('success','Success!', 'Template "'+name+'" has been permanently deleted.');
         };
     });
 });
