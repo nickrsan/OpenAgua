@@ -1,0 +1,213 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>OpenAgua by CentroDelAgua-Decisiones</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/github-light.css">
+    <meta name="viewport" content="width=device-width">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>OpenAgua</h1>
+        <p>OpenAgua is a new open source, web-based decision support system for water planning.</p>
+
+        <p class="view"><a href="https://github.com/CentroDelAgua-Decisiones/OpenAguaDSS">View the Project on GitHub <small>CentroDelAgua-Decisiones/OpenAguaDSS</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/CentroDelAgua-Decisiones/OpenAguaDSS/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/CentroDelAgua-Decisiones/OpenAguaDSS/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/CentroDelAgua-Decisiones/OpenAguaDSS">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h1>
+<a id="openagua-technologies-and-methods" class="anchor" href="#openagua-technologies-and-methods" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>OpenAgua technologies and methods</h1>
+
+<p>For now, this documentation is organized around the main user areas of the website, focusing on technical aspects (technologies involved, methods used, etc.), but also use in some cases. General help for the registered user is found on the site itself, under "Help".</p>
+
+<h2>
+<a id="general" class="anchor" href="#general" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>General</h2>
+
+<h3>
+<a id="data-management---hydra-platform" class="anchor" href="#data-management---hydra-platform" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data management - Hydra Platform</h3>
+
+<p>As mentioned above, OpenAgua is built on Hydra Platform for data organization and management. Documentation for Hydra Platform is under development. However, the following seem to be reliable:</p>
+
+<ul>
+<li><a href="http://umwrg.github.io/HydraPlatform/devdocs/HydraServer/index.html#api-functions">API functions</a></li>
+<li><a href="http://umwrg.github.io/HydraPlatform/tutorials/plug-in/tutorial_json.html">Example usage with JSON</a></li>
+</ul>
+
+<h3>
+<a id="back-end" class="anchor" href="#back-end" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Back end</h3>
+
+<p>OpenAgua uses a mix of <a href="https://www.javascript.com"><strong>JavaScript</strong></a> and <a href="https://jquery.com/"><strong>jQuery</strong></a> for client-side work and <a href="http://flask.pocoo.org"><strong>Flask</strong></a>, "a microframework for <a href="https://www.python.org"><strong>Python</strong></a> based on <a href="http://werkzeug.pocoo.org"><strong>Werkzeug</strong></a>, <a href="http://jinja.pocoo.org/docs/dev/"><strong>Jinja 2</strong></a> and good intentions. Server-side work includes serving individual webpages and interactions with Hydra Platform, among other various functions. The use of Python enables easy introduction of custom Python modules as needed. OpenAgua takes as much advantage as possible of the Jinja 2 templating system that Flask uses.</p>
+
+<p>Many extensions have been written for Flask. Some of these are used by OpenAgua, as explained below.</p>
+
+<h3>
+<a id="front-end" class="anchor" href="#front-end" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Front end</h3>
+
+<p>OpenAgua's front end is built using <a href="http://getbootstrap.com"><strong>Bootstrap 3</strong></a>.</p>
+
+<h2>
+<a id="site-security-registration-login-etc" class="anchor" href="#site-security-registration-login-etc" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Site security: registration, login, etc.</h2>
+
+<p>Site security is managed by Flask_User. Flask_User, in turn, uses a mix of other Flask extensions.</p>
+
+<h2>
+<a id="home" class="anchor" href="#home" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Home</h2>
+
+<p>Documentation forthcoming.</p>
+
+<h2>
+<a id="manage" class="anchor" href="#manage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Manage</h2>
+
+<p>The "Manage" section allows the user to manage HP <em>projects</em>, <em>networks</em>, and <em>templates</em>.</p>
+
+<p>The overall steps in creating a project + template + network are as follows (main HP functions involved in parentheses):
+1. Add a project (<em>add_project</em>)
+2. Add a network (<em>add_network</em>), selecting a template to add at the same time. The only available template for now is "OpenAgua"; this is created automatically if it doesn't already exist. During network creation, a default "Baseline" scenario (<em>add_scenario</em>) is created for the new network, similar to Hydra Modeller. </p>
+
+<p>For project/network creation, HP functions are called as follows:
+1. <em>add_project</em>
+2. <em>add_network</em>
+3. <em>apply_template_to_network</em>
+4. <em>add_scenario</em></p>
+
+<h3>
+<a id="projects" class="anchor" href="#projects" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Projects</h3>
+
+<ul>
+<li>
+<strong>Add Project</strong>: This uses HP's <em>add_project</em> function.</li>
+</ul>
+
+<h3>
+<a id="networks" class="anchor" href="#networks" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Networks</h3>
+
+<ul>
+<li>
+<strong>Add Network</strong>: This uses HP's <em>add_network</em> function with the user's active project.</li>
+</ul>
+
+<h3>
+<a id="templates" class="anchor" href="#templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Templates</h3>
+
+<p>The OpenAgua user cannot currently add a template via the interface.</p>
+
+<h2>
+<a id="network-editor" class="anchor" href="#network-editor" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Network Editor</h2>
+
+<ul>
+<li>
+<strong>Add node</strong>: The HP functions <em>add_node</em> is used, with the user's active <em>network_id</em>.</li>
+<li>
+<strong>Add link</strong>: The HP function <em>add_link</em> is used, with the user's active <em>network_id</em>.</li>
+</ul>
+
+<h2>
+<a id="data-editor" class="anchor" href="#data-editor" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Editor</h2>
+
+<p>The basic data editor consists of three areas:</p>
+
+<ol>
+<li>Variable selector,</li>
+<li>Data editor and</li>
+<li>Data preview</li>
+</ol>
+
+<h3>
+<a id="variable-selector" class="anchor" href="#variable-selector" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Variable selector</h3>
+
+<p>The variable selector consists of dropdowns using <a href="https://silviomoreto.github.io/bootstrap-select/"><strong>boostrap-select</strong></a>.</p>
+
+<h3>
+<a id="data-editor-1" class="anchor" href="#data-editor-1" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data editor</h3>
+
+<p>Currently, the data editor only allows editing the "descriptor" field of the database. Text data is displayed and edited using the <a href="https://ace.c9.io"><strong>Ace</strong> code editor</a>.</p>
+
+<p>Python code is entered here. This code is evaluated using the evaluate function found in evaluator.py. Essentially, a string representation of a function is created, with the entered code as the body of the function. All lines are indented appropriately as needed for Python. The function is then called by the evaluator and assigned to a variable. The function is run once per time step.</p>
+
+<p>The last line of the user-entered code is automatically prepended with "return ", such that the user doesn't need to. This is most useful for simple cases, such as a constant value:</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-c1">5</span></pre></div>
+
+<p>However, the evaluator also automatically detects the presence of a "return " in the last line, such that the user may also include a return as desired. So <code>return x</code> on the last line is the same as <code>x</code>. In many cases, including <code>return</code> is simply a matter of personal preference. But this is particularly useful if a return is nested in the last part of a conditional statement. To demonstrate, the following three versions of code input yield the exact same result when evaluated:</p>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">if</span> date.month <span class="pl-k">in</span> [<span class="pl-c1">6</span>,<span class="pl-c1">7</span>,<span class="pl-c1">8</span>]:
+    x <span class="pl-k">=</span> <span class="pl-c1">0.5</span>
+<span class="pl-k">else</span>:
+    x <span class="pl-k">=</span> <span class="pl-c1">1</span>
+x</pre></div>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">if</span> date.month <span class="pl-k">in</span> [<span class="pl-c1">6</span>,<span class="pl-c1">7</span>,<span class="pl-c1">8</span>]:
+    x <span class="pl-k">=</span> <span class="pl-c1">0.5</span>
+<span class="pl-k">else</span>:
+    x <span class="pl-k">=</span> <span class="pl-c1">1</span>
+<span class="pl-k">return</span> x</pre></div>
+
+<div class="highlight highlight-source-python"><pre><span class="pl-k">if</span> date.month <span class="pl-k">in</span> [<span class="pl-c1">6</span>,<span class="pl-c1">7</span>,<span class="pl-c1">8</span>]:
+    <span class="pl-k">return</span> <span class="pl-c1">0.5</span>
+<span class="pl-k">else</span>:
+    <span class="pl-k">return</span> <span class="pl-c1">1</span></pre></div>
+
+<p>This scheme enables the user to import, enter custom functions directly into the code, etc. In the future, this will also enable offering a range of custom Python functions. It will also allow the user to create, store, re-use, and share custom functions.</p>
+
+<p>The last three examples above should raise a question: where does "date" come from? OpenAgua will include several built-in variables available for use. For now, this only includes the date of the function call. In the future, however, this will expand to include others as needed.</p>
+
+<h2>
+<a id="scenario-builder" class="anchor" href="#scenario-builder" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Scenario Builder</h2>
+
+<p>Not built yet.</p>
+
+<h2>
+<a id="model-dashboard" class="anchor" href="#model-dashboard" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Model Dashboard</h2>
+
+<p>Documentation forthcoming.</p>
+
+<h2>
+<a id="results-overview" class="anchor" href="#results-overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Results Overview</h2>
+
+<p>Not built yet.</p>
+
+<h2>
+<a id="chart-maker" class="anchor" href="#chart-maker" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Chart Maker</h2>
+
+<p>Not built yet. For now, there is an example chart built using <a href="http://plot.ly"><strong>Plotly</strong></a>. The intent is to build a control panel for building Plotly graphs.</p>
+
+<h2>
+<a id="my-charts" class="anchor" href="#my-charts" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>My Charts</h2>
+
+<p>Not built yet.</p>
+
+<h2>
+<a id="charts-dashboard" class="anchor" href="#charts-dashboard" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Charts Dashboard</h2>
+
+<p>Not built yet.</p>
+
+<h2>
+<a id="advanced" class="anchor" href="#advanced" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Advanced</h2>
+
+<h2>
+<a id="data-exporter" class="anchor" href="#data-exporter" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Data Exporter</h2>
+
+<p>Not built yet. This might be best deferred to the Hydra Platform Web Interface.</p>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/CentroDelAgua-Decisiones">CentroDelAgua-Decisiones</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
+  </body>
+</html>
