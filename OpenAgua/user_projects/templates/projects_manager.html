@@ -1,6 +1,6 @@
 {% extends "layout.html" %} 
 
-{% block title %} - Projects{% endblock %}
+{% block title %} - Manage{% endblock %}
 
 {% block head_master %}
 {% include 'navbar.html' %}
@@ -25,16 +25,16 @@ var active_template_id = -1;
 
 <div class="container-fluid">
   
-  <div class="row">
-    <div class="col sm-12 col-md-12">
-      <div class="page-header">
-        <h3>Manage projects</h3>
-      </div>
-    </div>
-  </div>
+  <!--<div class="row">-->
+    <!--<div class="col sm-12 col-md-12">-->
+      <!--<div class="page-header">-->
+        <!--<h3>Manage projects</h3>-->
+      <!--</div>-->
+    <!--</div>-->
+  <!--</div>-->
   
   <!-- Nav tabs -->
-  <ul class="nav nav-tabs" role="tablist">
+  <ul class="nav nav-tabs" role="tablist" style="margin-top:15px">
     <li role="presentation" class="active"><a href="#projects" aria-controls="projects" role="tab" data-toggle="tab">Projects/networks</a></li>
     <li role="presentation"><a href="#templates" aria-controls="templates" role="tab" data-toggle="tab">Templates</a></li>
   </ul>
@@ -61,7 +61,7 @@ var active_template_id = -1;
               </div>
             </div>
           </div>
-        </div>
+        </div> <!--end projects pane-->
           
         <!--select/add network-->
         <div class="col sm-4 col-md-4">
@@ -75,11 +75,27 @@ var active_template_id = -1;
                 <div id="network_list">
                 </div>
             </div>
-          </div>
-          
-        </div>
+          </div>  
+        </div> <!--end networks pane-->
+        
+        <!--select/add template-->
+        <div class="col sm-4 col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-heading clearfix" style="padding:3px">
+              <button id="attach_template" class="attach_template btn btn-default btn-sm pull-right">Attach template</button>
+              <h4 style="margin:7px">Templates</h4>
+            </div>
+            <div class="panel-body">
+                <p id="template_list_description"></p>
+                <div id="template_list">
+                </div>
+            </div>
+          </div>  
+        </div> <!--end templates pane-->
+        
+        
       </div>
-    </div> <!--end projects pane-->
+    </div> 
     
     <!--templates-->
     <div role="tabpanel" class="tab-pane" id="templates">
@@ -93,7 +109,7 @@ var active_template_id = -1;
             <h4 style="margin:7px">Templates</h4>
             </div>
             <div class="panel-body">
-              <div id="template_list">
+              <div id="template_list_all">
                 <ul class="list-group">
                 </ul>
               </div>

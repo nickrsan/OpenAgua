@@ -27,7 +27,7 @@ class connection(object):
             try:
                 fc, fs = response['faultcode'], response['faultstring']
                 log.debug('Something went wrong. Check faultcode and faultstring.')
-                resp = json.loads(response.content)
+                resp = json.loads(response.content.decode("utf-8"))
                 err = "faultcode: %s, faultstring: %s" % (fc, fs)
             except:                
                 log.debug('Something went wrong. Check command sent.')
@@ -43,7 +43,7 @@ class connection(object):
         
         log.info('Finished communicating with Hydra Platform.')
 
-        resp = json.loads(response.content, object_hook=JSONObject)
+        resp = json.loads(response.content.decode("utf-8"), object_hook=JSONObject)
         return resp
 
     def login(self, username=None, password=None):

@@ -36,7 +36,7 @@
       <div class="form-group">
         <label for="features">Feature</label>
         <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a feature">  
-        {% for (type_id, type_name, feature_type), feats in features.iteritems() %}
+        {% for (type_id, type_name, feature_type), feats in features.items() %}
           <optgroup label="{{ type_name }}">
           {% for f in feats %}
             <option data-tokens='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
