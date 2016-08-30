@@ -154,6 +154,6 @@ def update_variable_data():
         status = 1
     
     # evaluate the data
-    eval_data = evaluate(dataset['value']['value'])
+    timeseries = evaluate(dataset['value']['value'])
     
-    return jsonify(status=status, eval_data=eval_data)
+    return jsonify(status=status, timeseries=timeseries)

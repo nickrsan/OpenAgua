@@ -1,5 +1,5 @@
 // make amchart
-function amchart(title, timeseries, dateFormat) {
+function amchart(title, timeseries, dateFormat, divname) {
 
     // prepare the data using Lodash (update: evaluate function was changed)
     //var data = _.zip(eval_data.dates, eval_data.values);
@@ -7,7 +7,7 @@ function amchart(title, timeseries, dateFormat) {
       //return {date: item[0], value: item[1]}    
     //})
   
-  var chart = AmCharts.makeChart("previewchart", {
+  var chart = AmCharts.makeChart(divname, {
       "type": "serial",
       "theme": "light",
       "marginRight": 40,

@@ -21,6 +21,13 @@ $(document).ready(function(){
 
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
+    $('.editor').hide();
+    clearPreview();
+    selectDataType("scalar");
+    $('#datatypes').attr('disabled', true);
+    $('#datatypes').selectpicker('refresh');
+    $('#scenarios').attr('disabled', true);
+    $('#scenarios').selectpicker('refresh');
     var selected = $('#features option:selected');
     if (selected.length) {
       var data_tokens = $.parseJSON(selected.attr("data-tokens"));
@@ -60,8 +67,9 @@ $(document).ready(function(){
     var selected = $('#datatypes option:selected');
     if (selected.length) {
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
-      data_type_id = data_tokens.data_type_id;
+      //data_type_id = data_tokens.data_type_id;
       data_type_name = data_tokens.data_type_name;
+      
       toggleEditors(data_type_name);
     }
   });
@@ -124,7 +132,7 @@ function load_variables(type_id) {
 var original_value;
 var attr_data = null;
 function load_data(feature_id, feature_type, attr_id, scen_id) {
-  $(".editor").attr('disabled', false);
+
   var data = {
     type_id: type_id,
     feature_type: feature_type,
@@ -138,18 +146,36 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
     if (attr_data != null) {
       data_type_name = attr_data.value.type;
     } else {
-      var selector = $("#datatypes")
-      selector.attr("disabled", false)
-      selector.selectpicker("refresh")
+      // this automatically selects the first data type in the list
       var selected = $('#datatypes option:selected');
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
       data_type_name = data_tokens.data_type_name;
     }
+    selectDataType(data_type_name);
     
+    // toggle the editors
     toggleEditors(data_type_name);
     
-    // what should we do? In each case, we should provide some default data
-    // if the attr_data == null
+    // load the returned time series into the table and plot, even if empty
+    dataActions(data_type_name, attr_data, resp.timeseries)
+    
+    // turn on the data type selector
+    $("#datatypes").attr("disabled", false);
+    $("#datatypes").selectpicker("refresh");
+    
+  });
+}
+
+function selectDataType(data_type) {
+  $('#datatypes option')
+       .removeAttr('selected')
+       .filter('[value='+data_type+']')
+           .attr('selected', true)
+  $('#datatypes').selectpicker('refresh')
+}
+
+function dataActions(data_type_name, attr_data, plot_data) {
+
     switch(data_type_name) {
         
       case 'descriptor':
@@ -159,20 +185,12 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
           original_value = attr_data.value.value;
         }
         updateAceEditor(original_value)
-        updateChart(scen_name, resp.timeseries)
         break;
     
-      case 'timeseries':
-        var data = resp.timeseries
-        
-        // create some blank data using lodash
-        var colHeaders = ['Month',scen_name]
-        handsontable(data_type_name, data, colHeaders, heights[data_type_name]);
-        updateChart(scen_name, resp.timeseries)
+      case 'timeseries': 
         break;
         
       case 'eqtimeseries':
-        updateChart(scen_name, resp.timeseries);
         break;
         
       case 'scalar':
@@ -189,9 +207,15 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
         
       default:
         break;
-    }    
-    
-  });
+    }
+  
+    // in all cases, the plot_data can be loaded directly into the table
+    // however, this will not be saved, unless save is clicked while in 
+    // table view mode
+    var colHeaders = ['Month',scen_name];
+    handsontable("timeseries", plot_data, colHeaders, heights[data_type_name]);
+    updateChart(scen_name, plot_data);
+
 }
 
 // save data
@@ -229,8 +253,8 @@ $(document).on('click', '#save_changes', function() {
       }
       $.getJSON('/_add_variable_data', data, function(resp) {
         if (resp.status==1) {
+          dataActions(data_type_name, attr_data, resp.timeseries);
           notify('success','Success!','Data added.');
-          updateChart(scen_name, resp.timeseries);
         }
       });
     } else {
@@ -238,12 +262,13 @@ $(document).on('click', '#save_changes', function() {
       var data = {scen_id: scen_id, attr_data: JSON.stringify(attr_data)}
       $.getJSON('/_update_variable_data', data, function(resp) {
         if (resp.status==1) {
-          notify('success','Success!','Data updated.');
+          dataActions(data_type_name, attr_data, resp.timeseries);
           original_value = new_value;
-          updateChart(scen_name, resp.timeseries);
+          notify('success','Success!','Data updated.');
         }
       });
     }
+
   } else {
     notify('info','Nothing saved.','No edits detected.')
   }
@@ -259,17 +284,17 @@ function toggleEditors(data_type_name) {
 
 // chart functions
 
-function updateChart(title, eval_data) {
-  if (eval_data != null) {
+function updateChart(title, timeseries) {
+  if (timeseries != null) {
     dateFormat = "MM/YYYY" // need to get this from the model setup
-    amchart(title, eval_data, dateFormat)
+    amchart(title, timeseries, dateFormat, "preview")
   } else {
     hideCharts()  
   }
 }
 
-function hideCharts() {
-  $('#previewchart').empty().text('Add some data!')
+function clearPreview() {
+  $('#preview').empty().text('No variable loaded')
 }
 
 // update updateAceEditor
