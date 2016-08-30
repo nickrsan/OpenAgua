@@ -24,55 +24,48 @@ def home():
     # in the Flask session. We shouldn't get here though.
     conn.login(username = session['hydra_username'], password = session['hydra_password'])    
     session['session_id'] = conn.session_id
-        
-    user = conn.get_user_by_name(session['hydra_username'])
-    session['user_id'] = user.id
+    session['hydra_user_id'] = conn.user_id
 
     # add recent project/network/template to session (to be loaded from user data in the future)
     session['project_name'] = OpenAgua.app.config['HYDRA_PROJECT_NAME']
     session['network_name'] = OpenAgua.app.config['HYDRA_NETWORK_NAME'] 
     session['template_name'] = OpenAgua.app.config['HYDRA_TEMPLATE_NAME']
-
-    projects = conn.call('get_projects',{'user_id':session['user_id']})
-    project_names = [project.name for project in projects]
-    return render_template('home.html',
-                           project_names = project_names)
-
-# Load projects
-# in the future, we can (optionally) store the Hydra session ID with the user account
-# i.e., give the user an option to auto-load last-used project.
-@user_home.route('/_load_recent')
-def load_recent():
-    
-    conn = connection(url=session['url'], session_id=session['session_id'])   
     
     # load / create project
     project = conn.get_project_by_name(session['project_name'])
     if 'id' in project.keys():
         session['project_id'] = project.id
     else:
-        return redirect(url_for('projects.project_settings'))
+        return redirect(url_for('user_projects.projects_manager')) 
     
     # load / activate network
     network = conn.get_network_by_name(session['project_id'], session['network_name'])
     if 'id' in network.keys():
         session['network_id'] = network.id
-    #else:
-        #return redirect(url_for('projects.project_settings'))
-    
-    activated = conn.call('activate_network', {'network_id':session['network_id']})
-    
+    else:
+        return redirect(url_for('user_projects.projects_manager'))    
+
     # load / activate template (temporary fix)
     templates = conn.call('get_templates',{})
-    #if len(templates)==0:
-        #return redirect(url_for('projects.project_settings')) 
+    if len(templates)==0:
+        return redirect(url_for('user_projects.projects_manager')) 
     
     template_names = [t.name for t in templates]    
-    #if session['template_name'] not in template_names:
-        #return redirect(url_for('projects.project_settings'))
+    if session['template_name'] not in template_names:
+        return redirect(url_for('user_projects.projects_manager'))
     
     session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
     
     session['appname'] = 'pyomo_network_lp'
-    
+
+    # if we've made it this far, let's send the user directly to the overview of
+    # their most recent project, pending more interesting stuff
+    #return render_template('home.html')
+    return redirect(url_for('main_overview.overview'))
+
+# Load projects
+# in the future, we can (optionally) store the Hydra session ID with the user account
+# i.e., give the user an option to auto-load last-used project.
+@user_home.route('/_load_recent')
+def load_recent():   
     return redirect(url_for('main_overview.overview'))

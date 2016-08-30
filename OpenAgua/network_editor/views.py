@@ -24,6 +24,7 @@ def network_editor():
                            ltypes=ltypes) 
 
 @net_editor.route('/_load_network')
+@login_required
 def load_network():
     conn = connection(url=session['url'], session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
@@ -47,6 +48,7 @@ def load_network():
     return result_json
 
 @net_editor.route('/_add_node')
+@login_required
 def add_node():
     conn = connection(url=session['url'], session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
@@ -71,6 +73,7 @@ def add_node():
     return jsonify(result=result)
 
 @net_editor.route('/_add_link')
+@login_required
 def add_link():
     conn = connection(url=session['url'], session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
@@ -102,6 +105,7 @@ def add_link():
     return jsonify(result=result)
 
 @net_editor.route('/_delete_feature')
+@login_required
 def delete_feature():
     conn = connection(url=session['url'], session_id=session['session_id'])
     network = conn.get_network(session['network_id'])
@@ -119,6 +123,7 @@ def delete_feature():
     return jsonify(result=dict(status_code=status_code))
 
 @net_editor.route('/_purge_feature')
+@login_required
 def purge_feature():
     conn = connection(url=session['url'], session_id=session['session_id'])
     network = conn.get_network(session['network_id'])

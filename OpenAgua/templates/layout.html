@@ -1,3 +1,5 @@
+{% import 'macros.html' as macros with context %}
+
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -28,6 +30,8 @@
     {% include "footer.html" %}
   </div>
 </footer> 
+
+{% block endscript %}{% endblock %}
     
 </body>
 </html>

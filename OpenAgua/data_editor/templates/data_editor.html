@@ -1,0 +1,133 @@
+{% extends "master.html" %}
+{% block title %} - Data Editor{% endblock %}
+{% block head_main %}
+
+<style type="text/css" media="screen">
+    .editor {border-style:solid; border-width:1px; border-color:black; margin-bottom: 5px}
+    .editor {display: none}
+    #scalar {border-width: 0px}
+</style>
+
+<!--Ace code editor-->
+<script src="{{ url_for('.static', filename='lib/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+
+<!--Handsontable-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.26.1/handsontable.full.min.css" type="text/css" media="all" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.26.1/handsontable.full.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!--amCharts-->
+<script src="https://www.amcharts.com/lib/3/amcharts.js"></script>
+<script src="https://www.amcharts.com/lib/3/serial.js"></script>
+<script src="https://www.amcharts.com/lib/3/plugins/export/export.min.js"></script>
+<link rel="stylesheet" href="https://www.amcharts.com/lib/3/plugins/export/export.css" type="text/css" media="all" />
+<script src="https://www.amcharts.com/lib/3/themes/light.js"></script>
+<div id="chartdiv"></div>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid" style="margin-left:0px;margin-right:0px">
+
+  <div class="row" style="margin-top:15px;margin-bottom:15px">
+  
+    <!--select a feature-->
+    <div class="col-sm-6 col-md-3">    
+      <div class="form-group">
+        <label for="features">Feature</label>
+        <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a feature">  
+        {% for (type_id, type_name, feature_type), feats in features.iteritems() %}
+          <optgroup label="{{ type_name }}">
+          {% for f in feats %}
+            <option data-tokens='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
+          {% endfor %}
+          </optgroup>
+        {% endfor %}
+        </select>
+      </div>
+    </div>
+    
+    <!--select a variable-->
+    <div class="col-sm-6 col-md-3">
+      <div class="form-group">
+        <label for="variables">Variable</label>
+        <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature first">
+        </select>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+      <!--select a scenario-->
+      <div class="form-group">
+        <label for="scenarios">Scenario</label>
+        <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
+        {% for scenario in scenarios %}
+          <option data-tokens='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
+        {% endfor %}
+        </select>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row" style="margin-bottom:20px">
+    <div class="col-md-6 col-sm-12">
+      
+      <!--select a data type-->
+      <div class="form-group">
+        <label for="datatypes">Data type</label>
+        <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%" disabled>
+          <option value="scalar" data-tokens='{"data_type_id": 1, "data_type_name": "scalar"}'>Number</option>
+          <option value="descriptor" data-tokens='{"data_type_id": 2, "data_type_name": "descriptor"}'>Function/code</option>
+          <option value="timeseries" data-tokens='{"data_type_id": 3, "data_type_name": "timeseries"}'>Time series</option>
+          <!--<option value="eqtimeseries" data-tokens='{"data_type_id": 4, "data_type_name": "eqtimeseries"}'>Time series</option>-->
+          <!--<option value="array" data-tokens='{"data_type_id": 5, "data_type_name": "array"}'>Array</option>-->
+        </select>
+      </div>
+      
+      <label for="editor">Edit data</label>
+      <div id="editor">
+        <div id="descriptor" class="editor"></div>
+        <div id="timeseries" class="editor"></div>
+        <div id="eqtimeseries" class="editor"></div>
+        <div id="scalar" class="editor">
+          <div class="form-group">
+            <label for="scalar_input">Number:</label>
+            <input type="text" class="form-control" id="scalar_input">
+          </div>               
+        </div>
+        <div id="array" class="editor"></div>
+      </div>
+      
+      <div style="margin-bottom:15px">
+        See <a href="/help/syntax_instructions">instructions and examples</a>.
+        <div class="pull-right">
+          <div class="btn-group"><button id="undo_all" class="btn btn-default btn-md">Undo all</button></div>
+          <div class="btn-group"><button id="check_code" class="btn btn-default btn-md">Check code</button></div>
+          <div class="btn-group"><button id="save_changes" class="btn btn-primary btn-md">Save changes</button></div>
+        </div>
+      </div>
+      
+    </div>
+    
+    <div class="col-md-6 col-sm-12">
+      <label for="preview">Preview data</label>
+      <div id="preview" style="border-style:solid;border-color=black;border-width:1px;height:350px;width=100%">Data preview will go here.</div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block endscript %}
+
+<script>
+var template_id = {{session['template_id']}}
+</script>
+
+<script src="{{ url_for('.static', filename='js/data_editor.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}

@@ -9,19 +9,20 @@ log = logging.getLogger(__name__)
 
 class connection(object):
 
-    def __init__(self, url=None, session_id=None, app_name=None):
+    def __init__(self, url=None, session_id=None, user_id=None, app_name=None):
         self.url = url
         self.app_name = app_name
         self.session_id = session_id
+        self.user_id = user_id
 
     def call(self, func, args):
         log.info("Calling: %s" % (func))
         headers = {'Content-Type': 'application/json',
-                   'sessionid': self.session_id, # this lets us keep the session ID associated with the connection
+                   'sessionid': self.session_id,
                    'appname': self.app_name}
         call_json = {func: args}
 
-        response = requests.post(self.url, json=call_json, headers=headers)
+        response = requests.post(self.url, data=json.dumps(call_json), headers=headers)
         if not response.ok:
             try:
                 fc, fs = response['faultcode'], response['faultstring']
@@ -51,8 +52,8 @@ class connection(object):
             # raise error
         response = self.call('login', {'username': username, 'password': password})
         self.session_id = response.sessionid
+        self.user_id = response.userid
         log.info("Session ID: %s", self.session_id)
-        return self.session_id
 
     # specific methods
     def get_user_by_name(self, username=None):

@@ -8,6 +8,21 @@
     
 {% block main %}
 
+<script>
+var active_project_id = -1;
+var active_network_id = -1;
+var active_template_id = -1;
+  {% if 'project_id' in session %}
+    var active_project_id = {{ session['project_id'] }};
+  {% endif %}
+  {% if 'network_id' in session %}
+    active_network_id = {{ session['network_id'] }};
+  {% endif %} 
+  {% if 'template_id' in session %}
+    var active_template_id = {{ session['template_id'] }};
+  {% endif %}
+</script>
+
 <div class="container-fluid">
   
   <div class="row">
@@ -18,78 +33,90 @@
     </div>
   </div>
   
-  <div class="row">
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" role="tablist">
+    <li role="presentation" class="active"><a href="#projects" aria-controls="projects" role="tab" data-toggle="tab">Projects/networks</a></li>
+    <li role="presentation"><a href="#templates" aria-controls="templates" role="tab" data-toggle="tab">Templates</a></li>
+  </ul>
   
-    <!--select/add project-->
-    <div class="col sm-4 col-md-3">
-      <div class="panel panel-default">
-        <div class="panel-heading clearfix" style="padding:3px">
-          <button id="add_project" class="btn btn-default btn-sm pull-right">Add project</button>
-          <h4 style="margin:7px">Projects</h4>
-        </div>
-        <div class="panel-body">
-          <div id="project_list">
-            <ul class="list-group">
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!--Tab panes-->
+  <div class="tab-content">
+  
+    <!-- projects -->
+    <div role="tabpanel" class="tab-pane active" id="projects">
+
+      <div class="row"><br>
       
-    <!--select/add network-->
-    <div class="col sm-4 col-md-3">
-      <div class="panel panel-default">
-        <div class="panel-heading clearfix" style="padding:3px">
-          <button id="add_network" class="btn btn-default btn-sm pull-right">Add network</button>
-          <h4 style="margin:7px">Networks</h4>
-        </div>
-        <div class="panel-body">
-          {% if networks %}
-            <div id="network_list">
-            <ul class="list-group">
-            </ul>
+        <!--select/add project-->
+        <div class="col sm-4 col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-heading clearfix" style="padding:3px">
+              <button id="add_project" class="btn btn-default btn-sm pull-right">Add project</button>
+              <h4 style="margin:7px">Projects</h4>
             </div>
-          {% else %}
-            <p>No networks yet.</p>
-          {% endif %}
-        </div>
-      </div>
-      
-    </div>
-    
-    <!--manage templates-->    
-    <div class="col sm-6 col-md-4">
-      <div class="panel panel-default">
-        <div class="panel-heading"><b>Templates</b></div>
-        <div class="panel-body">
-          <div id="template_list">
-            <ul class="list-group">
-            </ul>
+            <div class="panel-body">
+              <div id="project_list">
+                <ul class="list-group">
+                </ul>
+              </div>
+            </div>
           </div>
-    
-          <label class="control-label">Upload new template - DOES NOT WORK</label>
-          <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
-          <script>
-            $(document).on('ready', function() {
-                $("#upload-template").fileinput({showCaption: false});
-            });
-          </script>
-    
+        </div>
+          
+        <!--select/add network-->
+        <div class="col sm-4 col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-heading clearfix" style="padding:3px">
+              <button id="add_network" class="btn btn-default btn-sm pull-right">Add network</button>
+              <h4 style="margin:7px">Networks</h4>
+            </div>
+            <div class="panel-body">
+                <p id="network_list_description"></p>
+                <div id="network_list">
+                </div>
+            </div>
+          </div>
+          
         </div>
       </div>
-    </div>    
+    </div> <!--end projects pane-->
     
-  </div>    
+    <!--templates-->
+    <div role="tabpanel" class="tab-pane" id="templates">
+
+      <div class="row"><br>    
+    
+        <!--manage templates-->  
+        <div class="col sm-6 col-md-4">
+          <div class="panel panel-default">
+            <div class="panel-heading clearfix" style="padding:3px">
+            <h4 style="margin:7px">Templates</h4>
+            </div>
+            <div class="panel-body">
+              <div id="template_list">
+                <ul class="list-group">
+                </ul>
+              </div>
+        
+              <label class="control-label">Upload new template - DOES NOT WORK</label>
+              <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
+              <script>
+                $(document).on('ready', function() {
+                    $("#upload-template").fileinput({showCaption: false});
+                });
+              </script>
+        
+            </div>
+          </div>
+        </div> 
+        
+      </div> <!--end templates pane-->
+    
+  </div>   
 </div>
   
-{% include "modals.html" %}  
-
-<script>
-  var active_project_id = {{ session['project_id'] }};
-  var active_network_id = {{ session['network_id'] }};
-  var active_template_id = {{ session['template_id'] }};
-</script>
+{% include "modals.html" %}
   
-<script src="{{ url_for('user_projects.static', filename='js/user_projects.js') }}"></script>
+<script src="{{ url_for('user_projects.static', filename='js/projects_manager.js') }}"></script>
 
 {% endblock %}

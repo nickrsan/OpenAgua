@@ -13,6 +13,11 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///../instance/users.sqlite'
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 HYDRA_APPS_DIR = os.path.join(APP_ROOT, 'OpenAgua', 'hydra_apps')
 
+# admin user (customize in instance)
+ADMIN_USERNAME = 'admin'
+ADMIN_EMAIL = 'admin@localhost'
+ADMIN_PASSWORD = 'Password1'
+
 # Flask-User settings
 USER_APP_NAME = "OpenAguaDSS"
 USER_LOGIN_TEMPLATE  = 'flask_user/login.html'
@@ -28,7 +33,7 @@ USER_REGISTER_TEMPLATE = 'flask_user/register.html'
 USER_AFTER_LOGIN_ENDPOINT = 'user_home.home'
 USER_AFTER_LOGOUT_ENDPOINT = 'index'
 #USER_AFTER_RESET_PASSWORD_ENDPOINT = 'special_page'
-#USER_AFTER_REGISTER_ENDPOINT = 'special_page'
+USER_AFTER_REGISTER_ENDPOINT = 'index'
 #USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'special_page'
 #USER_AFTER_CHANGE_USERNAME_ENDPOINT = 'special_page'
 
