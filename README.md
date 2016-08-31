@@ -115,6 +115,8 @@ b. If a public server is used, Apache2 needs to be configured as described below
 
 ## Apache2
 
+*ALERT: This section is no longer valid since upgrading OpenAgua to Python 3. These instructions will change to Nginx instead of Apache*
+
 Both Hydra Platform and OpenAgua can be served by Apache2 to the public using virtual hosts. In this example, Hydra Platform is served on hydra-server.mysite.com, while OpenAgua is served on www.mysite.com. Of course, if only OpenAgua is to be available to the public, then Hydra Platform is simply omitted from this.
 
 On Ubuntu, two separate configuration files can be prepared, both located in /etc/apache2/sites-available. Each file might be called, for example, hydra-platform.conf and openagua.conf, respectively. The configuration file for **Hydra Platform** can be as follows (this assumes HydraPlatform is located in /var/www):
