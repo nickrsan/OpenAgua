@@ -1,6 +1,9 @@
 // global variables
-var feature_id, scen_id, scen_name, template_id, res_attr_id, res_attr_name, 
-  attr_id, type_id, data_type_name;
+var feature_id, feature_type, scen_id, scen_name, template_id, res_attr_id, res_attr_name, 
+  attr_id, type_id, data_type_name, unit;
+  
+var original_value;
+var attr_data;
 
 var heights = {
   descriptor: "220px",
@@ -10,7 +13,7 @@ var heights = {
   array: "220px",
 }
 
-var default_data_type = 'descriptor'; // setting this is subjective
+//var default_data_type = 'descriptor'; // setting this is subjective
 
 // initialize Ace code editor
 var aceEditor = ace.edit("descriptor");
@@ -22,12 +25,12 @@ document.getElementById("descriptor").style.fontSize='14px';
 $(document).ready(function(){
 
   clearEditor();
-  clearPreview();
+  clearChart();
 
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
     clearEditor();
-    clearPreview();
+    clearChart();
     
     selectDataType("scalar");
     
@@ -50,13 +53,15 @@ $(document).ready(function(){
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
       res_attr_id = data_tokens.res_attr_id;    
       res_attr_name = data_tokens.res_attr_name;
+      data_type_name = data_tokens.data_type;
       attr_id = data_tokens.attr_id;
+      unit = data_tokens.unit;
       var spicker = $('#scenarios');
       if (spicker.attr('disabled')) {
         spicker.attr('disabled',false).selectpicker('refresh');
       }
       if (scen_id != null) {
-        load_data(feature_id, feature_type, attr_id, scen_id);
+        load_data();
       } else {
       var stitle = 'Select a scenario'
       $('button[data-id="scenarios"]')
@@ -71,7 +76,7 @@ $(document).ready(function(){
     if (selected.length) {
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
       data_type_name = data_tokens.data_type_name;
-      toggleEditors(data_type_name);
+      updateEditor(data_type_name);
     }
   });
   
@@ -83,7 +88,7 @@ $(document).ready(function(){
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
       scen_id = data_tokens.scen_id;
       scen_name = data_tokens.scen_name;
-      load_data(feature_id, feature_type, attr_id, scen_id);
+      load_data();
     } else {
       scen_id = null;
       scen_name = null;
@@ -109,12 +114,15 @@ function load_variables(type_id) {
           var data_tokens = {
             attr_id: res_attr.attr_id,
             res_attr_id: res_attr.id,
-            res_attr_name: res_attr.name
+            res_attr_name: res_attr.tpl_type_attr.pretty_name,
+            data_type: res_attr.tpl_type_attr.data_type,
+            unit: res_attr.tpl_type_attr.unit,
+            dimension: res_attr.tpl_type_attr.dimension,
           }
           vpicker
             .append($('<option>')
               .attr('data-tokens',JSON.stringify(data_tokens))
-              .text(res_attr.name)
+              .text(res_attr.tpl_type_attr.pretty_name)
             );
           }
       });
@@ -132,9 +140,7 @@ function load_variables(type_id) {
 }
 
 // load the variable data
-var original_value;
-var attr_data = null;
-function load_data(feature_id, feature_type, attr_id, scen_id) {
+function load_data() {
 
   var data = {
     type_id: type_id,
@@ -145,19 +151,18 @@ function load_data(feature_id, feature_type, attr_id, scen_id) {
   }
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     attr_data = resp.attr_data;
-    var original_value;
     if (attr_data != null) {
       data_type_name = attr_data.value.type;
-    } else {
+    } //else {
       // default data type is defined at beginning of script
-      data_type_name = default_data_type;
-    }
+      //data_type_name = default_data_type;
+    //}
     
     // set the data type selector
     selectDataType(data_type_name);
     
     // toggle the editors
-    toggleEditors(data_type_name);
+    updateEditor(data_type_name, unit);
     
     // load the returned time series into the table and plot, even if empty
     dataActions(data_type_name, attr_data, resp.timeseries)
@@ -276,35 +281,20 @@ $(document).on('click', '#save', function() {
   }
 });
 
-// toggle the editors, depending on the data class selected
-function toggleEditors(data_type_name) {
+// editor functions
+function updateEditor(data_type_name) {
   $('.editor').hide()
   var div = $('#'+data_type_name)
   div.css("height", heights[data_type_name])
   div.show()
+  $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;');
   $('#editor').show()
   $('#editor_status').empty();
-}
-
-// chart functions
-
-function updateChart(title, timeseries) {
-  if (timeseries != null) {
-    $('#preview').text();
-    dateFormat = "MM/YYYY" // need to get this from the model setup
-    amchart(title, timeseries, dateFormat, "preview")
-  } else {
-    clearPreview() // actually, we shouldn't get here
-  }
 }
 
 function clearEditor() {
   $('#editor').hide()
   $('#editor_status').text('No variable loaded')
-}
-
-function clearPreview() {
-  $('#preview').empty().text('No variable loaded')
 }
 
 // update updateAceEditor
@@ -313,8 +303,22 @@ function updateAceEditor(original_value) {
   aceEditor.gotoLine(1);  
 }
 
-
 // function scalar input
 function scalarInput(original_value) {
   $("#scalar_input").text(original_value)
+}
+
+// chart functions
+function updateChart(title, timeseries) {
+  if (timeseries != null) {
+    $('#preview').text();
+    dateFormat = "MM/YYYY" // need to get this from the model setup
+    amchart(title, timeseries, dateFormat, "preview")
+  } else {
+    clearChart() // actually, we shouldn't get here
+  }
+}
+
+function clearChart() {
+  $('#preview').empty().text('No variable loaded')
 }

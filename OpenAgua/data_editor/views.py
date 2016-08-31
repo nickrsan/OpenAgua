@@ -16,7 +16,7 @@ def data_editor_main():
     network = conn.call('get_network', {'network_id':session['network_id'],
                                         'include_data':'N'})
     template = conn.call('get_template',{'template_id':session['template_id']})
-    features = OrderedDict()   
+    features = OrderedDict() 
     
     for res_type in ['NETWORK','NODE','LINK']:
         for ttype in template.types:            
@@ -45,20 +45,20 @@ def get_variables():
     res_attrs = conn.call('get_%s_attributes'%feature_type,
                           {'%s_id'%feature_type: feature_id, 'type_id':type_id})
     
-    # create an attribute lookup dictionary - this is inefficient
-    # we should do this just once per application context
-    attrs = conn.call('get_template_attributes',
-                      {'template_id':session['template_id']})
-    attr_dict = {}
-    for a in attrs:
-        attr_dict[a.id] = dict(
-            name = a.name
-        )    
+    # add templatetype attribute information to each resource attribute,
+    # so we can display useful variable information in the data editor
     
-    # add a name to each resource_attr based on the associated attribute id
+    # first, get the template type attributes
+    ttype = conn.call('get_templatetype', {'type_id': type_id})
+    attrs = {}
+    for typeattr in ttype.typeattrs:
+        attrs[typeattr.attr_id] = typeattr    
+    
+    # second, attach it to the resource attributes
     for i in range(len(res_attrs)):
-        res_attrs[i]['name'] = \
-            attr_dict[res_attrs[i].attr_id]['name'].replace('_',' ')
+        tpl_type_attr = attrs[res_attrs[i].attr_id]
+        tpl_type_attr["pretty_name"] = tpl_type_attr.attr_name.replace('_',' ') # purge _
+        res_attrs[i]['tpl_type_attr'] = tpl_type_attr
     
     return jsonify(res_attrs=res_attrs)
 
