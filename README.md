@@ -2,7 +2,6 @@ This describes how to set up and run OpenAgua.
 
 See technical details and general usage [here](http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 
-
 # Setup/run on local machine
 
 OpenAgua connects to Hydra Platform. So, Hydra Platform needs to be available, either locally or remotely. This assumes Hydra Platform will be run locally. In this case, the first step is to make sure Hydra Platform is running, after which OpenAgua may be run. 
@@ -17,18 +16,25 @@ OpenAgua connects to Hydra Platform. So, Hydra Platform needs to be available, e
 
 ### Requirements
 
+OpenAgua was built on Python 3.5, so this should be installed first. Other requirements follow.
+
 __Windows-specific__:
-* [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx) is needed to install *flask_user* (or *PyCrypto*, a dependency of *flask_user*, to be more precise).
+
+The main (only?) issue is that *flask_user* depends on *PyCrypto*, which needs to compile some binaries during installation (apparently due to export laws they cannot be provided within the United States). Two options exist:
+
+1. Compile on your own machine using [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx), which is the only binary compiler for Python 3.5+.
+
+2. Find a pre-compiled version of *PyCrypto* for Python 3.5. One is [available on GitHub](https://github.com/sfbahr/PyCrypto-Wheels). See instructions there to install.
 
 __All platforms__:
-* Python 3.5
-* Python modules (see also requirements.txt):
+All platforms require the following Python modules (see also requirements.txt):
 ```
 flask
 flask_sqlalchemy
 flask_user
 flask_admin
 flask_migrate
+requests
 pandas
 webcolors
 pyomo

@@ -1,8 +1,8 @@
 // global variables
 var feature_id, feature_type, scen_id, scen_name, template_id, res_attr_id, res_attr_name, 
-  attr_id, type_id, data_type_name, unit;
+  attr_id, type_id, data_type, unit;
   
-var original_value;
+var original_data;
 var attr_data;
 
 var heights = {
@@ -21,6 +21,9 @@ aceEditor.setTheme("ace/theme/chrome");
 aceEditor.getSession().setMode("ace/mode/python");
 aceEditor.$blockScrolling = Infinity // disable error message; cursor is placed at the beginning below
 document.getElementById("descriptor").style.fontSize='14px';
+
+// initialize handsontable (time series editor)
+var hotEditor = makeHandsontable('timeseries', 220)
 
 $(document).ready(function(){
 
@@ -53,7 +56,7 @@ $(document).ready(function(){
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
       res_attr_id = data_tokens.res_attr_id;    
       res_attr_name = data_tokens.res_attr_name;
-      data_type_name = data_tokens.data_type;
+      data_type = data_tokens.data_type;
       attr_id = data_tokens.attr_id;
       unit = data_tokens.unit;
       var spicker = $('#scenarios');
@@ -75,8 +78,8 @@ $(document).ready(function(){
     var selected = $('#datatypes option:selected');
     if (selected.length) {
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
-      data_type_name = data_tokens.data_type_name;
-      updateEditor(data_type_name);
+      data_type = data_tokens.data_type;
+      updateEditor(data_type);
     }
   });
   
@@ -152,20 +155,20 @@ function load_data() {
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     attr_data = resp.attr_data;
     if (attr_data != null) {
-      data_type_name = attr_data.value.type;
+      data_type = attr_data.value.type;
     } //else {
       // default data type is defined at beginning of script
-      //data_type_name = default_data_type;
+      //data_type = default_data_type;
     //}
     
     // set the data type selector
-    selectDataType(data_type_name);
+    selectDataType(data_type);
     
     // toggle the editors
-    updateEditor(data_type_name, unit);
+    updateEditor(data_type, unit);
     
     // load the returned time series into the table and plot, even if empty
-    dataActions(data_type_name, attr_data, resp.timeseries)
+    dataActions(data_type, attr_data, resp.timeseries)
     
     // turn on the data type selector
     $("#datatypes").attr("disabled", false).selectpicker("refresh");
@@ -181,17 +184,17 @@ function selectDataType(data_type) {
   selector.selectpicker('refresh')
 }
 
-function dataActions(data_type_name, attr_data, plot_data) {
+function dataActions(data_type, attr_data, plot_data) {
 
-    switch(data_type_name) {
+    switch(data_type) {
         
       case 'descriptor':
         if (attr_data == null) {
-          original_value = '';
+          original_data = '';
         } else {
-          original_value = attr_data.value.value;
+          original_data = attr_data.value.value;
         }
-        updateAceEditor(original_value)
+        updateAceEditor(original_data)
         break;
     
       case 'timeseries': 
@@ -202,11 +205,11 @@ function dataActions(data_type_name, attr_data, plot_data) {
         
       case 'scalar':
         if (attr_data == null) {
-          original_value = ''
+          original_data = ''
         } else {
-          original_value = attr_data.value.value;       
+          original_data = attr_data.value.value;       
         }
-        scalarInput(original_value)
+        scalarInput(original_data)
         break;
         
       case 'array':
@@ -220,7 +223,7 @@ function dataActions(data_type_name, attr_data, plot_data) {
     // however, this will not be saved, unless save is clicked while in 
     // table view mode
     var colHeaders = ['Month',scen_name];
-    handsontable("timeseries", plot_data, colHeaders, heights[data_type_name]);
+    updateHandsontable(plot_data, colHeaders);
     updateChart(scen_name, plot_data);
 
 }
@@ -228,13 +231,22 @@ function dataActions(data_type_name, attr_data, plot_data) {
 // save data
 $(document).on('click', '#save', function() {
 
-  switch(data_type_name) {
+  var new_data,
+      unchanged;
+
+  switch(data_type) {
   
     case "descriptor":
-      var new_value = aceEditor.getValue(); 
+      new_data = aceEditor.getValue(); 
+      unchanged = (new_data == original_data);
       break;
       
     case "timeseries":
+      var original_data = hotEditor.getSourceData();
+      var new_data = _.map(hotEditor.getData(), function(row, index) {
+        return {date: row[0], value: row[1]}      
+      })
+      unchanged = _.isEqual(original_data, new_data)
       break;
 
     case "eqtimeseries":
@@ -249,43 +261,59 @@ $(document).on('click', '#save', function() {
     default:
       break;
   }
-
-  if (new_value != original_value) {
-    if (attr_data == null) {
-      var data = {
-        scen_id: scen_id,
-        res_attr_id: res_attr_id,
-        attr_id: attr_id,
-        val: new_value
-      }
-      $.getJSON('/_add_variable_data', data, function(resp) {
-        if (resp.status==1) {
-          dataActions(data_type_name, attr_data, resp.timeseries);
-          notify('success','Success!','Data added.');
-        }
-      });
-    } else {
-      attr_data.value.value = new_value;
-      var data = {scen_id: scen_id, attr_data: JSON.stringify(attr_data)}
-      $.getJSON('/_update_variable_data', data, function(resp) {
-        if (resp.status==1) {
-          dataActions(data_type_name, attr_data, resp.timeseries);
-          original_value = new_value;
-          notify('success','Success!','Data updated.');
-        }
-      });
-    }
-
-  } else {
-    notify('info','Nothing saved.','No edits detected.')
+  
+  // notify if nothing has changed
+  if (unchanged) {
+    notify('info', 'Alert!', 'No change detected. Nothing saved.');
+    return;
   }
+  
+  // add or update data; functions are separated out for readability
+  if (attr_data == null) {
+    addNewData(new_data); // new dataset
+  } else {
+    updateExistingData(new_data); // updated dataset
+  }
+  
 });
 
+// data functions
+function addNewData(new_data, data_type) {
+  var data = {
+    data_type: data_type,
+    scen_id: scen_id,
+    res_attr_id: res_attr_id,
+    attr_id: attr_id,
+    data: new_data
+  }
+  $.getJSON('/_add_variable_data', data, function(resp) {
+    if (resp.status==1) {
+      dataActions(data_type, attr_data, resp.timeseries);
+      notify('success','Success!','Data added.');
+    }
+  });
+}
+
+function updateExistingData(new_data) {
+  attr_data.value.value = new_data;
+  var data = {
+    scen_id: scen_id,
+    attr_data: JSON.stringify(attr_data)
+  }        
+  $.getJSON('/_update_variable_data', data, function(resp) {
+    if (resp.status==1) {
+      dataActions(data_type, attr_data, resp.timeseries);
+      original_data = new_data;
+      notify('success','Success!','Data updated.');
+    }
+  });
+}
+
 // editor functions
-function updateEditor(data_type_name) {
+function updateEditor(data_type) {
   $('.editor').hide()
-  var div = $('#'+data_type_name)
-  div.css("height", heights[data_type_name])
+  var div = $('#'+data_type)
+  div.css("height", heights[data_type])
   div.show()
   $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;');
   $('#editor').show()
@@ -298,14 +326,14 @@ function clearEditor() {
 }
 
 // update updateAceEditor
-function updateAceEditor(original_value) {
-  aceEditor.setValue(original_value);
+function updateAceEditor(original_data) {
+  aceEditor.setValue(original_data);
   aceEditor.gotoLine(1);  
 }
 
 // function scalar input
-function scalarInput(original_value) {
-  $("#scalar_input").text(original_value)
+function scalarInput(original_data) {
+  $("#scalar_input").text(original_data)
 }
 
 // chart functions

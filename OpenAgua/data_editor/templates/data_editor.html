@@ -81,11 +81,11 @@
       <div class="form-group">
         <label for="datatypes">Data type</label>
         <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%" disabled>
-          <option value="scalar" data-tokens='{"data_type_id": 1, "data_type_name": "scalar"}'>Number</option>
-          <option value="descriptor" data-tokens='{"data_type_id": 2, "data_type_name": "descriptor"}'>Function/code</option>
-          <option value="timeseries" data-tokens='{"data_type_id": 3, "data_type_name": "timeseries"}'>Time series</option>
-          <!--<option value="eqtimeseries" data-tokens='{"data_type_id": 4, "data_type_name": "eqtimeseries"}'>Time series</option>-->
-          <!--<option value="array" data-tokens='{"data_type_id": 5, "data_type_name": "array"}'>Array</option>-->
+          <option value="scalar" data-tokens='{"data_type": "scalar"}'>Number</option>
+          <option value="descriptor" data-tokens='{"data_type": "descriptor"}'>Function/code</option>
+          <option value="timeseries" data-tokens='{"data_type": "timeseries"}'>Time series</option>
+          <!--<option value="eqtimeseries" data-tokens='{"data_type": "eqtimeseries"}'>Time series</option>-->
+          <!--<option value="array" data-tokens='{"data_type": "array"}'>Array</option>-->
         </select>
       </div>
       
@@ -131,8 +131,8 @@
 var template_id = {{session['template_id']}}
 </script>
 
-<script src="{{ url_for('.static', filename='js/data_editor.js') }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/data_editor.js') }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}
