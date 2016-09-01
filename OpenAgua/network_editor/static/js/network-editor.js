@@ -114,7 +114,7 @@ refreshCurrentItems = function() {
         var prop = layer.feature.properties;
         //layer.bindPopup(prop.name); // add popup
         layer.bindLabel(prop.name, {
-            noHide: true,
+            noHide: false,
             offset: [20,-15]
         });
         layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu

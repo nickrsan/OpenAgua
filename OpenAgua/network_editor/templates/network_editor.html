@@ -2,6 +2,17 @@
 {% block title %} - Network{% endblock %}
 {% block head_main %}
 
+<style>
+.dropdown-menu {
+  z-index: 1000;
+  width: 200px
+}
+
+#map {
+  z-index: 1
+}
+</style>
+
 <!--Leaflet-->
 <!--<link rel="stylesheet" href="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />-->
 <!--<script src="https://npmcdn.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>-->
@@ -45,12 +56,36 @@
 {% block content %}
 
 <!--network editor-->
-<!--<p>CAUTION: Snapping doesn't work perfectly. Please place links carefully. Consider helping to improve <a href="https://github.com/makinacorpus/Leaflet.Snap">Leaflet.Snap</a>, or modify website code to accommodate</p>-->
-<div id="map" style="height: 500px; border: thin solid black"></div>
-<!--<div id="load_status" class="label label-success"></div>-->
-<!--<div id="save_status" class="label label-danger"></div>-->
+<div class='container-fluid'>
+  <div class='row'>
+    <div class="btn-group pull-right" style='margin-bottom:5px'>
+      <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <span class="caret"></span></button>
+      <ul class="dropdown-menu">
+        <li>
+          &nbsp;&nbsp;<input type="checkbox" name="show_labels" checked>&nbsp;&nbsp;Node labels      
+        </li>
+      </ul>
+    </div>
+  </div>
+  <div class='row'>
+    <div id="map" style="height: 500px; border: thin solid black"></div>
+  </div>
+</div>
 
 {% include "network_modals.html" %}
+<script>
+$.fn.bootstrapSwitch.defaults.size = 'mini';
+$("[name='show_labels']").bootstrapSwitch();
+var showLabels = $("[name='show_labels']").bootstrapSwitch("state");
+</script>
 <script src="{{ url_for('network_editor.static', filename='js/network-editor.js') }}"></script>
+<script>
+$( document ).ready( function() {
+  $('input[name="show_labels"]').on('switchChange.bootstrapSwitch', function(event, state) {
+    showLabels = state;
+    refreshCurrentItems();
+  });
+});
+</script>
 
 {% endblock %}

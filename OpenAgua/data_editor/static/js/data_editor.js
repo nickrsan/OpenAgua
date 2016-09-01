@@ -81,7 +81,7 @@ $(document).ready(function(){
     if (selected.length) {
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
       data_type = data_tokens.data_type;
-      updateEditor(data_type);
+      updateEditor(data_type, unit, dimension);
     }
   });
   
@@ -296,12 +296,12 @@ function updateHydraData(new_data, data_type) {
 }
 
 // editor functions
-function updateEditor(data_type) {
+function updateEditor(data_type, unit, dimension) {
   $('.editor').hide()
   var div = $('#'+data_type)
   div.css("height", heights[data_type])
   div.show()
-  $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;');
+  $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
   $('#editor').show()
   $('#editor_status').empty();
 }
