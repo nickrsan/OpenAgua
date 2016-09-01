@@ -43,7 +43,7 @@ class connection(object):
         
         log.info('Finished communicating with Hydra Platform.')
 
-        resp = json.loads(response.content, object_hook=JSONObject)
+        resp = json.loads(response.content.decode('utf8'), object_hook=JSONObject)
         return resp
 
     def login(self, username=None, password=None):

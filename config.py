@@ -1,13 +1,14 @@
 import os
 
 DEBUG = False
+IS_LOCAL = True # will not require email registration if local
 HYDRA_URL = 'http://127.0.0.1:8080/json'
 HYDRA_USERNAME = 'root'
 HYDRA_PASSWORD = ''
 HYDRA_PROJECT_NAME = 'Monterrey'
 HYDRA_NETWORK_NAME = 'base_network'
 HYDRA_TEMPLATE_NAME = 'OpenAgua'
-SECRET_KEY = '\xef0d\xd8\xb3\xcd\xb0\x04u\x05\x12\xc64\x1d\x00Ld\x8bh\xd5\x81+a\x00'
+SECRET_KEY = 'keep it a secret!' # use os.urandom(24) to generate a key
 SQLALCHEMY_DATABASE_URI = 'sqlite:///../instance/users.sqlite'
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -39,9 +40,10 @@ USER_AFTER_REGISTER_ENDPOINT = 'index'
 
 USER_ENABLE_CHANGE_PASSWORD = True  # Allow users to change their password
 USER_ENABLE_CHANGE_USERNAME = True  # Allow users to change their username
-USER_ENABLE_CONFIRM_EMAIL = True  # Force users to confirm their email
 USER_ENABLE_FORGOT_PASSWORD = True  # Allow users to reset their passwords
 USER_ENABLE_EMAIL = True  # Register with Email
 USER_ENABLE_REGISTRATION = True  # Allow new users to register
 USER_ENABLE_RETYPE_PASSWORD = True  # Prompt for `retype password` in:
 USER_ENABLE_USERNAME = True  # Register and Login with username
+
+USER_ENABLE_CONFIRM_EMAIL = not IS_LOCAL  # Force users to confirm their email
