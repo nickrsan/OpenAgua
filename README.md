@@ -1,8 +1,12 @@
-# Project information
+This describes how to set up and run OpenAgua.
 
-See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
+See technical details and general usage [here](http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 
-# Setup/use on local machine
+# Setup/run on local machine
+
+These setup instructions are general, for both Windows and Linux. This is untested on OSX, but presumably setup should be similar to that for Linux.
+
+OpenAgua connects to Hydra Platform. So, Hydra Platform needs to be available, either locally or remotely. This assumes Hydra Platform will be run locally. In this case, the first step is to make sure Hydra Platform is running, after which OpenAgua may be run. 
 
 ## Hydra Platform
 
@@ -11,6 +15,47 @@ See [project info] (http://centrodelagua-decisiones.github.io/OpenAguaDSS/).
 * [set up on Windows] (http://umwrg.github.io/HydraPlatform/tutorials/getting-started/server.html)
 
 ## OpenAgua
+
+### Requirements
+
+OpenAgua was built on Python 3.5, so this should be installed first. Earlier versions of Python 3 should also work, but there's no guarantee. Other requirements follow.
+
+__Windows-specific__:
+
+The main (only?) issue is that *flask_user* depends on *PyCrypto*, which needs to compile some binaries during installation (apparently due to export laws they cannot be provided within the United States). Two options exist:
+
+1. Compile on your own machine using [Visual Studio 2015 Community Edition](https://www.visualstudio.com/en-us/downloads/download-visual-studio-vs.aspx), which is the only binary compiler for Python 3.5+.
+
+2. Find a pre-compiled version of *PyCrypto* for Python 3.5. One is [available on GitHub](https://github.com/sfbahr/PyCrypto-Wheels). See instructions there to install.
+
+__Linux-specific__:
+
+Two potential issues exist, but others may also exist (consult Google if troubles arise, and let us know so we can document the issues here!):
+
+1. *pip3* should be used instead of *pip* (for installing Python 3.x modules). At least on Amazon's default Ubuntu, *pip3* is not installed by default, so this should be installed: `sudo apt-get install pip3`.
+
+2. As with Windows, encryption-related modules need to be compiled during installation. On Amazon's Ubuntu, install *libffi-dev* (`sudo apt-get install libffi-dev`) to be able to install *bcrypt*, a dependency of *flask_user*. On other setups, make sure the following are also installed: *libpython3-dev*, *python3-dev*, *libffi* and *libffi-dev*.
+
+__All platforms__:
+
+All platforms require the following Python modules (see also requirements.txt):
+```
+flask
+flask_sqlalchemy
+flask_user
+flask_admin
+flask_migrate
+requests
+pandas
+webcolors
+pyomo
+```
+
+These can be installed individually (e.g., `pip install flask`) or together (i.e., `pip install requirements.txt`)
+
+### Settings
+
+NOTE: This assumes email authentication is needed. However, for a local setup, this shouldn't be. This will be resolved in the future.
 
 There are a few settings that should be set on a machine-specific basis, whether on a local machine or on a web server. These are stored in a folder called "instance" under the top-level OpenAguaDSS folder:
 
@@ -35,22 +80,21 @@ SECRET_KEY = 'T\xa0P\x00\xcf\xa4O\xea\x0bZ\xbd\xd6\xef\x03p\xc0w\x9c;\x01\xfd>\x
 
 Note that SECRET_KEY can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`. IMPORTANT: This should be set here in a production environment!
 
+FUTURE: Automate creation of the secret key.
+
 ## Run
 
 1. See below to set up OpenAguaDSS in your github folder.
-2. For now, use Hydra Modeller to set up a test project, as follows:
-  a. Create a project called "Monterrey"
-  b. Import the template [WEAP.zip on GitHub] (https://github.com/rheinheimer/Hydra-WEAPTemplate).
-  c. Create a network "base_network", using the WEAP template.
-  d. Exit Hydra Modeller
-3. Run Hydra Platform
-4. Run run.py (or run.bat on Windows)
-5. Go to 127.0.0.1:5000 in your web browser.
-6. Log in with "admin@gmail.com" and "password".
+2. Run Hydra Platform, or make sure HYDRA_URL points to a working Hydra Platform server (Hydra Server).
+3. Run OpenAguaDSS/run.py (or run.bat on Windows)
+4. Go to 127.0.0.1:5000 in your web browser.
+5. Register and/or login. Note that internet access is required during registration, as an email confirmation is sent for confirmation during the process.
 
-# Setup/use as a web server on Linux
+# Setup/serve as web server
 
-This assumes a simple configuration, whereby Hydra Platform and OpenAgua are run from the same machine (which may not be efficient) and where OpenAgua is served to the world by Apache2 on an Ubuntu machine. Setup of Hydra Platform, OpenAgua and Apache2 are described here.
+This assumes a simple configuration, whereby Hydra Platform and OpenAgua are run from the same Ubuntu Linux machine (which may not be efficient) and where OpenAgua is served to the world by Apache2. Setup of Hydra Platform, OpenAgua and Apache2 are described here. If you are serving from Windows, you are on your own, but presumably the setup will be similar.
+
+FUTURE: Consolidate this setup with the instructions for a local setup above, since much of the process is similar.
 
 ## Hydra Platform
 
@@ -70,6 +114,8 @@ b. If a public server is used, Apache2 needs to be configured as described below
 4. Set up Apache2, as described below.
 
 ## Apache2
+
+*ALERT: This section is no longer valid since upgrading OpenAgua to Python 3. These instructions will change to Nginx instead of Apache*
 
 Both Hydra Platform and OpenAgua can be served by Apache2 to the public using virtual hosts. In this example, Hydra Platform is served on hydra-server.mysite.com, while OpenAgua is served on www.mysite.com. Of course, if only OpenAgua is to be available to the public, then Hydra Platform is simply omitted from this.
 

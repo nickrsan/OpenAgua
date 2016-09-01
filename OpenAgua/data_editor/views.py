@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import render_template, request, session, jsonify, json, g
 from flask_user import login_required, current_user
 from ..connection import connection
-from ..utils import evaluate, daterange
+from ..utils import eval_scalar, eval_timeseries, eval_descriptor
 
 # import blueprint definition
 from . import data_editor
@@ -16,7 +16,7 @@ def data_editor_main():
     network = conn.call('get_network', {'network_id':session['network_id'],
                                         'include_data':'N'})
     template = conn.call('get_template',{'template_id':session['template_id']})
-    features = OrderedDict()   
+    features = OrderedDict()
     
     for res_type in ['NETWORK','NODE','LINK']:
         for ttype in template.types:            
@@ -45,20 +45,21 @@ def get_variables():
     res_attrs = conn.call('get_%s_attributes'%feature_type,
                           {'%s_id'%feature_type: feature_id, 'type_id':type_id})
     
-    # create an attribute lookup dictionary - this is inefficient
-    # we should do this just once per application context
-    attrs = conn.call('get_template_attributes',
-                      {'template_id':session['template_id']})
-    attr_dict = {}
-    for a in attrs:
-        attr_dict[a.id] = dict(
-            name = a.name
-        )    
+    # add templatetype attribute information to each resource attribute,
+    # so we can display useful variable information in the data editor
     
-    # add a name to each resource_attr based on the associated attribute id
+    # first, get the template type attributes
+    ttype = conn.call('get_templatetype', {'type_id': type_id})
+    attrs = {}
+    for typeattr in ttype.typeattrs:
+        attrs[typeattr.attr_id] = typeattr    
+    
+    # second, attach it to the resource attributes
     for i in range(len(res_attrs)):
-        res_attrs[i]['name'] = \
-            attr_dict[res_attrs[i].attr_id]['name'].replace('_',' ')
+        tpl_type_attr = attrs[res_attrs[i].attr_id]
+        tpl_type_attr['name'] = tpl_type_attr.attr_name
+        tpl_type_attr['pretty_name'] = tpl_type_attr.attr_name.replace('_',' ')
+        res_attrs[i]['tpl_type_attr'] = tpl_type_attr
     
     return jsonify(res_attrs=res_attrs)
 
@@ -84,13 +85,14 @@ def get_variable_data():
         attr_data = attr_data[0]
         
         # evaluate the data
-        timeseries = evaluate(attr_data.value.value)
+        data_type = attr_data.value.type
+        timeseries = eval('eval_{}(attr_data.value.value)'.format(data_type))
         
     else:
         attr_data = None
         
         # create some blank data for plotting
-        timeseries = evaluate('')
+        timeseries = eval_scalar(None)
     
     return jsonify(attr_data=attr_data, timeseries=timeseries)
 
@@ -100,27 +102,42 @@ def get_variable_data():
 def add_variable_data():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
-    res_attr_id = int(request.args.get('res_attr_id'))
-    attr_id = int(request.args.get('attr_id'))
     scen_id = int(request.args.get('scen_id'))
-    val = request.args.get('val')
+    data_type = request.args.get('data_type')
+    res_attr = json.loads(request.args.get('res_attr'))
+    dataset = json.loads(request.args.get('attr_data'))
+    new_data = json.loads(request.args.get('new_data'))
     
-    # we need to create Dataset. Since we are attaching it to an existing
-    # attribute, we will use the same dimensions, units, etc. as that attribute.
-    attr = conn.call('get_attribute_by_id', {'ID':attr_id})
+    # create the data depending on data type
+    if data_type == 'scalar':
+        value = float(new_data)
+    elif data_type == 'descriptor':
+        value = new_data
+    elif data_type == 'timeseries':
+        pass
     
-    dataset = dict(
-        id=None,
-        type = 'descriptor',
-        name = attr.name,
-        unit = None,
-        dimension = attr.dimen,
-        value = val,
-        metadata = json.dumps({'source':'OpenAgua/%s' % current_user.username})
-    )    
+    if dataset is not None:
+        dataset['value'] = value
+    
+        if dataset['type'] != data_type:
+            conn.call('delete_resourcedata', {''})
+            dataset['id'] = None
+            dataset['type'] = data_type
+            
+    else: # create new dataset
+        dataset = dict(
+            id=None,
+            type = data_type,
+            name = res_attr['res_attr_name'],
+            unit = res_attr['unit'],
+            dimension = res_attr['dimension'],
+            value = value,
+            metadata = json.dumps({'source':'OpenAgua/%s' \
+                                   % current_user.username})
+        )        
     
     args = {'scenario_id': scen_id,
-            'resource_attr_id': res_attr_id,
+            'resource_attr_id': res_attr['res_attr_id'],
             'dataset': dataset}
     result = conn.call('add_data_to_attribute', args)
     if 'faultcode' in result.keys():
@@ -129,31 +146,7 @@ def add_variable_data():
         status = 1
         
     # evaluate the data
-    eval_data = evaluate(val)
+    timeseries = eval('eval_{}(value)'.format(data_type))
     
-    return jsonify(status=status, eval_data=eval_data)
+    return jsonify(status = status, attr_data = result, timeseries = timeseries)
 
-@data_editor.route('/_update_variable_data')
-@login_required
-def update_variable_data():
-    conn = connection(url=session['url'], session_id=session['session_id'])
-    
-    scen_id = int(request.args.get('scen_id'))
-    dataset = request.args.get('attr_data')
-    dataset = json.loads(dataset)
-    dataset['metadata'] = \
-        json.dumps({'source':'OpenAgua/%s' % current_user.username})
-    
-    args = {'scenario_id': scen_id,
-            'resource_attr_id': dataset['resource_attr_id'],
-            'dataset': dataset['value']}
-    result = conn.call('add_data_to_attribute', args)
-    if 'faultcode' in result.keys():
-        status = -1
-    else:
-        status = 1
-    
-    # evaluate the data
-    timeseries = evaluate(dataset['value']['value'])
-    
-    return jsonify(status=status, timeseries=timeseries)

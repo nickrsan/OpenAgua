@@ -3,9 +3,13 @@
 {% block head_main %}
 
 <style type="text/css" media="screen">
-    .editor {border-style:solid; border-width:1px; border-color:black; margin-bottom: 5px}
+    #editor {display: none}
+    .editor {border-style:solid; border-width:2px; border-color:#C0C0C0; margin-bottom: 5px}
     .editor {display: none}
-    #scalar {border-width: 0px}
+    #scalar {border-width: 0px; margin-top: 15px}
+    #editor_footer {height:30px; margin-bottom:10px}
+    #unit {background-color:#C0C0C0}
+    #preview {border-style:solid; border-color:#C0C0C0; border-width:2px; height:350px; width=100%}
 </style>
 
 <!--Ace code editor-->
@@ -36,7 +40,7 @@
       <div class="form-group">
         <label for="features">Feature</label>
         <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a feature">  
-        {% for (type_id, type_name, feature_type), feats in features.iteritems() %}
+        {% for (type_id, type_name, feature_type), feats in features.items() %}
           <optgroup label="{{ type_name }}">
           {% for f in feats %}
             <option data-tokens='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
@@ -77,16 +81,18 @@
       <div class="form-group">
         <label for="datatypes">Data type</label>
         <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%" disabled>
-          <option value="scalar" data-tokens='{"data_type_id": 1, "data_type_name": "scalar"}'>Number</option>
-          <option value="descriptor" data-tokens='{"data_type_id": 2, "data_type_name": "descriptor"}'>Function/code</option>
-          <option value="timeseries" data-tokens='{"data_type_id": 3, "data_type_name": "timeseries"}'>Time series</option>
-          <!--<option value="eqtimeseries" data-tokens='{"data_type_id": 4, "data_type_name": "eqtimeseries"}'>Time series</option>-->
-          <!--<option value="array" data-tokens='{"data_type_id": 5, "data_type_name": "array"}'>Array</option>-->
+          <option value="scalar" data-tokens='{"data_type": "scalar"}'>Number</option>
+          <option value="descriptor" data-tokens='{"data_type": "descriptor"}'>Function/code</option>
+          <option value="timeseries" data-tokens='{"data_type": "timeseries"}'>Time series</option>
+          <option value="eqtimeseries" data-tokens='{"data_type": "eqtimeseries"}'>Seasonal time series</option>
+          <!--<option value="array" data-tokens='{"data_type": "array"}'>Array</option>-->
         </select>
       </div>
       
       <label for="editor">Edit data</label>
+      <div id="editor_status"></div>
       <div id="editor">
+        <div>See <a href="/help/syntax_instructions">instructions and examples</a>.</div>
         <div id="descriptor" class="editor"></div>
         <div id="timeseries" class="editor"></div>
         <div id="eqtimeseries" class="editor"></div>
@@ -97,22 +103,21 @@
           </div>               
         </div>
         <div id="array" class="editor"></div>
-      </div>
-      
-      <div style="margin-bottom:15px">
-        See <a href="/help/syntax_instructions">instructions and examples</a>.
-        <div class="pull-right">
-          <div class="btn-group"><button id="undo_all" class="btn btn-default btn-md">Undo all</button></div>
-          <div class="btn-group"><button id="check_code" class="btn btn-default btn-md">Check code</button></div>
-          <div class="btn-group"><button id="save_changes" class="btn btn-primary btn-md">Save changes</button></div>
+        <div id="editor_footer">
+          <div id="unit" class="pull-left"></div>
+          <div id="editor_buttons" class="pull-right">
+            <div class="btn-group"><button id="revert" class="btn btn-default btn-md">Clear changes</button></div>
+            <div class="btn-group"><button id="check" class="btn btn-default btn-md">Check/preview</button></div>
+            <div class="btn-group"><button id="save" class="btn btn-primary btn-md">Save changes</button></div>
+          </div>
         </div>
-      </div>
-      
+      </div>      
     </div>
     
     <div class="col-md-6 col-sm-12">
       <label for="preview">Preview data</label>
-      <div id="preview" style="border-style:solid;border-color=black;border-width:1px;height:350px;width=100%">Data preview will go here.</div>
+      <div id="preview">
+      </div>
     </div>
   </div>
 
@@ -126,8 +131,8 @@
 var template_id = {{session['template_id']}}
 </script>
 
-<script src="{{ url_for('.static', filename='js/data_editor.js') }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/data_editor.js') }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}
