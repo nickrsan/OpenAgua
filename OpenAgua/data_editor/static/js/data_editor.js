@@ -1,6 +1,10 @@
 // global variables
-var feature_id, feature_type, scen_id, scen_name, template_id, res_attr_id, res_attr_name, 
-  attr_id, type_id, data_type, unit;
+var feature_id, feature_type, scen_id, scen_name, template_id, res_attr_id, res_attr_name, type_id, data_type
+
+var unit,
+    dimension;
+  
+var res_attr;
   
 var original_data;
 var attr_data;
@@ -53,12 +57,10 @@ $(document).ready(function(){
   $('#variables').on('changed.bs.select', function (e) {
     var selected = $('#variables option:selected');
     if (selected.length) {
-      var data_tokens = JSON.parse(selected.attr("data-tokens"));
-      res_attr_id = data_tokens.res_attr_id;    
-      res_attr_name = data_tokens.res_attr_name;
-      data_type = data_tokens.data_type;
-      attr_id = data_tokens.attr_id;
-      unit = data_tokens.unit;
+      res_attr = JSON.parse(selected.attr("data-tokens"));
+      unit = res_attr.unit;
+      dimension = res_attr.dimension;
+      data_type = res_attr.data_type;
       var spicker = $('#scenarios');
       if (spicker.attr('disabled')) {
         spicker.attr('disabled',false).selectpicker('refresh');
@@ -117,7 +119,7 @@ function load_variables(type_id) {
           var data_tokens = {
             attr_id: res_attr.attr_id,
             res_attr_id: res_attr.id,
-            res_attr_name: res_attr.tpl_type_attr.pretty_name,
+            res_attr_name: res_attr.tpl_type_attr.name,
             data_type: res_attr.tpl_type_attr.data_type,
             unit: res_attr.tpl_type_attr.unit,
             dimension: res_attr.tpl_type_attr.dimension,
@@ -149,7 +151,7 @@ function load_data() {
     type_id: type_id,
     feature_type: feature_type,
     feature_id: feature_id,
-    attr_id: attr_id,
+    attr_id: res_attr.attr_id,
     scen_id: scen_id
   }
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
@@ -165,7 +167,7 @@ function load_data() {
     selectDataType(data_type);
     
     // toggle the editors
-    updateEditor(data_type, unit);
+    updateEditor(data_type, unit, dimension);
     
     // load the returned time series into the table and plot, even if empty
     dataActions(data_type, attr_data, resp.timeseries)
@@ -243,22 +245,26 @@ $(document).on('click', '#save', function() {
       
     case "timeseries":
       var original_data = hotEditor.getSourceData();
-      var new_data = _.map(hotEditor.getData(), function(row, index) {
+      new_data = _.map(hotEditor.getData(), function(row, index) {
         return {date: row[0], value: row[1]}      
       })
-      unchanged = _.isEqual(original_data, new_data)
+      //unchanged = _.isEqual(original_data, new_data)
+      unchanged = false
       break;
 
     case "eqtimeseries":
       break;
 
     case "scalar":
+      new_data = $('#scalar_input').val();
       break;
 
     case "array":
       break;
 
     default:
+      new_data = null;
+      unchanged = true;
       break;
   }
   
@@ -268,43 +274,23 @@ $(document).on('click', '#save', function() {
     return;
   }
   
-  // add or update data; functions are separated out for readability
-  if (attr_data == null) {
-    addNewData(new_data); // new dataset
-  } else {
-    updateExistingData(new_data); // updated dataset
-  }
-  
+  // add or update data; function separated out for readability
+  updateHydraData(new_data, data_type); // new dataset  
 });
 
 // data functions
-function addNewData(new_data, data_type) {
+function updateHydraData(new_data, data_type) {
   var data = {
     data_type: data_type,
     scen_id: scen_id,
-    res_attr_id: res_attr_id,
-    attr_id: attr_id,
-    data: new_data
-  }
+    res_attr: JSON.stringify(res_attr), 
+    attr_data: JSON.stringify(attr_data), // old data container
+    new_data: JSON.stringify(new_data)
+  };
   $.getJSON('/_add_variable_data', data, function(resp) {
-    if (resp.status==1) {
-      dataActions(data_type, attr_data, resp.timeseries);
-      notify('success','Success!','Data added.');
-    }
-  });
-}
-
-function updateExistingData(new_data) {
-  attr_data.value.value = new_data;
-  var data = {
-    scen_id: scen_id,
-    attr_data: JSON.stringify(attr_data)
-  }        
-  $.getJSON('/_update_variable_data', data, function(resp) {
-    if (resp.status==1) {
-      dataActions(data_type, attr_data, resp.timeseries);
-      original_data = new_data;
-      notify('success','Success!','Data updated.');
+    if (resp.status == 1) {
+      dataActions(data_type, resp.attr_data, resp.timeseries);
+      notify('success','Success!','Database updated.');
     }
   });
 }
