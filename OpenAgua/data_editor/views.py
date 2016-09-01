@@ -105,19 +105,20 @@ def add_variable_data():
     scen_id = int(request.args.get('scen_id'))
     data_type = request.args.get('data_type')
     res_attr = json.loads(request.args.get('res_attr'))
-    dataset = json.loads(request.args.get('attr_data'))
+    attr_data = json.loads(request.args.get('attr_data'))
     new_data = json.loads(request.args.get('new_data'))
     
     # create the data depending on data type
     if data_type == 'scalar':
-        value = float(new_data)
+        new_value = float(new_data)
     elif data_type == 'descriptor':
-        value = new_data
+        new_value = new_data
     elif data_type == 'timeseries':
-        pass
+        new_value == None # placeholder
     
-    if dataset is not None:
-        dataset['value'] = value
+    if attr_data is not None:
+        dataset = attr_data['value']
+        dataset['value'] = new_value
     
         if dataset['type'] != data_type:
             conn.call('delete_resourcedata', {''})
@@ -131,7 +132,7 @@ def add_variable_data():
             name = res_attr['res_attr_name'],
             unit = res_attr['unit'],
             dimension = res_attr['dimension'],
-            value = value,
+            value = new_value,
             metadata = json.dumps({'source':'OpenAgua/%s' \
                                    % current_user.username})
         )        
@@ -146,7 +147,7 @@ def add_variable_data():
         status = 1
         
     # evaluate the data
-    timeseries = eval('eval_{}(value)'.format(data_type))
+    timeseries = eval('eval_{}(new_value)'.format(data_type))
     
     return jsonify(status = status, attr_data = result, timeseries = timeseries)
 
