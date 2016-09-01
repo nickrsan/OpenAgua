@@ -11,7 +11,13 @@
         hr { border-color: #cccccc; margin: 0; }
         .no-margins { margin: 0px; }
         .with-margins { margin: 10px; }
-        .col-centered { float: none; margin: 0 auto; }
+        .col-centered {
+            float: none;
+            margin: 0 auto;
+            padding: 25px;
+            background-color:#FFFFFF
+        }
+        body {background-color:#adad85; }
     </style>
 
   </head>
@@ -19,22 +25,11 @@
 
 <body>
     {% block body %}
-    <div id="header-div" class="clearfix with-margins">
-        <div class="pull-left"><a href="/"><h1 class="no-margins">OpenAgua</h1></a></div>
-        <!--<div class="pull-right">-->
-            <!--{% if call_or_get(current_user.is_authenticated) %}-->
-                <!--<a href="{{ url_for('user.profile') }}">{{ current_user.username }}</a>-->
-                <!--&nbsp; | &nbsp;-->
-                <!--<a href="{{ url_for('user.logout') }}">Sign out</a>-->
-            <!--{% else %}-->
-                <!--<a href="{{ url_for('user.login') }}">Sign in</a>-->
-            <!--{% endif %}-->
-        <!--</div>-->
-    </div>
+            
     {% block menu %}
     
     {% endblock %}
-    <hr class="no-margins"/>
+    <!--<hr class="no-margins"/>-->
 
     <div id="main-div" class="with-margins">
     {# One-time system messages called Flash messages #}
@@ -54,12 +49,11 @@
     {% block main %}{% block content %}{% endblock %}{% endblock %}
     </div>
 
-    <br/>
-    <hr class="no-margins"/>
-    <div id="footer-div" class="clearfix with-margins">
-        <div class="pull-left">OpenAguaDSS v0.0.1</div>
-        <div class="pull-right">&copy; 2016 Tecnol&oacute;gico de Monterrey / University of California, Davis</div>
-    </div>
+    <!--<br/>-->
+    <!--<hr class="no-margins"/>-->
+    <!--<div id="footer-div" class="clearfix with-margins">-->
+        <!--<div class="pull-left">&copy; 2016 Tecnol&oacute;gico de Monterrey / University of California, Davis</div>-->
+    <!--</div>-->
     {% endblock %}
 
 
