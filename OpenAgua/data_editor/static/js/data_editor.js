@@ -1,14 +1,16 @@
 // global variables
-var feature_id, feature_type, scen_id, scen_name, template_id, res_attr_id, res_attr_name, type_id,
-    data_type, new_data_type;
+var feature_id, feature_type,
+    scen_id, scen_name,
+    template_id,
+    res_attr, res_attr_id, res_attr_name,
+    type_id,
+    data_type, cur_data_type;
 
 var unit,
     dimension;
   
-var res_attr;
-  
 var original_data;
-var attr_data;
+var res_attr_data;
 
 var heights = {
   descriptor: "220px",
@@ -19,6 +21,9 @@ var heights = {
 }
 
 //var default_data_type = 'descriptor'; // setting this is subjective
+
+// initialize scalar editor
+var scalarEditor = $('#scalar_input')
 
 // initialize Ace code editor
 var aceEditor = ace.edit("descriptor");
@@ -62,13 +67,13 @@ $(document).ready(function(){
       unit = res_attr.unit;
       dimension = res_attr.dimension;
       data_type = res_attr.data_type;
-      new_data_type = data_type; // initialize new_data_type
+      cur_data_type = data_type; // initialize cur_data_type
       var spicker = $('#scenarios');
       if (spicker.attr('disabled')) {
         spicker.attr('disabled',false).selectpicker('refresh');
       }
       if (scen_id != null) {
-        load_data();
+        loadData();
       } else {
       var stitle = 'Select a scenario'
       $('button[data-id="scenarios"]')
@@ -82,18 +87,21 @@ $(document).ready(function(){
     var selected = $('#datatypes option:selected');
     
     var data_tokens = JSON.parse(selected.attr("data-tokens"));
-    new_data_type = data_tokens.data_type;
-    if (new_data_type != data_type) {
-      var msg = 'Are you sure you want to change the data type? This change will become permanent if new data is saved, and will be lost if variable is changed before saving.'
+    var temp_data_type = data_tokens.data_type;
+    //if (cur_data_type != data_type) {
+      var msg = 'Are you sure you want to change the data type? This change will become permanent if the new data is saved.'
       bootbox.confirm(msg, function(confirm) {
         if (confirm) {
-          updateEditor(new_data_type, unit, dimension);
+          if (cur_data_type == 'scalar' & temp_data_type == 'descriptor' & !aceEditor.getValue().length) {
+            updateAceEditor(scalarEditor.val())
+          }
+          cur_data_type = temp_data_type;
+          updateEditor(cur_data_type, unit, dimension);
         } else {
-          new_data_type = data_type;
-          selectDataType(data_type);
+          selectDataType(cur_data_type);
         }
       });    
-    }
+    //}
   });
   
   
@@ -104,7 +112,7 @@ $(document).ready(function(){
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
       scen_id = data_tokens.scen_id;
       scen_name = data_tokens.scen_name;
-      load_data();
+      loadData();
     } else {
       scen_id = null;
       scen_name = null;
@@ -157,19 +165,19 @@ function load_variables(type_id) {
 }
 
 // load the variable data
-function load_data() {
+function loadData() {
 
   var data = {
     type_id: type_id,
     feature_type: feature_type,
     feature_id: feature_id,
-    attr_id: res_attr.attr_id,
+    res_attr_id: res_attr.res_attr_id,
     scen_id: scen_id
   }
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
-    attr_data = resp.attr_data;
-    if (attr_data != null) {
-      data_type = attr_data.value.type;
+    res_attr_data = resp.res_attr_data;
+    if (res_attr_data != null) {
+      data_type = res_attr_data.value.type;
     } //else {
       // default data type is defined at beginning of script
       //data_type = default_data_type;
@@ -179,10 +187,11 @@ function load_data() {
     selectDataType(data_type);
     
     // toggle the editors
+    clearEditor();
     updateEditor(data_type, unit, dimension);
     
     // load the returned time series into the table and plot, even if empty
-    dataActions(data_type, attr_data, resp.timeseries)
+    dataActions(data_type, res_attr_data, resp.timeseries)
     
     // turn on the data type selector
     $("#datatypes").attr("disabled", false).selectpicker("refresh");
@@ -198,15 +207,15 @@ function selectDataType(data_type) {
   selector.selectpicker('refresh')
 }
 
-function dataActions(data_type, attr_data, plot_data) {
+function dataActions(data_type, res_attr_data, plot_data) {
 
     switch(data_type) {
         
       case 'descriptor':
-        if (attr_data == null) {
+        if (res_attr_data == null) {
           original_data = '';
         } else {
-          original_data = attr_data.value.value;
+          original_data = res_attr_data.value.value;
         }
         updateAceEditor(original_data)
         break;
@@ -218,10 +227,10 @@ function dataActions(data_type, attr_data, plot_data) {
         break;
         
       case 'scalar':
-        if (attr_data == null) {
+        if (res_attr_data == null) {
           original_data = ''
         } else {
-          original_data = attr_data.value.value;       
+          original_data = res_attr_data.value.value;       
         }
         scalarInput(original_data)
         break;
@@ -246,10 +255,9 @@ function dataActions(data_type, attr_data, plot_data) {
 $(document).on('click', '#save', function() {
 
   var new_data,
-      unchanged,
-      is_new_data_type = new_data_type == data_type;
+      unchanged;
 
-  switch(new_data_type) {
+  switch(cur_data_type) {
   
     case "descriptor":
       new_data = aceEditor.getValue(); 
@@ -269,7 +277,7 @@ $(document).on('click', '#save', function() {
       break;
 
     case "scalar":
-      new_data = $('#scalar_input').val();
+      new_data = scalarEditor.val();
       break;
 
     case "array":
@@ -288,41 +296,43 @@ $(document).on('click', '#save', function() {
   }
   
   // add or update data; function separated out for readability
-  updateHydraData(new_data, new_data_type); // new dataset  
+  updateHydraData(new_data, cur_data_type); // new dataset  
 });
 
 // data functions
-function updateHydraData(new_data, new_data_type) {
+function updateHydraData(new_data, cur_data_type) {
   var data = {
-    orig_data_type: data_type,
-    new_data_type: new_data_type,
+    old_data_type: data_type,
+    cur_data_type: cur_data_type,
     scen_id: scen_id,
     res_attr: JSON.stringify(res_attr), 
-    attr_data: JSON.stringify(attr_data), // old data container
+    res_attr_data: JSON.stringify(res_attr_data), // old data container
     new_data: JSON.stringify(new_data)
   };
-  $.getJSON('/_add_variable_data', data, function(resp) {
   
+  $.getJSON('/_add_variable_data', data, function(resp) {
     if (resp.status == 1) {
-      data_type = new_data_type;
+      data_type = cur_data_type;
       // update local record of datatype in the current variable
       res_attr.data_type = data_type;
       var selected = $('#variables option:selected');
       selected.data_tokens = JSON.stringify(res_attr);
       $('#variables').selectpicker('refresh');
-      
-      dataActions(data_type, resp.attr_data, resp.timeseries);
+      loadData();
       notify('success','Success!','Database updated.');
+    } else {
+      notify('danger','Failure!','Something went wrong.')    
     }
   });
 }
 
 // editor functions
 function updateEditor(data_type, unit, dimension) {
-  $('.editor').hide()
-  var div = $('#'+data_type)
-  div.css("height", heights[data_type])
-  div.show()
+  $('.editor').hide();
+  scalarEditor.val();
+  var div = $('#'+data_type);
+  div.css("height", heights[data_type]);
+  div.show();
   $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
   $('#editor').show()
   $('#editor_status').empty();
@@ -330,6 +340,8 @@ function updateEditor(data_type, unit, dimension) {
 
 function clearEditor() {
   $('#editor').hide()
+  scalarEditor.val('');
+  aceEditor.setValue('');
   $('#editor_status').text('No variable loaded')
 }
 
@@ -341,7 +353,7 @@ function updateAceEditor(original_data) {
 
 // function scalar input
 function scalarInput(original_data) {
-  $("#scalar_input").text(original_data)
+  scalarEditor.val(original_data)
 }
 
 // chart functions

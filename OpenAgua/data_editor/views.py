@@ -69,7 +69,7 @@ def get_variable_data():
     
     feature_type = request.args.get('feature_type').lower()
     feature_id = int(request.args.get('feature_id'))
-    attr_id = int(request.args.get('attr_id'))
+    res_attr_id = int(request.args.get('res_attr_id'))
     scen_id = int(request.args.get('scen_id'))
     type_id = int(request.args.get('type_id'))
 
@@ -78,22 +78,23 @@ def get_variable_data():
             'type_id': type_id}
     feature_data = conn.call('get_%s_data' % feature_type, args)
     
-    attr_data = [row for row in feature_data if row.attr_id==attr_id]
-    if attr_data:
+    res_attr_data = \
+        [row for row in feature_data if row.resource_attr_id == res_attr_id]
+    if res_attr_data:
         
-        attr_data = attr_data[0]
+        res_attr_data = res_attr_data[0]
         
         # evaluate the data
-        data_type = attr_data.value.type
-        timeseries = eval('eval_{}(attr_data.value.value)'.format(data_type))
+        data_type = res_attr_data.value.type
+        timeseries = eval('eval_{}(res_attr_data.value.value)'.format(data_type))
         
     else:
-        attr_data = None
+        res_attr_data = None
         
         # create some blank data for plotting
         timeseries = eval_scalar(None)
     
-    return jsonify(attr_data=attr_data, timeseries=timeseries)
+    return jsonify(res_attr_data=res_attr_data, timeseries=timeseries)
 
 # add a new variable from user input
 @data_editor.route('/_add_variable_data')
@@ -103,30 +104,30 @@ def add_variable_data():
     
     scen_id = int(request.args.get('scen_id'))
     old_data_type = request.args.get('old_data_type')
-    new_data_type = request.args.get('new_data_type')
+    cur_data_type = request.args.get('cur_data_type')
     res_attr = json.loads(request.args.get('res_attr'))
-    attr_data = json.loads(request.args.get('attr_data'))
+    res_attr_data = json.loads(request.args.get('res_attr_data'))
     new_data = json.loads(request.args.get('new_data'))
     
     # create the data depending on data type    
-    if new_data_type == 'scalar':
+    if cur_data_type == 'scalar':
         #if len(new_data):
             #val = float(new_data) # might need to round this
         #else:
             #val = None
         new_value = new_data
-    elif new_data_type == 'descriptor':
+    elif cur_data_type == 'descriptor':
         new_value = new_data
         
-    elif new_data_type == 'timeseries':
+    elif cur_data_type == 'timeseries':
         val == None # placeholder
-    elif new_data_type == 'array':
+    elif cur_data_type == 'array':
         val == None # placeholder
     
     metadata = json.dumps({'source':'OpenAgua/%s' % current_user.username})
     
     # has the data type changed?
-    if new_data_type != old_data_type:
+    if cur_data_type != old_data_type:
         # 1. copy old typeattr:
         old_typeattr = {'attr_id': res_attr['attr_id'],
                         'type_id': res_attr['type_id']}
@@ -135,27 +136,27 @@ def add_variable_data():
         # 3. update the old typeattr with the new data type
         new_typeattr = old_typeattr
         new_typeattr['attr_is_var'] = 'N'
-        new_typeattr['data_type'] = new_data_type # this is where we change it!
+        new_typeattr['data_type'] = cur_data_type # this is where we change it!
         new_typeattr['unit'] = res_attr['unit']
         # 3. add the new typeattr
         result = conn.call('add_typeattr', {'typeattr': new_typeattr})    
         
         ## 4. delete the old resourcedata, if it exists
-        #if attr_data is not None:
+        #if res_attr_data is not None:
             #res_scen = {'dataset_id': dataset['id'],
                         #'scenario_id': scen_id,
                         #'resource_attr_id': res_attr['res_attr_id']}
             #result = conn.call('delete_resourcedata',
                       #{'scenario_id': scen_id, 'resource_scenario': res_scen})        
                 
-    if attr_data is None: # add a new dataset
+    if res_attr_data is None: # add a new dataset
         
         dataset = dict(
             id=None,
             name = res_attr['res_attr_name'],
             unit = res_attr['unit'],
             dimension = res_attr['dimension'],
-            type = new_data_type,
+            type = cur_data_type,
             value = new_value,
             metadata = metadata
         )
@@ -166,15 +167,12 @@ def add_variable_data():
         result = conn.call('add_data_to_attribute', args)  
             
     else: # just update the existing dataset
-        dataset = attr_data['value']
+        dataset = res_attr_data['value']
+        dataset['type'] = cur_data_type
         dataset['value'] = new_value
         dataset['metadata'] = metadata
         
         result = conn.call('update_dataset', {'dataset': dataset})
-        
-        ## 5. update the to-be-added dataset
-        #dataset['id'] = None
-        #dataset['type'] = new_data_type # update the datatype
         
     if 'faultcode' in result.keys():
         status = -1
@@ -182,7 +180,7 @@ def add_variable_data():
         status = 1
         
     # evaluate the data
-    timeseries = eval('eval_{}(new_value)'.format(new_data_type))
+    timeseries = eval('eval_{}(new_value)'.format(cur_data_type))
     
-    return jsonify(status = status, attr_data = result, timeseries = timeseries)
+    return jsonify(status = status)
 
