@@ -118,6 +118,7 @@ function load_variables(type_id) {
         if (res_attr.attr_is_var == 'N') {
           var data_tokens = {
             attr_id: res_attr.attr_id,
+            type_id: type_id,
             res_attr_id: res_attr.id,
             res_attr_name: res_attr.tpl_type_attr.name,
             data_type: res_attr.tpl_type_attr.data_type,
@@ -127,7 +128,7 @@ function load_variables(type_id) {
           vpicker
             .append($('<option>')
               .attr('data-tokens',JSON.stringify(data_tokens))
-              .text(res_attr.tpl_type_attr.pretty_name)
+              .text(res_attr.tpl_type_attr.name)
             );
           }
       });
@@ -327,7 +328,7 @@ function updateChart(title, timeseries) {
   if (timeseries != null) {
     $('#preview').text();
     dateFormat = "MM/YYYY" // need to get this from the model setup
-    amchart(title, timeseries, dateFormat, "preview")
+    amchart(title, timeseries, dateFormat, "preview", false)
   } else {
     clearChart() // actually, we shouldn't get here
   }

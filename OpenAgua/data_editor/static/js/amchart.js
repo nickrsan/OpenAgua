@@ -1,5 +1,5 @@
 // make amchart
-function amchart(title, timeseries, dateFormat, divname) {
+function amchart(title, timeseries, dateFormat, divname, log) {
 
     // prepare the data using Lodash (update: evaluate function was changed)
     //var data = _.zip(eval_data.dates, eval_data.values);
@@ -11,9 +11,9 @@ function amchart(title, timeseries, dateFormat, divname) {
       "type": "serial",
       "theme": "light",
       "marginRight": 40,
-      "marginLeft": 40,
-      "autoMarginOffset": 20,
-      "mouseWheelZoomEnabled":true,
+      "marginLeft": 50,
+      "autoMarginOffset": 25,
+      "mouseWheelZoomEnabled":false,
       "dataDateFormat": dateFormat,
       "valueAxes": [{
           "id": "v1",
@@ -30,7 +30,7 @@ function amchart(title, timeseries, dateFormat, divname) {
       "graphs": [{
           "id": "g1",
           "balloon":{
-            "drop":true,
+            "cornerRadius": 0,
             "adjustBorderColor":false,
             "color":"#ffffff"
           },
@@ -54,7 +54,7 @@ function amchart(title, timeseries, dateFormat, divname) {
           "selectedBackgroundAlpha": 0.1,
           "selectedBackgroundColor": "#888888",
           "graphFillAlpha": 0,
-          "graphLineAlpha": 0.5,
+          "graphLineAlpha": 0.8,
           "selectedGraphFillAlpha": 0,
           "selectedGraphLineAlpha": 1,
           "autoGridCount":true,
@@ -64,25 +64,28 @@ function amchart(title, timeseries, dateFormat, divname) {
           "pan": true,
           "valueLineEnabled": true,
           "valueLineBalloonEnabled": true,
-          //"cursorAlpha":1,
+          "cursorAlpha":1,
           "cursorColor":"#258cbb",
           "limitToGraph":"g1",
-          "valueLineAlpha":0.2,
+          "valueLineAlpha":0.5,
           "valueZoomable":true,
           "categoryBalloonDateFormat": "MMM YYYY",
-          "cursorAlpha": 0,
+          "cursorAlpha": 0.5,
           "fullWidth": true
       },
+      "valueAxes":[{
+        logarithmic: log,
+      }],
       "valueScrollbar":{
         "oppositeAxis":false,
-        "offset":50,
-        "scrollbarHeight":10
+        "offset":40,
+        "scrollbarHeight":5
       },
       "categoryField": "date",
       "categoryAxis": {
           "parseDates": true,
           "dashLength": 1,
-          "minorGridEnabled": true
+          "minorGridEnabled": false
       },
       "export": {
           "enabled": true

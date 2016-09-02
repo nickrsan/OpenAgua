@@ -52,13 +52,12 @@ def get_variables():
     ttype = conn.call('get_templatetype', {'type_id': type_id})
     attrs = {}
     for typeattr in ttype.typeattrs:
-        attrs[typeattr.attr_id] = typeattr    
+        attrs[typeattr.attr_id] = typeattr  
     
     # second, attach it to the resource attributes
     for i in range(len(res_attrs)):
         tpl_type_attr = attrs[res_attrs[i].attr_id]
         tpl_type_attr['name'] = tpl_type_attr.attr_name
-        tpl_type_attr['pretty_name'] = tpl_type_attr.attr_name.replace('_',' ')
         res_attrs[i]['tpl_type_attr'] = tpl_type_attr
     
     return jsonify(res_attrs=res_attrs)
@@ -115,17 +114,10 @@ def add_variable_data():
         new_value = new_data
     elif data_type == 'timeseries':
         new_value == None # placeholder
-    
-    if attr_data is not None:
-        dataset = attr_data['value']
-        dataset['value'] = new_value
-    
-        if dataset['type'] != data_type:
-            conn.call('delete_resourcedata', {''})
-            dataset['id'] = None
-            dataset['type'] = data_type
-            
-    else: # create new dataset
+        
+    change_data_type = res_attr['data_type'] != data_type
+                
+    if attr_data is None or change_data_type: # create the new dataset
         dataset = dict(
             id=None,
             type = data_type,
@@ -135,7 +127,30 @@ def add_variable_data():
             value = new_value,
             metadata = json.dumps({'source':'OpenAgua/%s' \
                                    % current_user.username})
-        )        
+        )
+        
+        if change_data_type: # change the existing datatype
+            # update the data_type in a template type
+            # 1. copy old typeattr:
+            old_typeattr = {'attr_id': res_attr['attr_id'],
+                            'type_id': res_attr['type_id']}
+            # 2. delete the old typeattr
+            conn.call('delete_typeattr', old_typeattr)
+            # 3. update the old typeattr with the new data type
+            new_typeattr = old_typeattr
+            new_typeattr['attr_is_var'] = 'N'
+            new_typeattr['data_type'] = data_type # this is where we change it!
+            # 4. add the new typeattr
+            conn.call('add_typeattr', new_typeattr)
+            # 5. add new data - validation should occur against the new typeattr
+            
+            
+            dataset['id'] = None
+            dataset['type'] = data_type
+    
+    else: # just update the existing data
+        dataset = attr_data['value']
+        dataset['value'] = new_value    
     
     args = {'scenario_id': scen_id,
             'resource_attr_id': res_attr['res_attr_id'],
