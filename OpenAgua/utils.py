@@ -5,6 +5,11 @@ from datetime import datetime
 from dateutil import rrule
 from time import mktime
 
+class d2o(object):
+    def __init__(self, dictionary):
+        for key in dictionary:
+            setattr(self, key, dictionary[key])
+
 def eval_scalar(x):
     dates = get_dates()
     dates = [date.strftime(session['date_format']) for date in dates]

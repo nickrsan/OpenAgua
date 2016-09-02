@@ -1,5 +1,6 @@
 // global variables
-var feature_id, feature_type, scen_id, scen_name, template_id, res_attr_id, res_attr_name, type_id, data_type
+var feature_id, feature_type, scen_id, scen_name, template_id, res_attr_id, res_attr_name, type_id,
+    data_type, new_data_type;
 
 var unit,
     dimension;
@@ -61,6 +62,7 @@ $(document).ready(function(){
       unit = res_attr.unit;
       dimension = res_attr.dimension;
       data_type = res_attr.data_type;
+      new_data_type = data_type; // initialize new_data_type
       var spicker = $('#scenarios');
       if (spicker.attr('disabled')) {
         spicker.attr('disabled',false).selectpicker('refresh');
@@ -78,10 +80,19 @@ $(document).ready(function(){
   // select the data class
   $('#datatypes').on('changed.bs.select', function (e) {
     var selected = $('#datatypes option:selected');
-    if (selected.length) {
-      var data_tokens = JSON.parse(selected.attr("data-tokens"));
-      data_type = data_tokens.data_type;
-      updateEditor(data_type, unit, dimension);
+    
+    var data_tokens = JSON.parse(selected.attr("data-tokens"));
+    new_data_type = data_tokens.data_type;
+    if (new_data_type != data_type) {
+      var msg = 'Are you sure you want to change the data type? This change will become permanent if new data is saved, and will be lost if variable is changed before saving.'
+      bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+          updateEditor(new_data_type, unit, dimension);
+        } else {
+          new_data_type = data_type;
+          selectDataType(data_type);
+        }
+      });    
     }
   });
   
@@ -235,9 +246,10 @@ function dataActions(data_type, attr_data, plot_data) {
 $(document).on('click', '#save', function() {
 
   var new_data,
-      unchanged;
+      unchanged,
+      is_new_data_type = new_data_type == data_type;
 
-  switch(data_type) {
+  switch(new_data_type) {
   
     case "descriptor":
       new_data = aceEditor.getValue(); 
@@ -276,20 +288,29 @@ $(document).on('click', '#save', function() {
   }
   
   // add or update data; function separated out for readability
-  updateHydraData(new_data, data_type); // new dataset  
+  updateHydraData(new_data, new_data_type); // new dataset  
 });
 
 // data functions
-function updateHydraData(new_data, data_type) {
+function updateHydraData(new_data, new_data_type) {
   var data = {
-    data_type: data_type,
+    orig_data_type: data_type,
+    new_data_type: new_data_type,
     scen_id: scen_id,
     res_attr: JSON.stringify(res_attr), 
     attr_data: JSON.stringify(attr_data), // old data container
     new_data: JSON.stringify(new_data)
   };
   $.getJSON('/_add_variable_data', data, function(resp) {
+  
     if (resp.status == 1) {
+      data_type = new_data_type;
+      // update local record of datatype in the current variable
+      res_attr.data_type = data_type;
+      var selected = $('#variables option:selected');
+      selected.data_tokens = JSON.stringify(res_attr);
+      $('#variables').selectpicker('refresh');
+      
       dataActions(data_type, resp.attr_data, resp.timeseries);
       notify('success','Success!','Database updated.');
     }
