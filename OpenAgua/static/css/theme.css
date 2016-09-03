@@ -21,8 +21,16 @@ body {
  * Top navigation
  * Hide default border to remove 1px line.
  */
-.navbar-fixed-top {
-  border: 0;
+.navbar {
+  /*border: 0;*/
+  background-color: #FFFFFF;
+  border-style: none none solid none;
+  border-color: #999999;
+  border-width: 0 0 1px 0;
+}
+
+.navbar > li > a:hover {
+  color: #000000;
 }
 
 /*

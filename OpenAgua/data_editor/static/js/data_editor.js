@@ -12,14 +12,6 @@ var unit,
 var original_data;
 var res_attr_data;
 
-var heights = {
-  descriptor: "220px",
-  timeseries: "220px",
-  eqtimeseries: "220px",
-  scalar: "35px",
-  array: "220px",
-}
-
 //var default_data_type = 'descriptor'; // setting this is subjective
 
 // initialize selectpick
@@ -38,12 +30,14 @@ aceEditor.$blockScrolling = Infinity // disable error message; cursor is placed 
 document.getElementById("descriptor").style.fontSize='14px';
 
 // initialize handsontable (time series editor)
-var hotEditor = makeHandsontable('timeseries', 220)
+var plot_data,
+    col_headers,
+    hotEditor = makeHandsontable('timeseries', $("#timeseries").css("height"))
 
 $(document).ready(function(){
 
-  clearEditor();
-  clearChart();
+  //clearEditor();
+  //clearChart();
 
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
@@ -60,7 +54,7 @@ $(document).ready(function(){
       type_id = data_tokens.type_id;
       feature_id = data_tokens.feature_id;
       feature_type = data_tokens.feature_type;
-      load_variables(type_id);
+      loadVariables(type_id);
     }
   });
 
@@ -97,11 +91,13 @@ $(document).ready(function(){
       var msg = 'Are you sure you want to change the data type? This change will become permanent if the new data is saved.'
       bootbox.confirm(msg, function(confirm) {
         if (confirm) {
+          
           if (cur_data_type == 'scalar' & temp_data_type == 'descriptor' & !aceEditor.getValue().length) {
             updateAceEditor(scalarEditor.val())
           }
           cur_data_type = temp_data_type;
-          updateEditor(cur_data_type, unit, dimension);
+          updateEditor(cur_data_type, unit, dimension);          
+          
         } else {
           selectDataType(cur_data_type);
         }
@@ -128,7 +124,7 @@ $(document).ready(function(){
 });
 
 // load the variables (aka attributes in Hydra)
-function load_variables(type_id) {
+function loadVariables(type_id) {
   var vpicker = $('#variables');
   vpicker.empty();
   var data = {
@@ -152,11 +148,13 @@ function load_variables(type_id) {
           vpicker
             .append($('<option>')
               .attr('data-tokens',JSON.stringify(data_tokens))
+              .val(res_attr.tpl_type_attr.name)
               .text(res_attr.tpl_type_attr.name)
             );
           }
       });
       vpicker.attr('disabled',false);
+      $('#variables').selectpicker('render');
       $('#variables').selectpicker('refresh');
       
       // deselect all variables (select offers no function for this)
@@ -183,20 +181,20 @@ function loadData() {
     res_attr_data = resp.res_attr_data;
     if (res_attr_data != null) {
       data_type = res_attr_data.value.type;
-    } //else {
-      // default data type is defined at beginning of script
-      //data_type = default_data_type;
-    //}
+    }
+    
+    // define the data to plot
+    plot_data = resp.timeseries;
     
     // set the data type selector
     selectDataType(data_type);
     
     // toggle the editors
     clearEditor();
-    updateEditor(data_type, unit, dimension);
+    //updateEditor(data_type, unit, dimension);
     
     // load the returned time series into the table and plot, even if empty
-    dataActions(data_type, res_attr_data, resp.timeseries)
+    dataActions(data_type, res_attr_data)
     
     // turn on the data type selector
     $("#datatypes").attr("disabled", false).selectpicker("refresh");
@@ -212,7 +210,7 @@ function selectDataType(data_type) {
   selector.selectpicker('refresh')
 }
 
-function dataActions(data_type, res_attr_data, plot_data) {
+function dataActions(data_type, res_attr_data) {
 
     switch(data_type) {
         
@@ -247,11 +245,16 @@ function dataActions(data_type, res_attr_data, plot_data) {
     // in all cases, the plot_data can be loaded directly into the table
     // however, this will not be saved, unless save is clicked while in 
     // table view mode
-    var colHeaders = ['Month',scen_name];
-    updateHandsontable(plot_data, colHeaders);
+    col_headers = ['Month',scen_name];
+    updateEditor(data_type, unit, dimension);
+    //updateHandsontable(plot_data, col_headers);
     updateChart(scen_name, plot_data);
-
 }
+
+// clear changes
+$(document).on('click', '#revert', function() {
+  loadData()
+});
 
 // save data
 $(document).on('click', '#save', function() {
@@ -327,14 +330,16 @@ function updateHydraData(new_data, cur_data_type) {
 
 // editor functions
 function updateEditor(data_type, unit, dimension) {
+  //$('#editor').hide();
   $('.editor').hide();
-  scalarEditor.val();
-  var div = $('#'+data_type);
-  div.css("height", heights[data_type]);
-  div.show();
-  $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
-  $('#editor').show()
+  $('#'+data_type).show();
   $('#editor_status').empty();
+  $('#editor').show()
+  if (data_type == 'timeseries') {
+      // update needs to happen on a visible div to work correctly
+      updateHandsontable(plot_data, col_headers);
+  }
+  $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
 }
 
 function clearEditor() {

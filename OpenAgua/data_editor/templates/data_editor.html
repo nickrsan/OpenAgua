@@ -3,7 +3,7 @@
 {% block head_main %}
 
 <style type="text/css" media="screen">
-    #editor {display: none}
+    <!--#editor {display: none}-->
     .editor {border-style:solid; border-width:2px; border-color:#C0C0C0;}
     .editor {display: none}
     #scalar {border-width: 0px; margin-top: 10px}
@@ -11,6 +11,15 @@
     #unit {background-color:#C0C0C0; margin-top: 5px}
     #preview {border-style:solid; border-color:#C0C0C0; border-width:2px; height:350px; width=100%}
 </style>
+
+<style>
+  #descriptor {height: 220px}
+  #timeseries {height: 220px}
+  #eqtimeseries {height: 220px}
+  #scalar {height: 35px}
+  #array {height: 220px}
+</style>
+
 
 <!--Ace code editor-->
 <script src="{{ url_for('.static', filename='lib/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
@@ -92,25 +101,25 @@
       <label for="editor">Edit data&nbsp;<a href="/help/data_editor_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Data editor instructions and examples"></span></a></label>
       <div id="editor_status"></div>
       <div id="editor">
+  
+        <!--scalar editor-->
+        <div id="scalar" class="editor">
+          <label class="control-label sr-only sr-only-focusable" for="scalar_input">Number:</label>
+          <input id="scalar_input" type="text" class="form-control" placeholder="Enter a number...">
+        </div>
       
         <!--descriptor editor-->
         <div id="descriptor" class="editor"></div>
         
         <!--timeseries editor-->
         <div id="timeseries" class="editor"></div>
-
-        <!--scalar editor-->
-        <div id="scalar" class="editor">
-          <label class="control-label sr-only sr-only-focusable" for="scalar_input">Number:</label>
-          <input id="scalar_input" type="text" class="form-control" placeholder="Enter a number...">
-        </div>
         
         <!--array editor-->
         <div id="array" class="editor"></div>
         <div id="unit"></div>
         <div id="editor_footer">
           <div id="editor_buttons" class="pull-right">
-            <div class="btn-group"><button id="revert" class="btn btn-default btn-md">Clear changes</button></div>
+            <div class="btn-group"><button id="revert" class="btn btn-default btn-md">Revert</button></div>
             <div class="btn-group"><button id="check" class="btn btn-default btn-md">Check/preview</button></div>
             <div class="btn-group"><button id="save" class="btn btn-primary btn-md">Save changes</button></div>
           </div>
