@@ -20,9 +20,10 @@ class connection(object):
         headers = {'Content-Type': 'application/json',
                    'sessionid': self.session_id,
                    'appname': self.app_name}
-        call_json = {func: args}
+        
+        data = json.dumps({func: args})
 
-        response = requests.post(self.url, data=json.dumps(call_json), headers=headers)
+        response = requests.post(self.url, data=data, headers=headers)
         if not response.ok:
             try:
                 fc, fs = response['faultcode'], response['faultstring']
@@ -32,7 +33,7 @@ class connection(object):
             except:                
                 log.debug('Something went wrong. Check command sent.')
                 log.debug("URL: %s"%self.url)
-                log.debug("Call: %s" % json.dumps(call_json))             
+                log.debug("Function called: %s" % json.dumps(func))             
 
                 if response.content != '':
                     err = response.content

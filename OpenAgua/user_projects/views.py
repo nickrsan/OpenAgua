@@ -43,7 +43,6 @@ def projects_manager():
         conn.call('upload_template_xml', {'template_xml':template_xml})
         
     templates = conn.call('get_templates',{})
-    template_names = [t.name for t in templates]
         
     return render_template('projects_manager.html',
                            projects=projects,
