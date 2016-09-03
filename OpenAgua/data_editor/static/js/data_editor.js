@@ -225,10 +225,7 @@ function dataActions(data_type, res_attr_data, plot_data) {
         updateAceEditor(original_data)
         break;
     
-      case 'timeseries': 
-        break;
-        
-      case 'eqtimeseries':
+      case 'timeseries':
         break;
         
       case 'scalar':
@@ -276,9 +273,6 @@ $(document).on('click', '#save', function() {
       })
       //unchanged = _.isEqual(original_data, new_data)
       unchanged = false
-      break;
-
-    case "eqtimeseries":
       break;
 
     case "scalar":

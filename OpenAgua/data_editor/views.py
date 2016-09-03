@@ -4,7 +4,8 @@ from datetime import datetime
 from flask import render_template, request, session, jsonify, json, g
 from flask_user import login_required, current_user
 from ..connection import connection
-from ..utils import eval_scalar, eval_timeseries, eval_descriptor, d2o
+from ..utils import hydra_timeseries, \
+     eval_scalar, eval_timeseries, eval_descriptor, d2o
 
 # import blueprint definition
 from . import data_editor
@@ -111,16 +112,15 @@ def add_variable_data():
     
     # create the data depending on data type    
     if cur_data_type == 'scalar':
-        #if len(new_data):
-            #val = float(new_data) # might need to round this
-        #else:
-            #val = None
         new_value = new_data
+        
     elif cur_data_type == 'descriptor':
         new_value = new_data
         
     elif cur_data_type == 'timeseries':
-        val == None # placeholder
+        new_value = hydra_timeseries(new_data)
+        new_value = json.dumps(new_value)
+        
     elif cur_data_type == 'array':
         val == None # placeholder
     
@@ -139,15 +139,7 @@ def add_variable_data():
         new_typeattr['data_type'] = cur_data_type # this is where we change it!
         new_typeattr['unit'] = res_attr['unit']
         # 3. add the new typeattr
-        result = conn.call('add_typeattr', {'typeattr': new_typeattr})    
-        
-        ## 4. delete the old resourcedata, if it exists
-        #if res_attr_data is not None:
-            #res_scen = {'dataset_id': dataset['id'],
-                        #'scenario_id': scen_id,
-                        #'resource_attr_id': res_attr['res_attr_id']}
-            #result = conn.call('delete_resourcedata',
-                      #{'scenario_id': scen_id, 'resource_scenario': res_scen})        
+        result = conn.call('add_typeattr', {'typeattr': new_typeattr})       
                 
     if res_attr_data is None: # add a new dataset
         
@@ -178,9 +170,6 @@ def add_variable_data():
         status = -1
     else:
         status = 1
-        
-    # evaluate the data
-    timeseries = eval('eval_{}(new_value)'.format(cur_data_type))
     
     return jsonify(status = status)
 
