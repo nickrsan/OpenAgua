@@ -16,11 +16,16 @@ var heights = {
   descriptor: "220px",
   timeseries: "220px",
   eqtimeseries: "220px",
-  scalar: "70px",
+  scalar: "35px",
   array: "220px",
 }
 
 //var default_data_type = 'descriptor'; // setting this is subjective
+
+// initialize selectpick
+$(".selectpicker")
+  .addClass("show-menu-arrow")
+  .selectpicker("refresh");
 
 // initialize scalar editor
 var scalarEditor = $('#scalar_input')

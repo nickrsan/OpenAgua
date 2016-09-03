@@ -4,11 +4,11 @@
 
 <style type="text/css" media="screen">
     #editor {display: none}
-    .editor {border-style:solid; border-width:2px; border-color:#C0C0C0; margin-bottom: 5px}
+    .editor {border-style:solid; border-width:2px; border-color:#C0C0C0;}
     .editor {display: none}
-    #scalar {border-width: 0px; margin-top: 15px}
-    #editor_footer {height:30px; margin-bottom:10px}
-    #unit {background-color:#C0C0C0}
+    #scalar {border-width: 0px; margin-top: 10px}
+    #editor_footer {height:30px; margin-top:10px; margin-bottom:10px}
+    #unit {background-color:#C0C0C0; margin-top: 5px}
     #preview {border-style:solid; border-color:#C0C0C0; border-width:2px; height:350px; width=100%}
 </style>
 
@@ -39,7 +39,7 @@
     <div class="col-sm-6 col-md-3">    
       <div class="form-group">
         <label for="features">Feature</label>
-        <select id="features" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" title="Select a feature">  
+        <select id="features" class="selectpicker" data-live-search="true" data-width="100%" title="Select a feature">  
         {% for (type_id, type_name, feature_type), feats in features.items() %}
           <optgroup label="{{ type_name }}">
           {% for f in feats %}
@@ -89,32 +89,38 @@
         </select>
       </div>
       
-      <label for="editor">Edit data</label>
+      <label for="editor">Edit data&nbsp;<a href="/help/data_editor_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Data editor instructions and examples"></span></a></label>
       <div id="editor_status"></div>
       <div id="editor">
-        <div>See <a href="/help/syntax_instructions">instructions and examples</a>.</div>
+      
+        <!--descriptor editor-->
         <div id="descriptor" class="editor"></div>
+        
+        <!--timeseries editor-->
         <div id="timeseries" class="editor"></div>
+
+        <!--scalar editor-->
         <div id="scalar" class="editor">
-          <div id="scalar_input_form" class="form-group">
-            <label for="scalar_input">Number:</label>
-            <input type="text" class="form-control" id="scalar_input">
-          </div>               
+          <label class="control-label sr-only sr-only-focusable" for="scalar_input">Number:</label>
+          <input id="scalar_input" type="text" class="form-control" placeholder="Enter a number...">
         </div>
+        
+        <!--array editor-->
         <div id="array" class="editor"></div>
+        <div id="unit"></div>
         <div id="editor_footer">
-          <div id="unit" class="pull-left"></div>
           <div id="editor_buttons" class="pull-right">
             <div class="btn-group"><button id="revert" class="btn btn-default btn-md">Clear changes</button></div>
             <div class="btn-group"><button id="check" class="btn btn-default btn-md">Check/preview</button></div>
             <div class="btn-group"><button id="save" class="btn btn-primary btn-md">Save changes</button></div>
           </div>
         </div>
+        
       </div>      
     </div>
     
     <div class="col-md-6 col-sm-12">
-      <label for="preview">Preview data</label>
+      <label for="preview">Preview data&nbsp;<a href="/help/preview_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Preview chart instructions"></span></a></label>
       <div id="preview">
       </div>
     </div>

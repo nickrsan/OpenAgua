@@ -21,7 +21,16 @@ def model_dashboard_main():
     # check status and progress of any running model
     status, progress = 0, 0 # default state
     
+    mgt_scen_grps = {
+        "Base scenario": ["Baseline"],
+        "Infrastructure": ["El Cuchillo Expansion","New Presa"],
+        "Hydrologic information": ["General forecasting","Santa Catarinia"],
+        "Environmental flows": ["El Cuchillo MIF", "Flood pulse program"],
+        "Efficiency improvements": ["Toilet replacement program"]
+    }
+    
     return render_template('model_dashboard.html',
+                           mgt_scen_grps,
                            status=status,
                            progress=progress) 
 
