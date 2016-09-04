@@ -40,7 +40,7 @@ var locateControl = new L.control.locate(options={
     drawMarker: false,
     icon: 'fa fa-location-arrow',
     keepCurrentZoomLevel: true,
-    setView: false,
+    setView: 'once',
     strings: {title: "Go to my location"}
 });
 map.addControl(locateControl);
