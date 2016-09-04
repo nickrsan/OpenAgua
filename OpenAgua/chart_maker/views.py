@@ -3,8 +3,8 @@ from flask_user import login_required
 from ..connection import connection
 
 # import blueprint definition
-from . import chart_maker
+from . import chart_maker as cm
 
-@chart_maker.route('/chart_maker')
-def chart_maker_plotly():
-    return render_template('chart_maker_plotly.html')
+@cm.route('/chart_maker')
+def chart_maker():
+    return render_template('chart_maker.html')

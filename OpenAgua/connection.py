@@ -1,4 +1,3 @@
-from __future__ import print_function
 from webcolors import name_to_hex
 import sys
 import requests

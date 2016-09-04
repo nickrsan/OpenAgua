@@ -27,7 +27,7 @@ var aceEditor = ace.edit("descriptor");
 aceEditor.setTheme("ace/theme/chrome");
 aceEditor.getSession().setMode("ace/mode/python");
 aceEditor.$blockScrolling = Infinity // disable error message; cursor is placed at the beginning below
-document.getElementById("descriptor").style.fontSize='14px';
+$("#descriptor").style.fontSize='14px';
 
 // initialize handsontable (time series editor)
 var plot_data,

@@ -25,25 +25,34 @@ var active_template_id = -1;
 
 <div class="container-fluid">
   
-  <!--<div class="row">-->
-    <!--<div class="col sm-12 col-md-12">-->
-      <!--<div class="page-header">-->
-        <!--<h3>Manage projects</h3>-->
-      <!--</div>-->
-    <!--</div>-->
-  <!--</div>-->
-  
   <!-- Nav tabs -->
   <ul class="nav nav-tabs" role="tablist" style="margin-top:15px">
-    <li role="presentation" class="active"><a href="#projects" aria-controls="projects" role="tab" data-toggle="tab">Projects/networks</a></li>
+    <li role="presentation" class="active"><a href="#studies" aria-controls="studies" role="tab" data-toggle="tab">Studies</a></li>
+    <li role="presentation"><a href="#projects" aria-controls="projects" role="tab" data-toggle="tab">Projects/networks</a></li>
     <li role="presentation"><a href="#templates" aria-controls="templates" role="tab" data-toggle="tab">Templates</a></li>
   </ul>
   
   <!--Tab panes-->
   <div class="tab-content">
+    
+    <div role="tabpanel" class="tab-pane active" id="studies">
+      <div class="row">
+      
+        <div class="col sm-4 col-md-4">
+          <h4>My studies</h4>
+          <div class="list-group">
+            <a class="list-group-item" href="/_load_recent">Monterrey pilot</a>
+            <a class="list-group-item" href="#">Ecuador flooding</a>
+            <a class="list-group-item" href="#">Hydropower</a>
+          </div>
+        </div>
+      
+      </div>
+    </div>
+
   
     <!-- projects -->
-    <div role="tabpanel" class="tab-pane active" id="projects">
+    <div role="tabpanel" class="tab-pane" id="projects">
 
       <div class="row"><br>
       

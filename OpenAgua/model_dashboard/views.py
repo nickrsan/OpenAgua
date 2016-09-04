@@ -30,7 +30,7 @@ def model_dashboard_main():
     }
     
     return render_template('model_dashboard.html',
-                           mgt_scen_grps,
+                           mgt_scen_grps=mgt_scen_grps,
                            status=status,
                            progress=progress) 
 
