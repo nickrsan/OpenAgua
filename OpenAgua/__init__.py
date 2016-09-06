@@ -33,7 +33,7 @@ user_manager = UserManager(db_adapter, app)    # Initialize Flask-User
 import OpenAgua.views
 
 # import blueprints
-from .user_projects import user_projects
+from .projects_manager import projects_manager
 from .user_home import user_home
 from .data_editor import data_editor
 from .network_editor import net_editor
@@ -43,7 +43,7 @@ from .chart_maker import chart_maker
 
 # register blueprints
 app.register_blueprint(user_home, url_prefix='')
-app.register_blueprint(user_projects, url_prefix='')
+app.register_blueprint(projects_manager, url_prefix='')
 app.register_blueprint(main_overview, url_prefix='')
 app.register_blueprint(data_editor, url_prefix='')
 app.register_blueprint(net_editor, url_prefix='')

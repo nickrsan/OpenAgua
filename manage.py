@@ -22,7 +22,7 @@ manager.add_command('db', MigrateCommand)
 @manager.command
 def addsuperuser():
     '''
-    Add an admin user.
+    Add a user with admin privledges.
     '''
     
     role = Role(name='admin')

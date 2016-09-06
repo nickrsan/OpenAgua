@@ -9,14 +9,13 @@ from flask_user import login_required
 from ..connection import connection
 
 # import blueprint definition
-from . import user_projects
+from . import projects_manager
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-
-@user_projects.route('/projects_manager')
+@projects_manager.route('/projects')
 @login_required
-def projects_manager():
+def projects():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
     # get the list of project names, and network names for the test project
@@ -44,13 +43,13 @@ def projects_manager():
         
     templates = conn.call('get_templates',{})
         
-    return render_template('projects_manager.html',
+    return render_template('projects.html',
                            projects=projects,
                            networks=networks,
                            templates=templates)
 
 
-@user_projects.route('/_add_project')
+@projects_manager.route('/_add_project')
 @login_required
 def add_project():
     conn = connection(url=session['url'], session_id=session['session_id'])
@@ -71,7 +70,7 @@ def add_project():
     return jsonify(result={'status_code': status_code})
 
 
-@user_projects.route('/_add_network', methods=['GET', 'POST'])
+@projects_manager.route('/_add_network', methods=['GET', 'POST'])
 @login_required
 def add_network():
     
@@ -110,7 +109,7 @@ def add_network():
         return jsonify(result={'status_code': 1})
 
 
-@user_projects.route('/_purge_project')
+@projects_manager.route('/_purge_project')
 @login_required
 def purge_project():
     conn = connection(url=session['url'], session_id=session['session_id'])
@@ -127,7 +126,7 @@ def purge_project():
     return jsonify(result={'status_code': status_code})
 
 
-@user_projects.route('/_get_templates_for_network')
+@projects_manager.route('/_get_templates_for_network')
 @login_required
 def get_templates_for_network():
     conn = connection(url=session['url'], session_id=session['session_id'])
@@ -141,7 +140,7 @@ def get_templates_for_network():
     
     return jsonify(templates=net_tpls)
     
-@user_projects.route('/_delete_template')
+@projects_manager.route('/_delete_template')
 @login_required
 def delete_template():
     conn = connection(url=session['url'], session_id=session['session_id'])
@@ -157,7 +156,7 @@ def delete_template():
     return jsonify(result={'status_code': status_code})
 
 
-@user_projects.route('/_hydra_call', methods=['GET', 'POST'])
+@projects_manager.route('/_hydra_call', methods=['GET', 'POST'])
 @login_required
 def hydra_call():
     conn = connection(url=session['url'], session_id=session['session_id'])
