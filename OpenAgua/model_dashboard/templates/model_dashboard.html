@@ -35,10 +35,10 @@
                 <label for "management_scenarios">Select management scenario sets</label>
                 <div id="mgt_scens" class="form-group">
                     <select class="selectpicker" multiple data-selected-text-format="count > 1" data-actions-box="true">
-                    {% for mgt_scen_grp in mgt_scen_grps%}
-                    <optgroup label="{{ mgt_scen_grp['name'] }}">
-                        {% for mgt_scen in mgt_scen_grp %}
-                            <option>"{{ mgt_scen['name'] }}"</option>
+                    {% for mgt_scen_grp in mgt_scen_grps.keys()%}
+                    <optgroup label="{{ mgt_scen_grp }}">
+                        {% for mgt_scen in mgt_scen_grps[mgt_scen_grp] %}
+                            <option>{{ mgt_scen }}</option>
                         {% endfor %}
                     </optgroup>
                     {% endfor %}
