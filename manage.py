@@ -2,33 +2,29 @@
 from getpass import getpass
 from datetime import datetime
 
-from flask_script import Manager
+#from flask_script import Manager
+#from flask_migrate import MigrateCommand
 
 from OpenAgua import app, db
-from OpenAgua.models import User, Role
+from OpenAgua.models import *
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./instance/users.sqlite'
+
+migrate = Migrate(app, db)
+manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
 manager = Manager(app)
+manager.add_command('db', MigrateCommand)
 
-@manager.option('-r', '--role', dest='role_name', default='general')
-def adduser(role_name):
+@manager.command
+def addsuperuser():
     '''
-    Add a new user.
-    
-    -r --role Specify a role: admin, superuser, or user. Default = user.
+    Add an admin user.
     '''
     
-    # Add role?
-    role = Role.query.filter(Role.name == role_name).first()
-    if not role:
-        add_role = input('"%s" role doesn\'t exist. Continue and create new role? (Y/N): ' % role_name)
-        if add_role.lower()=='y':
-            role = Role(name=role_name)
-            db.session.add(role)
-            print('"%s" role created!' % role_name)
-        else:
-            print('User addition canceled.')
-            return
-    
+    role = Role(name='admin')
+
     username = input("Username: ")
     
     user = User.query.filter(User.username == username).first()

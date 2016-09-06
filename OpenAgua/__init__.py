@@ -9,7 +9,8 @@ from flask_login import current_user
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.base import MenuLink
-from flask_migrate import Migrate
+from flask_script import Manager
+from flask_migrate import Migrate, MigrateCommand
 
 # create the app
 app = Flask(__name__, instance_relative_config=True)
@@ -19,14 +20,13 @@ app.config.from_pyfile('config.py')
 
 # Initialize extensions
 db = SQLAlchemy(app)
-migrate = Migrate(app, db)
 mail = Mail(app)
 
 from OpenAgua.views import *
 from OpenAgua.models import *
 
 # Create all database tables
-db.create_all()
+#db.create_all()
 
 # Setup Flask-User
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
