@@ -24,11 +24,9 @@ class User(db.Model, UserMixin):
     roles = db.relationship('Role', secondary='user_roles',
             backref=db.backref('users', lazy='dynamic'))
 
-
 class Role(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True)
-
 
 class UserRoles(db.Model):
     id = db.Column(db.Integer(), primary_key=True)

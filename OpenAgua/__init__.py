@@ -9,8 +9,6 @@ from flask_login import current_user
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.base import MenuLink
-from flask_script import Manager
-from flask_migrate import Migrate, MigrateCommand
 
 # create the app
 app = Flask(__name__, instance_relative_config=True)
