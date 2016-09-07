@@ -11,7 +11,7 @@
               <label for="node_type">Type:</label>
               <select id="node_type">
                 {% for ntype in ntypes %}
-                  <option value="{{ ntype }}">{{ ntype }}</option>
+                  <option value="{{ ntype.id }}">{{ ntype.name }}</option>
                 {% endfor %}
               </select><br>
               <label for="node_name">Name:</label>
@@ -27,7 +27,6 @@
       <div class="modal-footer">
         <button id="add_node_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button id="add_node_confirm" type="button" class="btn btn-primary">Add</button>
-        <!--<button type="button" class="btn btn-primary">Save changes</button>-->
       </div>
     </div>
   </div>
@@ -46,7 +45,7 @@
               <label for="link_type">Type:</label>
               <select id="link_type">
                 {% for ltype in ltypes %}
-                  <option value="{{ ltype }}">{{ ltype }}</option>
+                  <option value="{{ ltype.id }}">{{ ltype.name }}</option>
                 {% endfor %}
               </select><br>
               <label for="link_name">Name:</label>

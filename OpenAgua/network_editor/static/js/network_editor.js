@@ -156,7 +156,8 @@ map.on('draw:created', function (e) {
 $('button#add_node_confirm').bind('click', function() {
     gj.properties.name = $('#node_name').val();
     gj.properties.description = $('#node_description').val();
-    gj.properties.type = $("#node_type").val();
+    gj.properties.template_type_id = $("#node_type").val();
+    gj.properties.template_type_name = $("#node_type").text();
     $.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(data) {
         status_code = data.result.status_code;
         if ( status_code == -1 ) {
@@ -177,7 +178,8 @@ $('button#add_node_confirm').bind('click', function() {
 $('button#add_link_confirm').bind('click', function() {
     gj.properties.name = $('#link_name').val();
     gj.properties.description = $('#link_description').val();
-    gj.properties.type = $("#link_type").val();
+    gj.properties.template_type_id = $("#link_type").val();
+    gj.properties.template_type_name = $("#link_type").val();
     $.getJSON($SCRIPT_ROOT + '/_add_link', {new_link: JSON.stringify(gj)}, function(data) {
         status_code = data.result.status_code;
         if ( status_code == -1 ) {
@@ -200,7 +202,7 @@ $('button#add_node_cancel').bind('click', function() {
     newItems.clearLayers();
     $('#node_name').val('');
     $('#node_description').val('');
-    //$("#save_status").text('Action cancelled.');    
+    //$("#save_status").text('Action cancelled.');
 });
 
 $('button#add_link_cancel').bind('click', function() {
@@ -217,7 +219,6 @@ map.on('draw:edited', function (e) {
     layers.eachLayer(function(layer) {
         countOfEditedLayers++;
     });
-    //console.log("Edited " + countOfEditedLayers + " layers");
 });
 
 // FUNCTIONS

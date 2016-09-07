@@ -15,7 +15,12 @@ def get_coords(nodes):
 
 class connection(object):
 
-    def __init__(self, url=None, session_id=None, user_id=None, app_name=None):
+    def __init__(self, url=None, session_id=None,
+                 user_id=None, app_name=None,
+                 project_id=None, project_name=None,
+                 network_id=None, network_name=None,
+                 template_id=None, template_name=None,
+                 ttypes=None):
         self.url = url
         self.app_name = app_name
         self.session_id = session_id
@@ -87,8 +92,9 @@ class connection(object):
     def add_project(self, project_data=None):
         return self.call('add_project', project_data)
     
-    def get_network(self, network_id=None):
-        return self.call('get_network', {'network_id':network_id})
+    def get_network(self, network_id=None, include_data='N'):
+        return self.call('get_network', {'network_id':network_id,
+                                         include_data: include_data})
     
     def get_template(self, template_id=None):
         return self.call('get_template', {'template_id':template_id})
@@ -96,11 +102,9 @@ class connection(object):
     def get_node(self, node_id=None):
         return self.call('get_node',{'node_id':node_id})
     
-    def make_geojson_from_node(self,
-                               node=None,
-                               template_id=None,
-                               template_name=None):
-        type_id = [t.id for t in node.types if t.template_id==template_id][0]
+    def make_geojson_from_node(self, node=None):
+        type_id = [t.id for t in node.types \
+                   if t.template_id==self.template_id][0]
         ttype = self.ttypes[type_id]
         gj = {'type':'Feature',
               'geometry':{'type':'Point',
@@ -108,14 +112,18 @@ class connection(object):
               'properties':{'name':node.name,
                             'id':node.id,
                             'description':node.description,
-                            'ftype':ttype.name,
+                            'template_type_name':ttype.name,
+                            'template_type_id':ttype.id,
                             'image':ttype.layout.image,
-                            'template_name':template_name}}
+                            'template_name':self.template_name}}
         return gj
 
-    def make_geojson_from_link(self, link=None, template_id=None, template_name=None, coords=None):
+    def make_geojson_from_link(self, link=None):
         
-        type_id = [t.id for t in link.types if t.template_id==template_id][0]
+        coords = get_coords(self.network.nodes)
+        
+        type_id = [t.id for t in link.types \
+                   if t.template_id==self.template_id][0]
         ttype = self.ttypes[type_id]
 
         n1_id = link['node_1_id']
@@ -135,9 +143,10 @@ class connection(object):
              'properties':{'name':link.name,
                            'id':link.id,
                            'description':link.description,
-                           'template_type':ttype.name,
+                           'template_type_name':ttype.name,
+                           'template_type_id':ttype.id,
                            'image':ttype.layout.image,
-                           'template_name':template_name,
+                           'template_name':self.template_name,
                            'color': name_to_hex(ttype.layout.colour),
                            'weight': ttype.layout.line_weight,
                            'opacity': 0.7,
@@ -148,42 +157,30 @@ class connection(object):
         return gj
         
     # make geojson features
-    def make_geojson_features(self, network_id=None, template_id=None):
-        network = self.get_network(network_id)
-        template = self.get_template(template_id)
-    
-        self.ttypes = {}
-        for tt in template.types:
-            self.ttypes[tt.id] = tt
-    
-        coords = get_coords(network.nodes)
+    def make_geojson_features(self):
         
         nodes_gj = \
-            [self.make_geojson_from_node(node, template_id, template.name) \
-             for node in network.nodes]
+            [self.make_geojson_from_node(node) for node in self.network.nodes]
         
         links_gj = \
-            [self.make_geojson_from_link(link,
-                                         template_id, template.name, coords) \
-             for link in network.links]
+            [self.make_geojson_from_link(link) \
+             for link in self.network.links]
 
         features = nodes_gj + links_gj
     
         return features
     
     # convert geoJson node to Hydra node
-    def make_node_from_geojson(self, gj=None, template=None):
+    def make_node_from_geojson(self, gj=None):
         x, y = gj['geometry']['coordinates']
-        type_name = gj['properties']['type']
-        #type_obj = self.call('get_templatetype_by_name', {'template_id':template_id,'type_name':type_name})
-        # the above doesn't work. this should, but will be less efficient...
-        type_obj = [t for t in template.types if t.name==type_name][0]
+        template_type_name = gj['properties']['template_type_name']
+        template_type_id = int(gj['properties']['template_type_id'])
         
         typesummary = dict(
-            name = type_obj.name,
-            id = type_obj.id,
-            template_name = template.name,
-            template_id = template.id
+            name = template_type_name,
+            id = template_type_id,
+            template_name = self.template_name,
+            template_id = self.template_id
         )
         node = dict(
             id = -1,
@@ -195,34 +192,33 @@ class connection(object):
         )
         return node
     
-    
-    def make_links_from_geojson(self, gj=None, template=None, coords=None):
+    def make_links_from_geojson(self, gj=None):
+        
+        coords = get_coords(self.network.nodes)
+        
         d = 3 # rounding decimal points to match link coords with nodes.
         nlookup = {(round(x,d), round(y,d)): k for k, [x, y] in coords.items()}
         xys = []
         for [x,y] in gj['geometry']['coordinates']:
             xy = (round(x,d), round(y,d))
             xys.append(xy)
-        type_name = gj['properties']['type']        
-        type_obj = [t for t in template.types if t.name==type_name][0]
-        type_name = type_obj.name
         
-        polyline_name = gj['properties']['name']
-        description = gj['properties']['description']
+        lname = gj['properties']['name'] # link name
+        desc = gj['properties']['description']
+        template_type_name = gj['properties']['template_type_name']
+        template_type_id = int(gj['properties']['template_type_id'])
         
         typesummary = dict(
-            name = type_name,
-            id = type_obj.id,
-            template_name = template.name,
-            template_id = template.id
+            name = template_type_name,
+            id = template_type_id,
+            template_name = self.template_name,
+            template_id = self.template_id
         )
 
         links = []
         nsegments = len(xys) - 1        
         for i in range(nsegments):
             
-            print(nlookup, file=sys.stderr)
-            print(xys[i], file=sys.stderr)
             node_1_id = nlookup[xys[i]]
             node_2_id = nlookup[xys[i+1]]
 
@@ -231,17 +227,18 @@ class connection(object):
                 node_2_id = node_2_id,
                 types = [typesummary]
             )
-            if len(polyline_name) and nsegments == 1:
-                link['name'] = polyline_name
-                link['description'] = description
-            elif len(polyline_name) and nsegments > 1:
-                link['name'] = '{}_{:02}'.format(polyline_name, i+1)
-                link['description'] = '{} (Segment {})'.format(description, i+1)
+            if len(lname) and nsegments == 1:
+                link['name'] = lname
+                link['description'] = desc
+            elif len(lname) and nsegments > 1:
+                link['name'] = '{}_{:02}'.format(lname, i+1)
+                link['description'] = '{} (Segment {})'.format(desc, i+1)
             else:
                 n1_name = self.get_node(node_1_id).name
                 n2_name = self.get_node(node_2_id).name
                 link['name'] = '{}_{}'.format(n1_name, n2_name)
-                link['description'] = '{} from {} to {}'.format(type_name, n1_name, n2_name)
+                link['description'] = '{} from {} to {}' \
+                    .format(template_type_name, n1_name, n2_name)
                 
         links.append(link)
         return links  
@@ -252,4 +249,26 @@ class JSONObject(dict):
             self[k] = v
             setattr(self, k, v)
             
-   
+def make_connection(session, include_network=True, include_template=True):
+    conn = connection(url=session['url'],
+                      session_id=session['session_id'])
+    
+    for i in ['user_id', 'appname',
+              'project_id', 'project_name',
+              'network_id', 'network_name',
+              'template_id', 'template_name']:
+        exec("conn.%s = session['%s']" % (i,i))
+    
+    if include_network:
+        conn.network = conn.get_network(network_id = session['network_id'],
+                                        include_data = 'N')
+    
+    if include_template:
+        conn.template = conn.get_template(template_id = session['template_id'])
+    
+    ttypes = {}
+    for tt in conn.template.types:
+        ttypes[tt.id] = tt
+    conn.ttypes = ttypes    
+    
+    return conn
