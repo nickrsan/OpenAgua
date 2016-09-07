@@ -1,21 +1,14 @@
 # manage.py
 from getpass import getpass
 from datetime import datetime
-from flask_script import Manager, Command
+from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
-
-#from flask_script import Manager
-#from flask_migrate import MigrateCommand
 
 from OpenAgua import app, db
 from OpenAgua.models import *
 
-if __name__ == '__main__':
-    db_uri = app.config['SQLALCHEMY_DATABASE_URI']
-    #app.config['SQLALCHEMY_DATABASE_URI'] = db_uri.replace('/../', '/./')
-
-manager = Manager(app)
 migrate = Migrate(app, db)
+manager = Manager(app)
 
 manager.add_command('db', MigrateCommand)
 

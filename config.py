@@ -1,5 +1,7 @@
 import os
 
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+
 DEBUG = False
 IS_LOCAL = True
 HYDRA_URL = 'http://127.0.0.1:8080/json'
@@ -9,9 +11,8 @@ HYDRA_PROJECT_NAME = 'Monterrey'
 HYDRA_NETWORK_NAME = 'base_network'
 HYDRA_TEMPLATE_NAME = 'OpenAgua'
 SECRET_KEY = '\xef0d\xd8\xb3\xcd\xb0\x04u\x05\x12\xc64\x1d\x00Ld\x8bh\xd5\x81+a\x00'
-SQLALCHEMY_DATABASE_URI = 'sqlite:///../instance/users.sqlite'
+SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/instance/users.sqlite'.format(APP_ROOT)
 
-APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 HYDRA_APPS_DIR = os.path.join(APP_ROOT, 'OpenAgua', 'hydra_apps')
 
 # admin user (customize in instance)

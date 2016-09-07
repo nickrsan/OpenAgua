@@ -1,4 +1,5 @@
 import os
+from sys import stderr
 
 # app.py or app/__init__.py
 from flask import Flask
@@ -22,9 +23,6 @@ from OpenAgua.views import *
 # Initialize extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
-
-# Create all database tables
-#db.create_all()
 
 # Setup Flask-User
 db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
