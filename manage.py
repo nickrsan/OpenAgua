@@ -12,7 +12,7 @@ from OpenAgua.models import *
 
 if __name__ == '__main__':
     db_uri = app.config['SQLALCHEMY_DATABASE_URI']
-    app.config['SQLALCHEMY_DATABASE_URI'] = db_uri.replace('/../', '/./')    
+    #app.config['SQLALCHEMY_DATABASE_URI'] = db_uri.replace('/../', '/./')
 
 manager = Manager(app)
 migrate = Migrate(app, db)
@@ -25,7 +25,10 @@ def addsuperuser():
     Add a user with admin privledges.
     '''
     
-    role = Role(name='admin')
+    role = Role.query.filter(Role.name == 'admin').first()
+    if not role:
+        role = Role(name='admin')
+        db.session.add(role)
 
     username = input("Username: ")
     
@@ -38,21 +41,23 @@ def addsuperuser():
     password1 = True
     password2 = False
     tries = 0
-    while not password1 == password2 and tries < 3:
+    maxtries = 3
+    while not password1 == password2 and tries < maxtries:
         password1 = None
         while not password1:
             password1 = getpass("Password: ")
             if not password1:
                 print("Password cannot be blank. Please try again.")
                 tries += 1
-                if tries == 3:
-                    break                
-        password2 = getpass("Verify password: ")
-        if password2 != password1:
-            print("Passwords don't match. Please enter passwords again.")
-            tries += 1
+            if tries == maxtries:
+                break
+        else:
+            password2 = getpass("Verify password: ")
+            if password2 != password1 and not failed:
+                print("Passwords don't match. Please enter passwords again.")
+                tries += 1
             
-    if tries == 3:
+    if tries == maxtries:
         print('Max tries exceeded. Please start over.')
         return
     
@@ -64,7 +69,7 @@ def addsuperuser():
     user = User(username=username,
                 email=email,
                 password=app.user_manager.hash_password(password),
-                is_active=1,
+                active=True,
                 confirmed_at=datetime.utcnow())
 
     # Bind admin to role

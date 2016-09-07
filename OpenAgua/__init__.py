@@ -16,12 +16,12 @@ app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config')
 app.config.from_pyfile('config.py')
 
+from OpenAgua.models import *
+from OpenAgua.views import *
+
 # Initialize extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
-
-from OpenAgua.views import *
-from OpenAgua.models import *
 
 # Create all database tables
 #db.create_all()

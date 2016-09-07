@@ -1,6 +1,7 @@
+from flask_sqlalchemy import SQLAlchemy
 from flask_user import UserMixin
 
-from OpenAgua import db
+db = SQLAlchemy()
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -32,3 +33,24 @@ class UserRoles(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
     role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
+    
+# Hydra Server settings
+
+class HydraUrl(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    hydra_url = db.Column(db.String(255), nullable=False, server_default='')
+
+#class HydraUser(db.Model):
+    #id = db.Column(db.Integer(), primary_key=True)
+    #hydra_url_id = db.Column(db.Integer(), nullable=False)
+    #hydra_userid = db.Column(db.Integer(), primary_key=False)
+    #hydra_username = db.Column(db.String(50), nullable=False)
+    #hydra_password = db.Column(db.String(255), nullable=False)
+    #hydra_sessionid = db.Column(db.String(255), nullable=False, server_default='')
+    
+#class UserHydra(db.Model):
+    #id = db.Column(db.Integer(), primary_key=True)
+    #user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
+    #hydra_url_id = db.Column(db.Integer(), db.ForeignKey('hydraurl.id', ondelete='CASCADE'))
+    #hydra_user_id = db.Column(db.Integer(), db.ForeignKey('hydrauser.id', ondelete='CASCADE'))
+    
