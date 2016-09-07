@@ -80,9 +80,9 @@ drawControl.setDrawingOptions({
 // load existing network
 map.spin(true);
 $( document ).ready(function() {
-    $.getJSON($SCRIPT_ROOT + '/_load_network', function(data) {
+    $.getJSON($SCRIPT_ROOT + '/_load_network', function(resp) {
         tileLayer.addTo(map); // add the tiles
-        var featuresGJ = JSON.parse(data.result.features);
+        var featuresGJ = JSON.parse(resp.result.features);
         currentItems.addData(featuresGJ);
         refreshCurrentItems();
         var n = currentItems.getLayers().length;

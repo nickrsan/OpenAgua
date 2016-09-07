@@ -1,5 +1,5 @@
 {% extends "master.html" %}
-{% block title %} - Network{% endblock %}
+{% block title %} - Network Editor{% endblock %}
 {% block head_main %}
 
 <style>
@@ -78,7 +78,7 @@ $.fn.bootstrapSwitch.defaults.size = 'mini';
 $("[name='show_labels']").bootstrapSwitch();
 var showLabels = $("[name='show_labels']").bootstrapSwitch("state");
 </script>
-<script src="{{ url_for('network_editor.static', filename='js/network-editor.js') }}"></script>
+<script src="{{ url_for('network_editor.static', filename='js/network_editor.js') }}"></script>
 <script>
 $( document ).ready( function() {
   $('input[name="show_labels"]').on('switchChange.bootstrapSwitch', function(event, state) {

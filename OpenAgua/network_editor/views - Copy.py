@@ -5,18 +5,40 @@ from ..connection import connection
 # import blueprint definition
 from . import net_editor
 
+def get_coords(network):
+    coords = {}
+    for n in network['nodes']:
+        coords[n.id] = [float(n.x), float(n.y)] 
+    return coords
+
 @net_editor.route('/network_editor')
 @login_required
 def network_editor():
+    #conn = connection(url=session['url'], session_id=session['session_id'])
+    #template = conn.call('get_template', {'template_id':session['template_id']})
+    #ntypes = [t.name for t in template.types if t.resource_type == 'NODE']
+    #ltypes = [t.name for t in template.types if t.resource_type == 'LINK']
+    
+    #return render_template('network_editor.html',
+                           #ntypes=ntypes,
+                           #ltypes=ltypes) 
     return render_template('network_editor.html')
 
 @net_editor.route('/_load_network')
 @login_required
 def load_network():
     conn = connection(url=session['url'], session_id=session['session_id'])
-    features = conn.make_geojson_features(
-        session['network_id'], session['template_id'])
+    network = conn.get_network(session['network_id'])
+    template = conn.call('get_template',{'template_id':session['template_id']})
     
+    #features = features2gj(network, template)
+    coords = get_coords(network)
+    nodes = network.nodes
+    links = network.links
+    nodes_gj = [conn.make_geojson_from_node(node.id, session['template_name'], session['template_id']) for node in nodes]
+    links_gj = [conn.make_geojson_from_link(link.id, session['template_name'], session['template_id'], coords) for link in links]
+    features = nodes_gj + links_gj
+
     status_code = 1
     status_message = 'Network "%s" loaded' % session['network_name']
 

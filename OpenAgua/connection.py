@@ -4,7 +4,14 @@ import requests
 import json
 
 import logging
+
 log = logging.getLogger(__name__)
+
+def get_coords(nodes):
+    coords = {}
+    for n in nodes:
+        coords[n.id] = [float(n.x), float(n.y)] 
+    return coords
 
 class connection(object):
 
@@ -73,7 +80,8 @@ class connection(object):
             err = 'Error. Project ID not provided'
         if network_name is None:
             err = 'Error. Network name not provided'
-        resp = self.call('get_network_by_name', {'project_id':project_id, 'network_name':network_name})
+        resp = self.call('get_network_by_name',
+                         {'project_id':project_id, 'network_name':network_name})
         return resp
     
     def add_project(self, project_data=None):
@@ -82,34 +90,36 @@ class connection(object):
     def get_network(self, network_id=None):
         return self.call('get_network', {'network_id':network_id})
     
+    def get_template(self, template_id=None):
+        return self.call('get_template', {'template_id':template_id})
+    
     def get_node(self, node_id=None):
         return self.call('get_node',{'node_id':node_id})
     
-    def make_geojson_from_node(self, node_id=None, template_name=None, template_id=None):
-        node = self.call('get_node', {'node_id':node_id})
+    def make_geojson_from_node(self,
+                               node=None,
+                               template_id=None,
+                               template_name=None):
         type_id = [t.id for t in node.types if t.template_id==template_id][0]
-        ftype = self.call('get_templatetype',{'type_id':type_id})
+        ttype = self.ttypes[type_id]
         gj = {'type':'Feature',
-             'geometry':{'type':'Point',
-                         'coordinates':[node.x, node.y]},
-             'properties':{'name':node.name,
-                           'id':node.id,
-                           'description':node.description,
-                           'ftype':ftype.name,
-                           'image':ftype.layout.image,
-                           'template_name':template_name}}
+              'geometry':{'type':'Point',
+                          'coordinates':[node.x, node.y]},
+              'properties':{'name':node.name,
+                            'id':node.id,
+                            'description':node.description,
+                            'ftype':ttype.name,
+                            'image':ttype.layout.image,
+                            'template_name':template_name}}
         return gj
 
-    def make_geojson_from_link(self, link_id=None, template_id=None, template_name=None, coords=None):
+    def make_geojson_from_link(self, link=None, template_id=None, template_name=None, coords=None):
         
-        link = self.call('get_link', {'link_id':link_id})
-        #type_id = [t.id for t in link.types if t.template_id==template_id][0]
-        type_obj = link.types[0] # NB: the above line should work. delete this when debugged.
-        type_id = type_obj.id
-        ttype = self.call('get_templatetype',{'type_id':type_id})
+        type_id = [t.id for t in link.types if t.template_id==template_id][0]
+        ttype = self.ttypes[type_id]
 
-        n1 = link['node_1_id']
-        n2 = link['node_2_id']
+        n1_id = link['node_1_id']
+        n2_id = link['node_2_id']
         
         # for dash arrays, see:
         # https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
@@ -121,7 +131,7 @@ class connection(object):
             
         gj = {'type':'Feature',
              'geometry':{ 'type': 'LineString',
-                          'coordinates': [coords[n1],coords[n2]] },
+                          'coordinates': [coords[n1_id],coords[n2_id]] },
              'properties':{'name':link.name,
                            'id':link.id,
                            'description':link.description,
@@ -136,6 +146,30 @@ class connection(object):
                            }
              }
         return gj
+        
+    # make geojson features
+    def make_geojson_features(self, network_id=None, template_id=None):
+        network = self.get_network(network_id)
+        template = self.get_template(template_id)
+    
+        self.ttypes = {}
+        for tt in template.types:
+            self.ttypes[tt.id] = tt
+    
+        coords = get_coords(network.nodes)
+        
+        nodes_gj = \
+            [self.make_geojson_from_node(node, template_id, template.name) \
+             for node in network.nodes]
+        
+        links_gj = \
+            [self.make_geojson_from_link(link,
+                                         template_id, template.name, coords) \
+             for link in network.links]
+
+        features = nodes_gj + links_gj
+    
+        return features
     
     # convert geoJson node to Hydra node
     def make_node_from_geojson(self, gj=None, template=None):
@@ -164,7 +198,6 @@ class connection(object):
     
     def make_links_from_geojson(self, gj=None, template=None, coords=None):
         d = 3 # rounding decimal points to match link coords with nodes.
-        # p.s. This is annoying. It would be good to have geographic/topology capabilities built in to Hydra
         nlookup = {(round(x,d), round(y,d)): k for k, [x, y] in coords.items()}
         xys = []
         for [x,y] in gj['geometry']['coordinates']:
