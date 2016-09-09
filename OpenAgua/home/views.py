@@ -36,23 +36,23 @@ def home():
     if 'id' in project.keys():
         session['project_id'] = project.id
     else:
-        return redirect(url_for('user_projects.projects_manager')) 
+        return redirect(url_for('projects_manager.projects_manager')) 
     
     # load / activate network
     network = conn.get_network_by_name(session['project_id'], session['network_name'])
     if 'id' in network.keys():
         session['network_id'] = network.id
     else:
-        return redirect(url_for('user_projects.projects_manager'))    
+        return redirect(url_for('projects_manager.projects_manager'))    
 
     # load / activate template (temporary fix)
     templates = conn.call('get_templates',{})
     if len(templates)==0:
-        return redirect(url_for('user_projects.projects_manager')) 
+        return redirect(url_for('projects_manager.projects_manager')) 
     
     template_names = [t.name for t in templates]    
     if session['template_name'] not in template_names:
-        return redirect(url_for('user_projects.projects_manager'))
+        return redirect(url_for('projects_manager.projects_manager'))
     
     session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
     

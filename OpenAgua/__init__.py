@@ -32,7 +32,7 @@ import OpenAgua.views
 
 # import blueprints
 from .projects_manager import projects_manager
-from .user_home import user_home
+from .home import user_home
 from .data_editor import data_editor
 from .network_editor import net_editor
 from .main_overview import main_overview

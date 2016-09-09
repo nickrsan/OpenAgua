@@ -15,7 +15,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 @projects_manager.route('/manage')
 @login_required
-def projects():
+def manage():
     conn = connection(url=session['url'], session_id=session['session_id'])
     
     # get the list of project names, and network names for the test project
