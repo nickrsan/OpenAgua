@@ -45,6 +45,7 @@ flask_sqlalchemy
 flask_user
 flask_admin
 flask_migrate
+flask_script
 requests
 pandas
 webcolors
@@ -55,7 +56,7 @@ These can be installed individually (e.g., `pip install flask`) or together (i.e
 
 ### Settings
 
-NOTE: This assumes email authentication is needed. However, for a local setup, this shouldn't be. This will be resolved in the future.
+NOTE: This assumes email confirmation is needed. However, if a local machine is used, email confirmation can be switched off in the configuration setting with the `USER_ENABLE_CONFIRM_EMAIL` setting in config.py.
 
 There are a few settings that should be set on a machine-specific basis, whether on a local machine or on a web server. These are stored in a folder called "instance" under the top-level OpenAguaDSS folder:
 
@@ -75,12 +76,12 @@ MAIL_USE_TLS = False
 # Optionally, set other parameters as desired:
 HYDRA_URL = 'http://127.0.0.1:8080/json'
 DEBUG = False
-SECRET_KEY = 'T\xa0P\x00\xcf\xa4O\xea\x0bZ\xbd\xd6\xef\x03p\xc0w\x9c;\x01\xfd>\xc9\xc4'
+SECRET_KEY = 'a secret key'
 ```
 
-Note that SECRET_KEY can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`. IMPORTANT: This should be set here in a production environment!
+The OpenAgua user database (`SQLALCHEMY_DATABASE_URI`) can be specified here too. For SQLite, see the example in the default config.py file. For MySQL: `mysql+pymysql://username:password@xxxxx.xxxxx.com/dbname`. Note the `pymysql`; this means that pymysql should be installed: `pip3 install pymysql`.
 
-FUTURE: Automate creation of the secret key.
+Note that SECRET_KEY can be created in Python with the urandom function in the os. I.e. `import os` followed by `os.urandom(24)`. IMPORTANT: This should be set here in a production environment!
 
 ## Run
 
@@ -98,7 +99,9 @@ FUTURE: Consolidate this setup with the instructions for a local setup above, si
 
 ## Hydra Platform
 
-1. Install Hydra Platform and dependencies as described at https://github.com/UMWRG/HydraPlatform#hydraplatform.
+1. Install Hydra Platform and dependencies as described at https://github.com/UMWRG/HydraPlatform#hydraplatform. Some pointers for installing on Ubuntu:
+* For mysql-connector-python: `sudo apt-get install python-mysql.connector`
+* For bcrypt, make sure to install python-dev first: `sudo apt-get install python-dev`
 2. Specify the database that Hydra Platform will use in /HydraPlatform/config/hydra.ini. By default this is a local SQLite database, but any SQL database can be used, such as MySQL, which is what OpenAguaDSS.org uses.
 3. Decide on hosting configuration. Hydra Platform comes with its own web interface, so can be configured either as a server available only to the local machine (which OpenAgua can still access), or as a public web server with the built-in user interface exposed to the world.
 a. If a non-public server is used, follow step 4. on https://github.com/UMWRG/HydraPlatform#installation to run the server: `chmod +x run_server.sh i(i. ./run_server.sh`.

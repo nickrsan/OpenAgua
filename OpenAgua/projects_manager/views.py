@@ -13,7 +13,7 @@ from . import projects_manager
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-@projects_manager.route('/projects')
+@projects_manager.route('/manage')
 @login_required
 def projects():
     conn = connection(url=session['url'], session_id=session['session_id'])
@@ -43,7 +43,7 @@ def projects():
         
     templates = conn.call('get_templates',{})
         
-    return render_template('projects.html',
+    return render_template('projects_manager.html',
                            projects=projects,
                            networks=networks,
                            templates=templates)
