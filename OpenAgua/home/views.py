@@ -32,15 +32,17 @@ def home():
     session['template_name'] = OpenAgua.app.config['HYDRA_TEMPLATE_NAME']
     
     # load / create project
-    project = conn.get_project_by_name(session['project_name'])
-    if 'id' in project.keys():
+    projects = conn.call('get_projects', {})
+    if session['project_name'] in [proj.name for proj in projects]:
+        project = conn.get_project_by_name(session['project_name'])
         session['project_id'] = project.id
     else:
         return redirect(url_for('projects_manager.projects_manager')) 
     
     # load / activate network
-    network = conn.get_network_by_name(session['project_id'], session['network_name'])
+    networks = conn.call('get_networks',{'project_id':project.id})
     if 'id' in network.keys():
+        network = conn.get_network_by_name(session['project_id'], session['network_name'])
         session['network_id'] = network.id
     else:
         return redirect(url_for('projects_manager.projects_manager'))    
@@ -60,12 +62,36 @@ def home():
 
     # if we've made it this far, let's send the user directly to the overview of
     # their most recent project, pending more interesting stuff
-    #return render_template('home.html')
     return redirect(url_for('main_overview.overview'))
+    #return render_template('user_home.html')
 
 # Load projects
 # in the future, we can (optionally) store the Hydra session ID with the user account
 # i.e., give the user an option to auto-load last-used project.
 @user_home.route('/_load_recent')
-def load_recent():   
+def load_recent():
+    
+    # load / create project
+    #project = conn.get_project_by_name(session['project_name'])
+    #if 'id' in project.keys():
+        #session['project_id'] = project.id
+    #else:
+        #return redirect(url_for('projects_manager.projects_manager')) 
+    
+    ## load / activate network
+    #network = conn.get_network_by_name(session['project_id'], session['network_name'])
+    #if 'id' in network.keys():
+        #session['network_id'] = network.id
+    #else:
+        #return redirect(url_for('projects_manager.projects_manager'))    
+
+    ## load / activate template (temporary fix)
+    #templates = conn.call('get_templates',{})
+    #if len(templates)==0:
+        #return redirect(url_for('projects_manager.projects_manager')) 
+    
+    #template_names = [t.name for t in templates]    
+    #if session['template_name'] not in template_names:
+        #return redirect(url_for('projects_manager.projects_manager'))    
+    
     return redirect(url_for('main_overview.overview'))
