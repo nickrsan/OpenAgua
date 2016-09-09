@@ -41,7 +41,7 @@ def home():
     
     # load / activate network
     networks = conn.call('get_networks',{'project_id':project.id})
-    if 'id' in network.keys():
+    if session['network_name'] in [net.name for net in networks]:
         network = conn.get_network_by_name(session['project_id'], session['network_name'])
         session['network_id'] = network.id
     else:
