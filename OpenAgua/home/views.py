@@ -4,15 +4,15 @@ from ..connection import connection
 
 # import blueprint definition
 from . import user_home
-import OpenAgua
+from OpenAgua import app
 
 @user_home.route('/home')
 @login_required
 def home():
 
-    session['url'] = OpenAgua.app.config['HYDRA_URL']
-    session['hydra_username'] = OpenAgua.app.config['HYDRA_USERNAME']
-    session['hydra_password'] = OpenAgua.app.config['HYDRA_PASSWORD']    
+    session['url'] = app.config['HYDRA_URL']
+    session['hydra_username'] = app.config['HYDRA_USERNAME']
+    session['hydra_password'] = app.config['HYDRA_PASSWORD']    
 
     # connect to hydra (login if we don't already have a session ID)
     if 'session_id' in session:
@@ -27,9 +27,9 @@ def home():
     session['hydra_user_id'] = conn.user_id
 
     # add recent project/network/template to session (to be loaded from user data in the future)
-    session['project_name'] = OpenAgua.app.config['HYDRA_PROJECT_NAME']
-    session['network_name'] = OpenAgua.app.config['HYDRA_NETWORK_NAME'] 
-    session['template_name'] = OpenAgua.app.config['HYDRA_TEMPLATE_NAME']
+    session['project_name'] = app.config['HYDRA_PROJECT_NAME']
+    session['network_name'] = app.config['HYDRA_NETWORK_NAME'] 
+    session['template_name'] = app.config['HYDRA_TEMPLATE_NAME']
     
     # load / create project
     projects = conn.call('get_projects', {})

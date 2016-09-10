@@ -3,7 +3,6 @@ import os
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 DEBUG = False
-IS_LOCAL = True
 HYDRA_URL = 'http://127.0.0.1:8080/json'
 HYDRA_USERNAME = 'root'
 HYDRA_PASSWORD = ''
@@ -41,7 +40,7 @@ USER_AFTER_REGISTER_ENDPOINT = 'index'
 
 USER_ENABLE_CHANGE_PASSWORD = True  # Allow users to change their password
 USER_ENABLE_CHANGE_USERNAME = True  # Allow users to change their username
-USER_ENABLE_CONFIRM_EMAIL = not IS_LOCAL  # Force users to confirm their email
+USER_ENABLE_CONFIRM_EMAIL = False  # Force users to confirm their email
 USER_ENABLE_FORGOT_PASSWORD = True  # Allow users to reset their passwords
 USER_ENABLE_EMAIL = True  # Register with Email
 USER_ENABLE_REGISTRATION = True  # Allow new users to register
