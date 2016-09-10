@@ -39,7 +39,7 @@ def manage():
     if session['template_name'] not in template_names:
         zf = zipfile.ZipFile(os.path.join(here, 'static/hydra_templates/OpenAgua.zip'))
         template_xml = zf.read('OpenAgua/template/template.xml')
-        conn.call('upload_template_xml', {'template_xml':template_xml})
+        conn.call('upload_template_xml', {'template_xml':template_xml.decode('utf-8')})
         
     templates = conn.call('get_templates',{})
         
