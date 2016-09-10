@@ -30,6 +30,9 @@ def home():
     session['project_name'] = app.config['HYDRA_PROJECT_NAME']
     session['network_name'] = app.config['HYDRA_NETWORK_NAME'] 
     session['template_name'] = app.config['HYDRA_TEMPLATE_NAME']
+    session['project_id'] = -1
+    session['network_id'] = -1
+    session['template_id'] = -1
     
     # load / create project
     projects = conn.call('get_projects', {})

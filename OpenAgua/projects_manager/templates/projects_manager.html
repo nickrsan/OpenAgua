@@ -9,18 +9,9 @@
 {% block main %}
 
 <script>
-var active_project_id = null;
-var active_network_id = null;
-var active_template_id = null;
-  {% if 'active_project_id' in session %}
-    var active_project_id = {{ session['active_project_id'] }};
-  {% endif %}
-  {% if 'active_network_id' in session %}
-    active_network_id = {{ session['network_id'] }};
-  {% endif %} 
-  {% if 'active_template_id' in session %}
-    var active_template_id = {{ session['active_template_id'] }};
-  {% endif %}
+var active_project_id = {{ session['project_id'] }};
+var active_network_id = {{ session['network_id'] }};
+var active_template_id = {{ session['template_id'] }};
 </script>
 
 <div class="container-fluid">
