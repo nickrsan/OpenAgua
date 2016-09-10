@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 from dateutil import rrule, parser
 
 from json import loads
@@ -44,7 +47,7 @@ def eval_timeseries(timeseries):
     return result
 
 # s = string
-def eval_descriptor(s, flavor = 'javaScript'):
+def eval_descriptor(s):
 
     # dates
     dates = get_dates()
@@ -57,24 +60,36 @@ def eval_descriptor(s, flavor = 'javaScript'):
     if 'return ' not in lines[-1]:
         lines[-1] = 'return ' + lines[-1]
     fs = 'def f(date):\n    %s' % '\n    '.join(lines)
+    
+    # assume there will be an exception:
+    exception = True
+    
+    try: # create the function
+        exec(fs, globals())
+        exception = False
+    except SyntaxError as err: # syntax error
+        err_class = err.__class__.__name__
+        detail = err.args[0]
+        line_number = err.lineno
+    except Exception as err: # other error
+        err_class = err.__class__.__name__
+        detail = err.args[0]
+        cl, exc, tb = sys.exc_info()
+        line_number = traceback.extract_tb(tb)[-1][1]
+    
+    if exception:
+        statuscode = -1
+        errormsg = "%s at line %d: %s" % (err_class, line_number, detail)
+        result = [{'date': date.strftime(session['date_format']),
+                   'value': ''} for date in dates]
+    else:
+        statuscode = 1
+        errormsg = 'No errors!'
+        result = [{'date': date.strftime(session['date_format']),
+                   'value': f(date)} for date in dates]
         
-    # create the function
-    exec(fs, globals())
+    return statuscode, errormsg, result
     
-    # create final result          
-    result = [{'date': date.strftime(session['date_format']),
-               'value': f(date)} for date in dates]
-    
-    return result  
-    
-#def daterange(date_format_in, date_format_out):
-    #start = datetime.strptime(session['ti'], date_format_in)
-    #end = datetime.strptime(session['tf'], date_format_in)    
-    #daterange = date_range(start, end, freq='M').tolist()
-    #daterange = [d.date().strftime(date_format_out) for d in daterange]
-    
-    #return daterange
-
 def date_range(start, end, timestep):
     rrule_timestep = eval('rrule.{}'.format(timestep))
     return list(rrule.rrule(rrule_timestep, dtstart=start, until=end)) 

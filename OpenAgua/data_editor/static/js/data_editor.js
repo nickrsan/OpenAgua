@@ -182,21 +182,21 @@ function loadData() {
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     res_attr_data = resp.res_attr_data;
     if (res_attr_data != null) {
-      data_type = res_attr_data.value.type;
+      cur_data_type = res_attr_data.value.type;
     }
     
     // define the data to plot
     plot_data = resp.timeseries;
     
     // set the data type selector
-    selectDataType(data_type);
+    selectDataType(cur_data_type);
     
     // toggle the editors
     clearEditor();
     //updateEditor(data_type, unit, dimension);
     
     // load the returned time series into the table and plot, even if empty
-    dataActions(data_type, res_attr_data)
+    dataActions(cur_data_type, res_attr_data)
     
     // turn on the data type selector
     $("#datatypes").attr("disabled", false).selectpicker("refresh");
