@@ -37,7 +37,7 @@ def home():
         project = conn.get_project_by_name(session['project_name'])
         session['project_id'] = project.id
     else:
-        return redirect(url_for('projects_manager.projects_manager')) 
+        return redirect(url_for('projects_manager.manage')) 
     
     # load / activate network
     networks = conn.call('get_networks',{'project_id':project.id})
@@ -45,16 +45,16 @@ def home():
         network = conn.get_network_by_name(session['project_id'], session['network_name'])
         session['network_id'] = network.id
     else:
-        return redirect(url_for('projects_manager.projects_manager'))    
+        return redirect(url_for('projects_manager.manage'))    
 
     # load / activate template (temporary fix)
     templates = conn.call('get_templates',{})
     if len(templates)==0:
-        return redirect(url_for('projects_manager.projects_manager')) 
+        return redirect(url_for('projects_manager.manage')) 
     
     template_names = [t.name for t in templates]    
     if session['template_name'] not in template_names:
-        return redirect(url_for('projects_manager.projects_manager'))
+        return redirect(url_for('projects_manager.manage'))
     
     session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
     
@@ -76,22 +76,22 @@ def load_recent():
     #if 'id' in project.keys():
         #session['project_id'] = project.id
     #else:
-        #return redirect(url_for('projects_manager.projects_manager')) 
+        #return redirect(url_for('projects_manager.manage')) 
     
     ## load / activate network
     #network = conn.get_network_by_name(session['project_id'], session['network_name'])
     #if 'id' in network.keys():
         #session['network_id'] = network.id
     #else:
-        #return redirect(url_for('projects_manager.projects_manager'))    
+        #return redirect(url_for('projects_manager.manage'))    
 
     ## load / activate template (temporary fix)
     #templates = conn.call('get_templates',{})
     #if len(templates)==0:
-        #return redirect(url_for('projects_manager.projects_manager')) 
+        #return redirect(url_for('projects_manager.manage')) 
     
     #template_names = [t.name for t in templates]    
     #if session['template_name'] not in template_names:
-        #return redirect(url_for('projects_manager.projects_manager'))    
+        #return redirect(url_for('projects_manager.manage'))    
     
     return redirect(url_for('main_overview.overview'))
