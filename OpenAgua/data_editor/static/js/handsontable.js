@@ -7,6 +7,9 @@ function makeHandsontable(divname, tableHeight) {
   // create the chart
   var container = document.getElementById(divname);
   hot = new Handsontable(container, {
+    afterChange: function(changes, source) {
+      saveStatus(0);
+    },
     manualColumnResize: true,
     defaultRowHeight: 60,
     manualRowResize: false,
@@ -28,13 +31,6 @@ function updateHandsontable(data, colHeaders) {
 
   // some preprocessing
   var colWidths = [70].concat(_.times(colHeaders.length-1, _.constant(80)));
-  //var timesteps = _.map(data, function(item) {
-      //return item.date    
-  //});
-  //var numeric_cols = _.map(_.tail(colHeaders), function(item) {
-    //return {data: 'value', editor: 'numeric'}  
-  //})
-  //var columns = [{data: 'date', editor: false}].concat(numeric_cols)
   
   // create the chart
   hotEditor.updateSettings({

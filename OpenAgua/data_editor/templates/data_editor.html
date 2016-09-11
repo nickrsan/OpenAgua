@@ -8,12 +8,12 @@
     .editor {display: none}
     #scalar {border-width: 0px; margin-top: 10px}
     #editor_footer {height:30px; margin-top:10px; margin-bottom:10px}
-    #unit {background-color:#C0C0C0; margin-top: 5px}
+    #editor_metadata {margin-top: 5px}
     #preview {border-style:solid; border-color:#C0C0C0; border-width:2px; height:350px; width=100%}
 </style>
 
 <style>
-  #descriptor {height: 300px}
+  #function {height: 300px}
   #timeseries {height: 300px}
   #seasonalts {height: 300px}
   #scalar {height: 35px}
@@ -70,20 +70,8 @@
   <div class="row" style="margin-bottom:20px">
     <div class="col-md-6 col-sm-12">
       
-      <!--select a data type-->
-      <!--<div class="form-group">-->
-        <!--<label for="datatypes">Data type</label>-->
-        <!--<select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%" disabled>-->
-          <!--<option value="scalar" data-tokens='{"data_type": "scalar"}'>Number</option>-->
-          <!--<option value="descriptor" data-tokens='{"data_type": "descriptor"}'>Function/code</option>-->
-          <!--<option value="timeseries" data-tokens='{"data_type": "timeseries"}'>Time series</option>-->
-          <!--<option value="eqtimeseries" data-tokens='{"data_type": "eqtimeseries"}'>Seasonal time series</option>-->
-          <!--<option value="array" data-tokens='{"data_type": "array"}'>Array</option>-->
-        <!--</select>-->
-      <!--</div>-->
-      
       <label for="editor">Edit data&nbsp;<a href="/help/data_editor_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Data editor instructions and examples"></span></a></label>
-      <div id="editor_status"></div>
+      <!--<div id="editor_status"></div>-->
       <div id="editor">
   
         <!--scalar editor-->
@@ -92,20 +80,23 @@
           <input id="scalar_input" type="text" class="form-control" placeholder="Enter a number...">
         </div>
       
-        <!--descriptor editor-->
-        <div id="descriptor" class="editor"></div>
+        <!--function editor-->
+        <div id="function" class="editor"></div>
         
         <!--timeseries editor-->
         <div id="timeseries" class="editor"></div>
         
         <!--array editor-->
         <div id="array" class="editor"></div>
-        <div id="unit"></div>
+        <div id='editor_metadata' style='width:100%'>
+          <div id='unit' class='pull-left'></div>
+          <div id='savestatus' class='pull-right' style="font-weight:bold;color:red"></div>
+        </div><br>
         <div id="editor_footer">
           <div class="pull-left">
             <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%" disabled>
               <option value="scalar" data-tokens='{"data_type": "scalar"}'>Number</option>
-              <option value="descriptor" data-tokens='{"data_type": "descriptor"}'>Function/code</option>
+              <option value="function" data-tokens='{"data_type": "function"}'>Function/code</option>
               <option value="timeseries" data-tokens='{"data_type": "timeseries"}'>Time series</option>
               <option value="eqtimeseries" data-tokens='{"data_type": "eqtimeseries"}'>Seasonal time series</option>
               <!--<option value="array" data-tokens='{"data_type": "array"}'>Array</option>-->
@@ -118,6 +109,8 @@
             <div class="btn-group"><button id="save" class="btn btn-primary btn-md">Save changes</button></div>
           </div>
         </div>
+        
+        <p id="errmsg" style="height:10px"></p>
         
       </div>      
     </div>

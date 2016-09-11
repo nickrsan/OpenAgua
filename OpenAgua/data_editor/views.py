@@ -3,9 +3,9 @@ from datetime import datetime
 
 from flask import render_template, request, session, jsonify, json, g
 from flask_user import login_required, current_user
-from ..connection import connection
-from ..utils import hydra_timeseries, \
-     eval_scalar, eval_timeseries, eval_descriptor, d2o
+from ..connection import connection, make_connection, save_data
+from ..utils import hydra_timeseries, d2o, \
+     eval_scalar, eval_timeseries, eval_function, eval_data
 
 # import blueprint definition
 from . import data_editor
@@ -81,40 +81,44 @@ def get_variable_data():
     
     res_attr_data = \
         [row for row in feature_data if row.resource_attr_id == res_attr_id]
+
     if res_attr_data:
         
-        res_attr_data = res_attr_data[0]
-        
         # evaluate the data
+        res_attr_data = res_attr_data[0]
         data_type = res_attr_data.value.type
-        timeseries = eval('eval_{}(res_attr_data.value.value)'.format(data_type))
+        
+        function = None
+        if data_type == 'timeseries':
+            metadata = json.loads(res_attr_data.value.metadata)
+            if 'function' in metadata.keys():
+                if len(metadata['function']):
+                    function = metadata['function']
+        timeseries = eval_data(data_type,
+                               res_attr_data.value.value, function = function)
         
     else:
         res_attr_data = None
         
         # create some blank data for plotting
-        timeseries = eval_scalar(None)
+        timeseries = eval_data('generic', None)
     
     return jsonify(res_attr_data=res_attr_data, timeseries=timeseries)
 
 # add a new variable from user input
-@data_editor.route('/_add_variable_data')
+@data_editor.route('/_check_or_save_data')
 @login_required
-def add_variable_data():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+def check_or_save_data():
     
-    scen_id = int(request.args.get('scen_id'))
-    old_data_type = request.args.get('old_data_type')
+    action = request.args.get('action')
     cur_data_type = request.args.get('cur_data_type')
-    res_attr = json.loads(request.args.get('res_attr'))
-    res_attr_data = json.loads(request.args.get('res_attr_data'))
     new_data = json.loads(request.args.get('new_data'))
     
     # create the data depending on data type    
     if cur_data_type == 'scalar':
         new_value = new_data
         
-    elif cur_data_type == 'descriptor':
+    elif cur_data_type == 'function':
         new_value = new_data
         
     elif cur_data_type == 'timeseries':
@@ -122,54 +126,32 @@ def add_variable_data():
         new_value = json.dumps(new_value)
         
     elif cur_data_type == 'array':
-        val == None # placeholder
+        new_value == None # placeholder
+        
+    # either way, we should check the data before saving
+    errcode, errmsg, timeseries = \
+        eval_data(cur_data_type, new_value, do_eval=True)
     
-    metadata = json.dumps({'source':'OpenAgua/%s' % current_user.username})
+    if action == 'save' and errcode == 1:
+        conn = make_connection(session,
+                               include_network=False, include_template=False)
+        
+        old_data_type = request.args.get('old_data_type')
+        res_attr = json.loads(request.args.get('res_attr'))
+        res_attr_data = json.loads(request.args.get('res_attr_data'))    
+        scen_id = int(request.args.get('scen_id'))
+        
+        metadata = {'source':'OpenAgua/%s' % current_user.username}
     
-    # has the data type changed?
-    if cur_data_type != old_data_type:
-        # 1. copy old typeattr:
-        old_typeattr = {'attr_id': res_attr['attr_id'],
-                        'type_id': res_attr['type_id']}
-        # 2. delete the old typeattr
-        result = conn.call('delete_typeattr', {'typeattr': old_typeattr})
-        # 3. update the old typeattr with the new data type
-        new_typeattr = old_typeattr
-        new_typeattr['attr_is_var'] = 'N'
-        new_typeattr['data_type'] = cur_data_type # this is where we change it!
-        new_typeattr['unit'] = res_attr['unit']
-        # 3. add the new typeattr
-        result = conn.call('add_typeattr', {'typeattr': new_typeattr})       
-                
-    if res_attr_data is None: # add a new dataset
-        
-        dataset = dict(
-            id=None,
-            name = res_attr['res_attr_name'],
-            unit = res_attr['unit'],
-            dimension = res_attr['dimension'],
-            type = cur_data_type,
-            value = new_value,
-            metadata = metadata
-        )
-        
-        args = {'scenario_id': scen_id,
-                'resource_attr_id': res_attr['res_attr_id'],
-                'dataset': dataset}
-        result = conn.call('add_data_to_attribute', args)  
-            
-    else: # just update the existing dataset
-        dataset = res_attr_data['value']
-        dataset['type'] = cur_data_type
-        dataset['value'] = new_value
-        dataset['metadata'] = metadata
-        
-        result = conn.call('update_dataset', {'dataset': dataset})
-        
-    if 'faultcode' in result.keys():
-        status = -1
+        status = save_data(conn, old_data_type, cur_data_type,
+                           res_attr, res_attr_data, new_value,
+                           metadata, scen_id)
     else:
-        status = 1
-    
-    return jsonify(status = status)
+        status = 0 # no save attempt - just report error
+        
+    result = jsonify(status = status,
+                     errcode = errcode,
+                     errmsg = errmsg,
+                     timeseries = timeseries)
+    return result
 

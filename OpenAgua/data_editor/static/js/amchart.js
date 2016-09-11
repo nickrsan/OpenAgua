@@ -12,7 +12,7 @@ function amchart(title, timeseries, dateFormat, divname, log) {
       "theme": "light",
       "marginRight": 40,
       "marginLeft": 50,
-      "autoMarginOffset": 25,
+      "autoMarginOffset": 30,
       "mouseWheelZoomEnabled":false,
       "dataDateFormat": dateFormat,
       "valueAxes": [{

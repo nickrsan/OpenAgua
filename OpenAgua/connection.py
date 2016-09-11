@@ -5,6 +5,8 @@ import json
 
 import logging
 
+from .utils import hydra_timeseries, eval_data
+
 log = logging.getLogger(__name__)
 
 def get_coords(nodes):
@@ -249,7 +251,10 @@ class JSONObject(dict):
             self[k] = v
             setattr(self, k, v)
             
-def make_connection(session, include_network=True, include_template=True):
+def make_connection(session,
+                    include_network=True,
+                    include_template=True):
+    
     conn = connection(url=session['url'],
                       session_id=session['session_id'])
     
@@ -266,9 +271,66 @@ def make_connection(session, include_network=True, include_template=True):
     if include_template:
         conn.template = conn.get_template(template_id = session['template_id'])
     
-    ttypes = {}
-    for tt in conn.template.types:
-        ttypes[tt.id] = tt
-    conn.ttypes = ttypes    
+        ttypes = {}
+        for tt in conn.template.types:
+            ttypes[tt.id] = tt
+        conn.ttypes = ttypes    
     
     return conn
+
+def save_data(conn, old_data_type, cur_data_type, res_attr, res_attr_data, new_value,
+              metadata, scen_id):
+
+    if cur_data_type == 'function':
+        new_data_type = 'timeseries'
+        metadata['function'] = new_value
+        new_value = json.dumps(hydra_timeseries(eval_data('generic', None)))
+    else:
+        new_data_type = cur_data_type
+        metadata['function'] = ''
+
+    # has the data type changed?
+    if new_data_type != old_data_type:
+        # 1. copy old typeattr:
+        old_typeattr = {'attr_id': res_attr['attr_id'],
+                        'type_id': res_attr['type_id']}
+        # 2. delete the old typeattr
+        result = conn.call('delete_typeattr', {'typeattr': old_typeattr})
+        # 3. update the old typeattr with the new data type
+        new_typeattr = old_typeattr
+        new_typeattr['attr_is_var'] = 'N'
+        new_typeattr['data_type'] = new_data_type
+        new_typeattr['unit'] = res_attr['unit']
+        # 3. add the new typeattr
+        result = conn.call('add_typeattr', {'typeattr': new_typeattr})
+                
+    if res_attr_data is None: # add a new dataset
+        
+        dataset = dict(
+            id=None,
+            name = res_attr['res_attr_name'],
+            unit = res_attr['unit'],
+            dimension = res_attr['dimension'],
+            type = new_data_type,
+            value = new_value,
+            metadata = metadata
+        )
+        
+        args = {'scenario_id': scen_id,
+                'resource_attr_id': res_attr['res_attr_id'],
+                'dataset': dataset}
+        result = conn.call('add_data_to_attribute', args)  
+            
+    else: # just update the existing dataset
+        dataset = res_attr_data['value']
+        dataset['type'] = new_data_type
+        dataset['value'] = new_value
+        dataset['metadata'] = json.dumps(metadata)
+        
+        result = conn.call('update_dataset', {'dataset': dataset})
+        
+    if 'faultcode' in result.keys():
+        returncode = -1
+    else:
+        returncode = 1
+    return returncode
