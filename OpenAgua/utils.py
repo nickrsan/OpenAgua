@@ -46,7 +46,7 @@ def openagua_timeseries(valstr, **kwargs):
     result = list()
     for date in dates:
         value = eval(valstr)
-        if eval(str(value)) is None:
+        if eval("'%s'" % value) is None:
             value = ''
         row = {'date': date, 'value': value}
         result.append(row)

@@ -284,7 +284,7 @@ def save_data(conn, old_data_type, cur_data_type, res_attr, res_attr_data, new_v
     if cur_data_type == 'function':
         new_data_type = 'timeseries'
         metadata['function'] = new_value
-        new_value = json.dumps(hydra_timeseries(eval_data('generic', '')))
+        new_value = json.dumps(hydra_timeseries(eval_data('generic', "''")))
     else:
         new_data_type = cur_data_type
         metadata['function'] = ''

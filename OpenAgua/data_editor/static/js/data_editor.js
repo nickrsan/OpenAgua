@@ -46,7 +46,7 @@ $(document).ready(function(){
     clearEditor();
     clearChart();
     
-    selectDataType("scalar");
+    setDataTypeSelector("scalar");
     
     $('#datatypes').attr('disabled', true).selectpicker('refresh');
     $('#scenarios').attr('disabled', true).selectpicker('refresh');
@@ -89,21 +89,18 @@ $(document).ready(function(){
     
     var data_tokens = JSON.parse(selected.attr("data-tokens"));
     var temp_data_type = data_tokens.data_type;
-    //if (cur_data_type != data_type) {
       var msg = 'Are you sure you want to change the data type? This change will become permanent if the new data is saved.'
       bootbox.confirm(msg, function(confirm) {
-        if (confirm) {
-          
-          if (cur_data_type == 'scalar' & temp_data_type == 'function' & !aceEditor.getValue().length) {
-            updateAceEditor(scalarInput.val())
-          }
+        if (confirm) {          
           cur_data_type = temp_data_type;
-          updateEditor(cur_data_type, unit, dimension);          
-          
+          if (cur_data_type == 'function' & cur_data_type != orig_data_type) {
+            aceEditor.setValue('');          
+          }
+          updateEditor(cur_data_type, unit, dimension);
         } else {
-          selectDataType(cur_data_type);
+          setDataTypeSelector(cur_data_type);
         }
-      });    
+      });
   });
   
   // load the scenarios
@@ -215,12 +212,8 @@ function loadData() {
     // define the data to plot
     plot_data = resp.timeseries;
     
-    // set the data type selector
-    selectDataType(cur_data_type);
-    
-    // toggle the editors
+    // clear the editor
     clearEditor();
-    //updateEditor(data_type, unit, dimension);
     
     // load the returned time series into the table and plot, even if empty
     loadDataActions(cur_data_type, res_attr_data);
@@ -249,11 +242,13 @@ function loadDataActions(data_type, res_attr_data) {
         } else {
           original_data = JSON.parse(res_attr_data.value.metadata).function;
         }
-        updateAceEditor(original_data)
+        updateAceEditor(original_data);
+        setDataTypeSelector(cur_data_type);
         break;
     
       case 'timeseries':
         original_data = _.cloneDeep(plot_data);
+        setDataTypeSelector(cur_data_type);
         break;
         
       case 'scalar':
@@ -280,14 +275,6 @@ function loadDataActions(data_type, res_attr_data) {
       default:
         break;
     }
-}
-
-// set the data type selector
-function selectDataType(data_type) {
-  var selector = $('#datatypes')
-  selector.children().removeAttr('selected')
-  selector.val(data_type);
-  selector.selectpicker('refresh')
 }
 
 // clear changes
@@ -410,7 +397,7 @@ function saveData(data) {
         break;
       case 0:
         notify('danger','Warning!','Your data is not correct. Check error message. NOTHING SAVED.')
-        errmsg('');
+        errmsg(resp.errmsg);
         saveStatus(0)
         break;
       case 1:
@@ -441,11 +428,21 @@ function updateEditor(data_type, unit, dimension) {
 }
 
 function clearEditor() {
-  $('#editor').hide();
-  $('#editor_status').show();
   scalarInput.val('');
   textInput.val('');
   aceEditor.setValue('');
+  $('#editor').hide();
+  $('#datatypes_wrapper').hide();
+  $('#editor_status').show();
+}
+
+// set the data type selector
+function setDataTypeSelector(data_type) {
+  var selector = $('#datatypes')
+  selector.children().removeAttr('selected')
+  selector.val(data_type);
+  selector.selectpicker('refresh');
+  $('#datatypes_wrapper').show();
 }
 
 // update updateAceEditor
