@@ -14,13 +14,8 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/instance/users.sqlite'.format(APP_ROOT)
 
 HYDRA_APPS_DIR = os.path.join(APP_ROOT, 'OpenAgua', 'hydra_apps')
 
-# admin user (customize in instance)
-ADMIN_USERNAME = 'admin'
-ADMIN_EMAIL = 'admin@localhost'
-ADMIN_PASSWORD = 'Password1'
-
 # Flask-User settings
-USER_APP_NAME = "OpenAguaDSS"
+USER_APP_NAME = "OpenAgua"
 USER_LOGIN_TEMPLATE  = 'flask_user/login.html'
 USER_REGISTER_TEMPLATE = 'flask_user/register.html'
 USER_CHANGE_PASSWORD_TEMPLATE = 'change_password.html'
@@ -33,10 +28,10 @@ USER_INVITE_ACCEPT_TEMPLATE = 'register_accept.html'
 USER_RESET_PASSWORD_TEMPLATE = 'reset_password.html'
 USER_AFTER_LOGIN_ENDPOINT = 'user_home.home'
 USER_AFTER_LOGOUT_ENDPOINT = 'index'
-#USER_AFTER_RESET_PASSWORD_ENDPOINT = 'special_page'
+#USER_AFTER_RESET_PASSWORD_ENDPOINT = 'user_home.home'
 USER_AFTER_REGISTER_ENDPOINT = 'index'
-#USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'special_page'
-#USER_AFTER_CHANGE_USERNAME_ENDPOINT = 'special_page'
+#USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'user_home.home'
+#USER_AFTER_CHANGE_USERNAME_ENDPOINT = 'user_home.home'
 
 USER_ENABLE_CHANGE_PASSWORD = True  # Allow users to change their password
 USER_ENABLE_CHANGE_USERNAME = True  # Allow users to change their username
