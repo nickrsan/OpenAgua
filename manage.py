@@ -24,13 +24,17 @@ def addsuperuser():
         db.session.add(role)
 
     username = input("Username: ")
-    
     user = User.query.filter(User.username == username).first()
     if user:
         print('User already exists. Exiting.')
         return
     
     email = input("Email: ")
+    user = User.query.filter(User.email == email).first()
+    if user:
+        print('Email already exists. Exiting.')
+        return
+    
     password1 = True
     password2 = False
     tries = 0
