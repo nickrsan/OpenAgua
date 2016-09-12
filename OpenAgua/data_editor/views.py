@@ -115,10 +115,7 @@ def check_or_save_data():
     new_data = json.loads(request.args.get('new_data'))
     
     # create the data depending on data type    
-    if cur_data_type == 'scalar':
-        new_value = new_data
-        
-    elif cur_data_type == 'function':
+    if cur_data_type in ['scalar', 'descriptor', 'function']:
         new_value = new_data
         
     elif cur_data_type == 'timeseries':
@@ -136,14 +133,14 @@ def check_or_save_data():
         conn = make_connection(session,
                                include_network=False, include_template=False)
         
-        old_data_type = request.args.get('old_data_type')
+        orig_data_type = request.args.get('orig_data_type')
         res_attr = json.loads(request.args.get('res_attr'))
         res_attr_data = json.loads(request.args.get('res_attr_data'))    
         scen_id = int(request.args.get('scen_id'))
         
         metadata = {'source':'OpenAgua/%s' % current_user.username}
     
-        status = save_data(conn, old_data_type, cur_data_type,
+        status = save_data(conn, orig_data_type, cur_data_type,
                            res_attr, res_attr_data, new_value,
                            metadata, scen_id)
     else:

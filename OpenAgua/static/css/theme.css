@@ -95,3 +95,7 @@ body {
 .btn {
   border-radius: 0px;
 }
+
+.form-control {
+  border-radius: 0px;
+}

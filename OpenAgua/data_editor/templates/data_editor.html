@@ -6,10 +6,22 @@
     <!--#editor {display: none}-->
     .editor {border-style:solid; border-width:2px; border-color:#C0C0C0;}
     .editor {display: none}
+    .view_status {
+      color:#999999;
+      font-size:large;
+      margin-bottom: 15px;
+    }
     #scalar {border-width: 0px; margin-top: 10px}
     #editor_footer {height:30px; margin-top:10px; margin-bottom:10px}
     #editor_metadata {margin-top: 5px}
-    #preview {border-style:solid; border-color:#C0C0C0; border-width:2px; height:350px; width=100%}
+    #preview {
+      border-style:solid;
+      border-color:#C0C0C0;
+      border-width:2px;
+      height:350px;
+      width=100%;
+      display:none
+    }
 </style>
 
 <style>
@@ -71,7 +83,8 @@
     <div class="col-md-6 col-sm-12">
       
       <label for="editor">Edit data&nbsp;<a href="/help/data_editor_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Data editor instructions and examples"></span></a></label>
-      <!--<div id="editor_status"></div>-->
+      <div id="editor_status" class='view_status'>No data loaded</div>
+      
       <div id="editor">
   
         <!--scalar editor-->
@@ -88,6 +101,13 @@
         
         <!--array editor-->
         <div id="array" class="editor"></div>
+        
+        <!--text editor-->
+        <div id="descriptor" class="editor">
+          <label class="control-label sr-only sr-only-focusable" for="text_input">Text:</label>
+          <textarea id="text_input" class="form-control" rows="3" placeholder="Enter some text..."></textarea>
+        </div>
+        
         <div id='editor_metadata' style='width:100%'>
           <div id='unit' class='pull-left'></div>
           <div id='savestatus' class='pull-right' style="font-weight:bold;color:red"></div>
@@ -98,8 +118,9 @@
               <option value="scalar" data-tokens='{"data_type": "scalar"}'>Number</option>
               <option value="function" data-tokens='{"data_type": "function"}'>Function/code</option>
               <option value="timeseries" data-tokens='{"data_type": "timeseries"}'>Time series</option>
-              <option value="eqtimeseries" data-tokens='{"data_type": "eqtimeseries"}'>Seasonal time series</option>
+              <!--<option value="stimeseries" data-tokens='{"data_type": "timeseries"}'>Seasonal time series</option>-->
               <!--<option value="array" data-tokens='{"data_type": "array"}'>Array</option>-->
+              <option value="descriptor" data-tokens='{"data_type": "descriptor"}'>Text</option>
             </select>
           </div>
 
@@ -117,8 +138,9 @@
     
     <div class="col-md-6 col-sm-12">
       <label for="preview">Preview data&nbsp;<a href="/help/preview_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Preview chart instructions"></span></a></label>
-      <div id="preview">
-      </div>
+      <div id="preview_status" class='view_status'>No data loaded</div>
+      
+      <div id="preview"></div>
     </div>
   </div>
 
