@@ -1,15 +1,14 @@
-from __future__ import division, print_function
 import os
-from sys import stderr
 from subprocess import Popen
 
 from flask import render_template, request, session, json, jsonify, current_app
 from flask_user import login_required
-from ..connection import connection
 
+from OpenAgua import app
+from ..connection import connection
+from ..utils import decrypt
 from ..hydra_apps.openaguamodel.progress_check import get_completed
 
-from subprocess import call
 
 # import blueprint definition
 from . import model_dashboard
@@ -56,6 +55,9 @@ def run_model():
     args = dict(
         app = appname,
         url = session['hydra_url'],
+        user = session['hydra_username'],
+        pw = decrypt(session['hydra_password'],
+                     app.config['SECRET_ENCRYPT_KEY']),
         sid = session['hydra_sessionid'],
         nid = session['network_id'],
         tid = session['template_id'],
@@ -70,7 +72,6 @@ def run_model():
     for k, v in args.items():
         call += ' -{} {}'.format(k, v)
     
-    #print(call, file=stderr)
     returncode = Popen(call)
     
     status = 1

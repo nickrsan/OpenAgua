@@ -1,28 +1,15 @@
-# import
 import argparse as ap
-
 import logging
-import os, sys
+import os
 from os.path import join
-from shutil import rmtree
-from time import sleep
-
-# hydra server connection
-from connection import connection
-
-# multicore processing tools
 import multiprocessing
 from functools import partial
 
-# modeling
-import datetime as dt
 from dateutil import rrule
-from scenario import run_scenario
 
-# the main per time step routine
-def run_timestep(data):
-    
-    return 5
+from connection import connection
+from model import create_model
+from scenario import run_scenario
 
 def run_scenarios(args):
     """
@@ -51,6 +38,7 @@ def run_scenarios(args):
     # create model
     # ============
   
+    #model = 
 
     # =============
     # run scenarios
@@ -72,9 +60,11 @@ def run_scenarios(args):
     # run the model
     scenarios = eval(args.scenario_ids)
     
+    p = partial(run_scenario, args=args)
+    
     log.info('Running {} scenarios in multicore mode with {} workers, {} chunks each.' \
              .format(len(scenarios), poolsize, chunksize))  
-    pools = pool.imap(partial(run_scenario, args=args), scenarios, chunksize=chunksize)
+    pools = pool.imap(p, scenarios, chunksize=chunksize)
     
     # iterate over results
     #for result in enumerate(pools):
@@ -150,7 +140,7 @@ if __name__=='__main__':
     here = os.path.abspath(os.path.dirname(__file__))
     if args.log_dir is None:
         args.log_dir = '.'
-    args.log_dir = os.path.join(here, args.log_dir)
+    args.log_dir = join(here, args.log_dir)
         
     if args.scenario_log_dir is None:
         args.scenario_log_dir = 'logs'
