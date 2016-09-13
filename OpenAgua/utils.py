@@ -6,7 +6,6 @@ from datetime import datetime
 from dateutil import rrule, parser
 from flask import session
 from cryptography.fernet import Fernet
-from . import app
 
 class d2o(object):
     def __init__(self, dictionary):
@@ -168,6 +167,11 @@ def eval_data(data_type, data, do_eval=False, function=None):
     else:
         return timeseries
     
-def decrypt(ciphertext):
-    f = Fernet(app.config['SECRET_ENCRYPT_KEY'])
-    return f.decrypt(ciphertext).decode('utf-8')
+def encrypt(text, key):
+    f = Fernet(key)
+    return f.encrypt(str.encode(text))    
+    
+def decrypt(ciphertext, key):
+    f = Fernet(key)
+    return f.decrypt(ciphertext).decode()
+

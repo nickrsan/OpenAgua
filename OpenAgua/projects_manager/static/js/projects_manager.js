@@ -359,14 +359,8 @@ $(document).on('click', '.delete_template', function(e) {
 });
 
 $( document ).ready(function() {
-    if (active_project_id > 0) {
-        update_projects(active_project_id);
-    }
-    if (active_project_id > 0 & active_network_id > 0) {
-        update_networks(active_project_id, active_network_id);
-    }
-    if (active_network_id > 0) {
-        update_templates(active_network_id, active_template_id);
-    }
+    update_projects(active_project_id);
+    update_networks(active_project_id, active_network_id);
+    update_templates(active_network_id, active_template_id);
     update_all_templates();
 });

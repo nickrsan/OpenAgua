@@ -6,7 +6,7 @@ import datetime
 from flask import render_template, request, session, json, jsonify, redirect
 from flask_user import login_required, current_user
 
-from ..connection import new_hydra_sessionid, make_connection
+from ..connection import make_connection, load_hydrauser
 
 # import blueprint definition
 from . import projects_manager
@@ -16,9 +16,10 @@ here = os.path.dirname(os.path.abspath(__file__))
 @projects_manager.route('/manage')
 @login_required
 def manage():
-    session['hydra_sessionid'] = new_hydra_sessionid(session)
+    load_hydrauser() # do this at the top of every page
     conn = make_connection(session, include_network=False, 
-                          include_template=False)
+                           include_template=False)
+    conn.load_active_study()
     
     # get the list of project names, and network names for the test project
     projects = conn.call('get_projects',{'user_id':session['hydra_user_id']})
@@ -133,9 +134,9 @@ def purge_project():
 def get_templates_for_network():
     conn = make_connection(session, include_network=False,
                            include_template=False)
-    network_id = int(request.args.get('network_id'))
-    
-    if network_id > 0:
+    network_id = request.args.get('network_id')
+    if network_id is not None:
+        network_id = int(network_id)
         net = conn.call('get_network', {'network_id': network_id})
         tpls = conn.call('get_templates', {})
         

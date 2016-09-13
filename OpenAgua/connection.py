@@ -2,11 +2,13 @@ from webcolors import name_to_hex
 import sys
 import requests
 import json
+from flask import session
 
 import logging
 
-from .utils import hydra_timeseries, eval_data, decrypt
-from .models import HydraUser
+from .utils import hydra_timeseries, eval_data, encrypt, decrypt
+from .models import User, HydraUser, HydraUrl
+from . import app # delete later
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +70,7 @@ class connection(object):
             # raise error
         response = self.call('login', {'username': username,
                                        'password': password})
-        self.session_id = response.session_id
+        self.session_id = response.sessionid
         self.user_id = response.userid
         log.info("Session ID: %s", self.session_id)
 
@@ -246,34 +248,54 @@ class connection(object):
                     .format(template_type_name, n1_name, n2_name)
                 
         links.append(link)
-        return links  
+        return links
+    
+    def load_active_study(self):
+        session['project_name'] = app.config['HYDRA_PROJECT_NAME']
+        session['network_name'] = app.config['HYDRA_NETWORK_NAME']
+        session['template_name'] = app.config['HYDRA_TEMPLATE_NAME']
+        
+        # load / create project
+        projects = self.call('get_projects', {})
+        if session['project_name'] in [proj.name for proj in projects]:
+            project = self.get_project_by_name(session['project_name'])
+            session['project_id'] = project.id
+        else:
+            session['project_id'] = -1
+        
+        # load / activate network
+        networks = self.call('get_networks',{'project_id':project.id})
+        if session['network_name'] in [net.name for net in networks]:
+            network = self.get_network_by_name(session['project_id'], session['network_name'])
+            session['network_id'] = network.id    
+        else:
+            session['network_id'] = None
+            
+        # load / activate template (temporary fix)
+        templates = self.call('get_templates',{})    
+        template_names = [t.name for t in templates]    
+        if session['template_name'] in template_names:
+            session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
+        else:
+            session['template_id'] = -1
+            
+        session['appname'] = 'pyomo_network_lp'    
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
         for k, v in obj_dict.items():
             self[k] = v
-            setattr(self, k, v)
-
-def new_hydra_sessionid(session):
-    
-    conn = connection(url=session['hydra_url'])
-    hydrauser = HydraUser.query \
-        .filter(HydraUser.hydra_userid==session['hydra_user_id']).first()
-    # NOT SECURE IN TRANSMISSION
-    sessionid = conn.login(username=hydrauser.hydra_username,
-                           password=decrypt(hydrauser.hydra_password))
-    return sessionid
+            setattr(self, k, v)                            
             
 def make_connection(session,
                     include_network=True,
-                    include_template=True):    
+                    include_template=True):
+        
+    conn = connection(url=session['hydra_url'],
+                      session_id=session['hydra_sessionid'])
     
-    conn = connection(url=session['hydra_url'], session_id=session['hydra_sessionid'])
-    
-    for i in ['hydra_user_id',
-              'project_id', 'project_name',
-              'network_id', 'network_name',
-              'template_id', 'template_name']:
+    for i in ['hydra_sessionid', 'hydra_user_id', 'template_name',
+              'template_id']:
         exec("conn.%s = session['%s']" % (i,i))
     
     if include_network:
@@ -346,4 +368,76 @@ def save_data(conn, old_data_type, cur_data_type, res_attr, res_attr_data, new_v
     else:
         returncode = 1
     return returncode    
+    
+def create_hydrauser(db,
+                     user_id,
+                     hydra_url, encrypt_key,
+                     hydra_admin_username, hydra_admin_password,
+                     hydra_user_username, hydra_user_password):
+    hydraurl = HydraUrl.query \
+        .filter(HydraUrl.hydra_url == hydra_url).first()
+
+    if hydraurl is None: # this should be done via manage.py, not here
+        hydraurl = HydraUrl(hydra_url=hydra_url)
+        db.session.add(hydraurl)
+        db.session.commit()
+
+    hydraurl = HydraUrl.query \
+        .filter(HydraUrl.hydra_url == hydra_url).first()
+
+    # create new Hydra user account
+    hydra_user_pw_encrypted = encrypt(hydra_user_password, encrypt_key)        
+    conn = connection(url=hydra_url)
+    conn.login(username=hydra_admin_username, # UNSECURE TRANSMISSION!
+               password=hydra_admin_password) 
+    hydra_user = conn.call('get_user_by_name',
+                           {'username':hydra_user_username})
+    if not hydra_user:
+        hydra_user = conn.call('add_user',
+                               {'user': {'username': hydra_user_username,
+                                         'password': hydra_user_password}})
+
+    # log in with the new username and password
+    conn.login(username=hydra_user_username,
+               password=hydra_user_password)
+
+    # add hydra user & session information to database
+    hydrauser = HydraUser( \
+        user_id = user_id,
+        hydra_url_id = hydraurl.id,
+        hydra_userid = hydra_user.id,
+        hydra_username = hydra_user.username,
+        hydra_password = hydra_user_pw_encrypted,
+        hydra_sessionid = conn.session_id
+    )
+    db.session.add(hydrauser)
+
+    db.session.commit()    
+
+def load_hydrauser():
+
+    # new sessions should not have any hydra info
+    if 'hydra_user_id' not in session:
+        hydrauser = HydraUser.query \
+            .filter(HydraUser.user_id==session['user_id']).first()
+        hydraurl = HydraUrl.query \
+            .filter(HydraUrl.id==hydrauser.hydra_url_id).first()
+
+        session['hydra_user_id'] = hydrauser.hydra_userid
+        session['hydra_url'] = hydraurl.hydra_url
+        session['hydra_username'] = hydrauser.hydra_username
+        session['hydra_password'] = hydrauser.hydra_password # it's encrypted
+        session['hydra_sessionid'] = hydrauser.hydra_sessionid
+
+#def new_hydra_sessionid():
+
+    #conn = connection(url=session['hydra_url'])
+    #hydrauser = HydraUser.query \
+        #.filter(HydraUser.hydra_userid==session['hydra_user_id']).first()
+    ## NOT SECURE IN TRANSMISSION
+    #sessionid = conn.login(username=hydrauser.hydra_username,
+                            #password=decrypt(hydrauser.hydra_password,
+                                            #app.config['SECRET_ENCRYPT_KEY']))
+    #return sessionid
+        
     

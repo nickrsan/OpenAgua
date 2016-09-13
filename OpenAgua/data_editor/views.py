@@ -13,18 +13,16 @@ from . import data_editor
 @data_editor.route('/data_editor')
 @login_required
 def data_editor_main():    
-    conn = connection(url=session['url'], session_id=session['session_id'])
-    network = conn.call('get_network', {'network_id':session['network_id'],
-                                        'include_data':'N'})
-    template = conn.call('get_template',{'template_id':session['template_id']})
+    conn = make_connection(session)
+    
     features = OrderedDict()
     
     for res_type in ['NETWORK','NODE','LINK']:
-        for ttype in template.types:            
+        for ttype in conn.template.types:            
             if ttype.resource_type=='NETWORK':
                 pass # not sure how to load these
             elif ttype.resource_type==res_type:
-                feats = [r for r in eval('network.{}s' \
+                feats = [r for r in eval('conn.network.{}s' \
                                          .format(res_type.lower())) \
                          if ttype.id in [t.id for t in r.types]]
                 if feats:
@@ -33,13 +31,15 @@ def data_editor_main():
     
     return render_template('data_editor.html',
                            features=features,
-                           scenarios=network.scenarios)
+                           scenarios=conn.network.scenarios)
 
 @data_editor.route('/_get_variables', methods=['GET','POST'])
 @login_required
 def get_variables():
     
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = make_connection(session, include_network=False,
+                           include_template=False)
+    
     type_id = int(request.args.get('type_id'))
     feature_id = int(request.args.get('feature_id'))
     feature_type = request.args.get('feature_type').lower()
@@ -66,7 +66,8 @@ def get_variables():
 @data_editor.route('/_get_variable_data')
 @login_required
 def get_variable_data():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = make_connection(session, include_network=False,
+                           include_template=False)
     
     feature_type = request.args.get('feature_type').lower()
     feature_id = int(request.args.get('feature_id'))
