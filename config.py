@@ -13,7 +13,8 @@ SECRET_KEY = 'a deep, dark secret'
 SECRET_ENCRYPT_KEY = b'3SmE-pwbieJubimO2BM15nzAqxD6TTijeFrSAgwOZVU='
 SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/instance/users.sqlite'.format(APP_ROOT)
 
-HYDRA_APPS_DIR = os.path.join(APP_ROOT, 'OpenAgua', 'hydra_apps')
+PYOMO_APP_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
+PYOMO_APP_NAME = 'OpenAguaModel'
 
 # Flask-User settings
 USER_APP_NAME = "OpenAgua"

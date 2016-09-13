@@ -11,6 +11,10 @@ from connection import connection
 from model import create_model
 from scenario import run_scenario
 
+from utils import get_completed
+
+import wingdbstub
+
 def run_scenarios(args):
     """
         This is a wrapper for running all the scenarios, where scenario runs are
@@ -120,6 +124,8 @@ def commandline_parser():
                         help='''The log file directory for the scenarios.''')
     parser.add_argument('-sol', '--solver',
                         help='''The solver to use (e.g., glpk, gurobi, etc.).''')
+    parser.add_argument('-ms', '--model-status',
+                        help='''Check the status of the model run''')
     return parser
 
 def create_logger(appname, logfile):
@@ -137,18 +143,25 @@ if __name__=='__main__':
     parser = commandline_parser()
     args = parser.parse_args()
     
+    # specify scenarios log dir
+    if args.scenario_log_dir is None:
+        args.scenario_log_dir = 'logs'
+    args.scenario_log_dir = os.path.join(here, args.scenario_log_dir)    
+
+    # check status? if so, do so, and don't proceed further
+    if args.check_status:
+        return get_completed(args.scenario_log_dir)
+    
+    # specify local top-level log dir
     here = os.path.abspath(os.path.dirname(__file__))
     if args.log_dir is None:
         args.log_dir = '.'
     args.log_dir = join(here, args.log_dir)
-        
-    if args.scenario_log_dir is None:
-        args.scenario_log_dir = 'logs'
-    args.scenario_log_dir = os.path.join(here, args.scenario_log_dir)
 
+    # top-level log
     logfile = join(args.log_dir, 'log.log')
     log = create_logger(args.app_name, logfile)
-
+    
     log.info('started model run with args: %s' % str(args))
     
     # delete old scenario log files
@@ -156,3 +169,5 @@ if __name__=='__main__':
         os.remove(join(args.scenario_log_dir, fname))
     
     run_scenarios(args)
+    
+    return

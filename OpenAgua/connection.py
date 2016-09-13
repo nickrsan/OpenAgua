@@ -261,15 +261,17 @@ class connection(object):
             project = self.get_project_by_name(session['project_name'])
             session['project_id'] = project.id
         else:
-            session['project_id'] = -1
+            session['project_id'] = None
         
         # load / activate network
-        networks = self.call('get_networks',{'project_id':project.id})
-        if session['network_name'] in [net.name for net in networks]:
-            network = self.get_network_by_name(session['project_id'], session['network_name'])
-            session['network_id'] = network.id    
-        else:
-            session['network_id'] = None
+        if session['project_id']:
+            networks = self.call('get_networks',{'project_id':project.id})
+            if session['network_name'] in [net.name for net in networks]:
+                network = self.get_network_by_name(session['project_id'], session['network_name'])
+                session['network_id'] = network.id    
+            else:
+                session['network_id'] = None
+        else: session['network_id'] = None
             
         # load / activate template (temporary fix)
         templates = self.call('get_templates',{})    
@@ -277,7 +279,7 @@ class connection(object):
         if session['template_name'] in template_names:
             session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
         else:
-            session['template_id'] = -1
+            session['template_id'] = None
             
         session['appname'] = 'pyomo_network_lp'    
     
@@ -305,8 +307,7 @@ def make_connection(session,
                                             app.config['SECRET_ENCRYPT_KEY']))
             session['hydra_sessionid'] = sessionid
     
-    for i in ['hydra_sessionid', 'hydra_user_id', 'template_name',
-              'template_id']:
+    for i in ['hydra_sessionid', 'hydra_user_id']:
         exec("conn.%s = session['%s']" % (i,i))
     
     if include_network:

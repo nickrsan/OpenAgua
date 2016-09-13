@@ -1,7 +1,6 @@
 import os
 
-def get_completed(scenario_logs_dir):
-    logsdir = os.path.join(os.path.dirname(__file__), scenario_logs_dir)
+def get_completed(logsdir):
     timesteps_completed = 0
     timesteps_count = None
     for lf in os.listdir(logsdir):
@@ -14,4 +13,5 @@ def get_completed(scenario_logs_dir):
             timesteps_completed += int(completed)
             timesteps_count = int(count)
             
-    return {'timesteps_completed': timesteps_completed, 'timesteps_count':timesteps_count}
+    return {'timesteps_completed': timesteps_completed,
+            'timesteps_count': timesteps_count}
