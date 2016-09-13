@@ -5,7 +5,8 @@ import json
 
 import logging
 
-from .utils import hydra_timeseries, eval_data
+from .utils import hydra_timeseries, eval_data, decrypt
+from .models import HydraUser
 
 log = logging.getLogger(__name__)
 
@@ -57,15 +58,17 @@ class connection(object):
         
         log.info('Finished communicating with Hydra Platform.')
 
-        resp = json.loads(response.content.decode("utf-8"), object_hook=JSONObject)
+        resp = json.loads(response.content.decode("utf-8"),
+                          object_hook=JSONObject)
         return resp
 
     def login(self, username=None, password=None):
         if username is None:
             err = 'Error. Username not provided.'
             # raise error
-        response = self.call('login', {'username': username, 'password': password})
-        self.session_id = response.sessionid
+        response = self.call('login', {'username': username,
+                                       'password': password})
+        self.session_id = response.session_id
         self.user_id = response.userid
         log.info("Session ID: %s", self.session_id)
 
@@ -250,15 +253,24 @@ class JSONObject(dict):
         for k, v in obj_dict.items():
             self[k] = v
             setattr(self, k, v)
+
+def new_hydra_sessionid(session):
+    
+    conn = connection(url=session['hydra_url'])
+    hydrauser = HydraUser.query \
+        .filter(HydraUser.hydra_userid==session['hydra_user_id']).first()
+    # NOT SECURE IN TRANSMISSION
+    sessionid = conn.login(username=hydrauser.hydra_username,
+                           password=decrypt(hydrauser.hydra_password))
+    return sessionid
             
 def make_connection(session,
                     include_network=True,
-                    include_template=True):
+                    include_template=True):    
     
-    conn = connection(url=session['url'],
-                      session_id=session['session_id'])
+    conn = connection(url=session['hydra_url'], session_id=session['hydra_sessionid'])
     
-    for i in ['user_id', 'appname',
+    for i in ['hydra_user_id',
               'project_id', 'project_name',
               'network_id', 'network_name',
               'template_id', 'template_name']:
@@ -333,4 +345,5 @@ def save_data(conn, old_data_type, cur_data_type, res_attr, res_attr_data, new_v
         returncode = -1
     else:
         returncode = 1
-    return returncode
+    return returncode    
+    

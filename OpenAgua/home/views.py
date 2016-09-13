@@ -8,13 +8,18 @@ from ..connection import connection
 # import blueprint definition
 from . import user_home
 from OpenAgua import app, db, user_manager
-from OpenAgua.models import User, HydraUrl, HydraUser
+from OpenAgua.models import User, HydraUrl, HydraUser, HydraProject
 
 @user_home.route('/home')
 @login_required
 def home():
 
-    if current_user.new_user:
+    
+    hydrauser = HydraUser.query \
+        .filter(HydraUser.user_id==current_user.id).first()
+    
+    if not hydrauser:
+        
         hydra_url = app.config['HYDRA_URL']
         hydraurl = HydraUrl.query \
             .filter(HydraUrl.hydra_url == hydra_url).first()
@@ -29,15 +34,10 @@ def home():
         
         # create new Hydra user account
         hydra_user_pw = 'password' # get from user later
-        #obj = AES.new(app.config['HYDRA_ENCRYPT_PASSWORD'],
-                      #AES.MODE_CBC,
-                      #app.config['SECRET_ENCRYPT_KEY'])
-        #hydra_user_pw_encrypted = obj.encrypt(hydra_user_pw)
         f = Fernet(app.config['SECRET_ENCRYPT_KEY'])
-        hydra_user_pw_encrypted = f.encrypt(b"my deep dark secret")        
-        conn = connection(url=hydra_url)
+        hydra_user_pw_encrypted = f.encrypt(hydra_user_pw)        
         # IMPORTANT: this is transmitted unencrypted. Need to secure this.
-        conn = connection(url=app.config['HYDRA_URL'])
+        conn = connection(url=hydra_url)
         conn.login(username=app.config['HYDRA_ROOT_USERNAME'],
                    password=app.config['HYDRA_ROOT_PASSWORD'])
         hydra_user = conn.call('get_user_by_name',
@@ -47,30 +47,30 @@ def home():
                                    {'user': {'username': current_user.username,
                                              'password': hydra_user_pw}})
             
+        # log in with the new username and password
         conn.login(username=current_user.username,
                    password=hydra_user_pw)
         session['hydra_session_id'] = conn.session_id
         
         # add hydra user information to database
-        #hydrauser = HydraUser( \
-            #user_id = current_user.id,
-            #hydra_url_id = hydraurl.id,
-            #hydra_userid = hydra_user.id,
-            #hydra_username = hydra_user.username,
-            #hydra_password = hydra_user_pw_encrypted,
-            #hydra_sessionid = conn.session_id
-        #)
-        #db.session.add(hydrauser)
-        #db.session.commit()
+        hydrauser = HydraUser( \
+            user_id = current_user.id,
+            hydra_url_id = hydraurl.id,
+            hydra_userid = hydra_user.id,
+            hydra_username = hydra_user.username,
+            hydra_password = hydra_user_pw_encrypted,
+            hydra_sessionid = conn.session_id
+        )
+        db.session.add(hydrauser)
         
         user = User.query \
             .filter(User.username == current_user.username).first()  
         user.new_user = False
+        
+        # commit
         db.session.commit()
     
     # get current hydra user
-    hydrauser = HydraUser.query \
-        .filter(HydraUser.user_id == current_user.id).first()
     hydraurl = HydraUrl.query \
                 .filter(HydraUrl.id == hydrauser.hydra_url_id).first()    
     
@@ -80,15 +80,18 @@ def home():
         # shouldn't get here since sessionid should be permanent
         f = Fernet(app.config['SECRET_ENCRYPT_KEY'])
         hydra_user_pw = F.decrypt(hydra_user_pw_encrypted)
-        conn = connection(url=session['url'])
-        conn.login(username=current_user.hydra_username, password=hydra_user_pw)
-        session['hydra_session_id']=conn.session_id    
+        conn = connection(url=hydrauser.hydra_url)
+        conn.login(username=current_user.hydra_username, password=hydra_user_pw) 
+        session['hydra_sessionid'] = conn.session_id
         hydra_user_pw = None # just to be safe
+    else:
+        session['hydra_sessionid'] = hydrauser.hydra_sessionid
     
-    session['hydra_user_id'] = conn.user_id
+    session['hydra_user_id'] = hydrauser.hydra_userid
+    session['hydra_url'] = hydraurl.hydra_url
 
     # add recent project/network/template to session (to be loaded from user data in the future)
-    session['project_name'] = app.config['HYDRA_PROJECT_NAME']
+    session['project_name'] = current_user.username
     session['network_name'] = app.config['HYDRA_NETWORK_NAME'] 
     session['template_name'] = app.config['HYDRA_TEMPLATE_NAME']
     session['project_id'] = -1

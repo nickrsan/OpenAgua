@@ -4,9 +4,9 @@ import zipfile
 import datetime
 
 from flask import render_template, request, session, json, jsonify, redirect
-from flask_user import login_required
+from flask_user import login_required, current_user
 
-from ..connection import connection
+from ..connection import new_hydra_sessionid, make_connection
 
 # import blueprint definition
 from . import projects_manager
@@ -16,7 +16,9 @@ here = os.path.dirname(os.path.abspath(__file__))
 @projects_manager.route('/manage')
 @login_required
 def manage():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    session['hydra_sessionid'] = new_hydra_sessionid(session)
+    conn = make_connection(session, include_network=False, 
+                          include_template=False)
     
     # get the list of project names, and network names for the test project
     projects = conn.call('get_projects',{'user_id':session['hydra_user_id']})
@@ -52,7 +54,8 @@ def manage():
 @projects_manager.route('/_add_project')
 @login_required
 def add_project():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = make_connection(session, include_network=False,
+                           include_template=False)
     projects = conn.call('get_projects', {'user_id':session['hydra_user_id']})
     project_names = [project.name for project in projects]
     activate = request.args.get('activate')
@@ -60,12 +63,9 @@ def add_project():
     proj = json.loads(proj)
     if proj['name'] in project_names:
         status_code = -1 # name already exists
-    project = conn.call('add_project', {'project':proj})
-    status_code = 1
-    
-    if activate:
-        session['project_name'] = project.name
-        session['project_id'] = project.id
+    else:
+        project = conn.call('add_project', {'project':proj})
+        status_code = 1
     
     return jsonify(result={'status_code': status_code})
 
@@ -75,7 +75,8 @@ def add_project():
 def add_network():
     
     # connect & get networks
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = make_connection(session, include_network=False, 
+                          include_template=False)
     networks = conn.call('get_networks',
                          {'project_id': session['project_id'],
                           'include_data': 'N'})
@@ -112,7 +113,8 @@ def add_network():
 @projects_manager.route('/_purge_project')
 @login_required
 def purge_project():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = make_connection(session, include_network=False, 
+                          include_template=False)
     project_id = int(request.args.get('project_id'))
     
     resp = conn.call('purge_project', {'project_id':project_id})
@@ -129,37 +131,43 @@ def purge_project():
 @projects_manager.route('/_get_templates_for_network')
 @login_required
 def get_templates_for_network():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = make_connection(session, include_network=False,
+                           include_template=False)
     network_id = int(request.args.get('network_id'))
     
-    net = conn.call('get_network', {'network_id': network_id})
-    tpls = conn.call('get_templates', {})
-    
-    net_tpl_ids = [t.template_id for t in net.types]
-    net_tpls = [tpl for tpl in tpls if tpl.id in net_tpl_ids]
-    
+    if network_id > 0:
+        net = conn.call('get_network', {'network_id': network_id})
+        tpls = conn.call('get_templates', {})
+        
+        net_tpl_ids = [t.template_id for t in net.types]
+        net_tpls = [tpl for tpl in tpls if tpl.id in net_tpl_ids]
+    else:
+        net_tpls = []
     return jsonify(templates=net_tpls)
     
-@projects_manager.route('/_delete_template')
-@login_required
-def delete_template():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+#@projects_manager.route('/_delete_template')
+#@login_required
+#def delete_template():
+    #conn = make_connection(session, include_network=False, 
+                          #include_template=False)
     
-    resp = conn.call('delete_template', {'delete_template':template_id})
-    if resp=='OK':
-        status_code = 1
-        if session['template_id'] == template_id:
-            session['template_name'] = None
-            session['template_id'] = None        
-    else:
-        status_code = -1
-    return jsonify(result={'status_code': status_code})
+    #template_id = int(request.args.get('template_id'))
+    #resp = conn.call('delete_template', {'delete_template':template_id})
+    #if resp=='OK':
+        #status_code = 1
+        #if session['template_id'] == template_id:
+            #session['template_name'] = None
+            #session['template_id'] = None        
+    #else:
+        #status_code = -1
+    #return jsonify(result={'status_code': status_code})
 
 
 @projects_manager.route('/_hydra_call', methods=['GET', 'POST'])
 @login_required
 def hydra_call():
-    conn = connection(url=session['url'], session_id=session['session_id'])
+    conn = make_connection(session, include_network=False, 
+                          include_template=False)
     func = request.args.get('func')
     args = request.args.get('args')
     args = json.loads(args)
