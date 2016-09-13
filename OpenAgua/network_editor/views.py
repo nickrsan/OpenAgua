@@ -1,6 +1,6 @@
 from flask import render_template, request, session, json, jsonify, g
 from flask_user import login_required
-from ..connection import make_connection
+from ..connection import make_connection, load_hydrauser
 
 # import blueprint definition
 from . import net_editor
@@ -8,7 +8,9 @@ from . import net_editor
 @net_editor.route('/network_editor')
 @login_required
 def network_editor():
+    load_hydrauser() # do this at the top of every page
     conn = make_connection(session)
+    conn.load_active_study()
     
     ntypes = [t for t in conn.template.types if t.resource_type == 'NODE']
     ltypes = [t for t in conn.template.types if t.resource_type == 'LINK']

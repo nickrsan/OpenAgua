@@ -293,6 +293,17 @@ def make_connection(session,
         
     conn = connection(url=session['hydra_url'],
                       session_id=session['hydra_sessionid'])
+    ping = conn.call('get_username', {'uid': session['hydra_user_id']})
+    
+    if 'faultcode' in ping:
+        if ping.faultcode == 'No Session':
+            conn = connection(url=session['hydra_url'])
+            # NOT SECURE IN TRANSMISSION
+            sessionid = \
+                conn.login(username=session['hydra_username'],
+                           password=decrypt(session['hydra_password'],
+                                            app.config['SECRET_ENCRYPT_KEY']))
+            session['hydra_sessionid'] = sessionid
     
     for i in ['hydra_sessionid', 'hydra_user_id', 'template_name',
               'template_id']:
@@ -427,17 +438,5 @@ def load_hydrauser():
         session['hydra_url'] = hydraurl.hydra_url
         session['hydra_username'] = hydrauser.hydra_username
         session['hydra_password'] = hydrauser.hydra_password # it's encrypted
-        session['hydra_sessionid'] = hydrauser.hydra_sessionid
-
-#def new_hydra_sessionid():
-
-    #conn = connection(url=session['hydra_url'])
-    #hydrauser = HydraUser.query \
-        #.filter(HydraUser.hydra_userid==session['hydra_user_id']).first()
-    ## NOT SECURE IN TRANSMISSION
-    #sessionid = conn.login(username=hydrauser.hydra_username,
-                            #password=decrypt(hydrauser.hydra_password,
-                                            #app.config['SECRET_ENCRYPT_KEY']))
-    #return sessionid
-        
+        session['hydra_sessionid'] = hydrauser.hydra_sessionid        
     

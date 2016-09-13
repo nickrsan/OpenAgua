@@ -43,7 +43,7 @@ def run_model():
     user_args = json.loads(user_args)
     ti = user_args['ti']
     tf = user_args['tf']
-    scids = [1,2,3] # need to get these from scenario
+    scids = [1] # need to get these from scenario
     session['scenarios_count'] = len(scids)
     
     # 2. define app name and arguments
@@ -55,10 +55,8 @@ def run_model():
     appfile = os.path.join(hydra_apps_dir, appname, 'main.py')
     args = dict(
         app = appname,
-        url = session['url'],
-        #user = 'root',
-        #pw = 'password',
-        sid = session['session_id'],
+        url = session['hydra_url'],
+        sid = session['hydra_sessionid'],
         nid = session['network_id'],
         tid = session['template_id'],
         scids = '"%s"' % scids,
@@ -69,7 +67,7 @@ def run_model():
     # 3. run the model as a subprocess
     # in the future, this will be via a web server call with json
     call = 'python {}'.format(appfile)
-    for k, v in args.iteritems():
+    for k, v in args.items():
         call += ' -{} {}'.format(k, v)
     
     #print(call, file=stderr)
