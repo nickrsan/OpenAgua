@@ -3,6 +3,7 @@ from getpass import getpass
 from datetime import datetime
 from flask_script import Manager
 from flask_migrate import Migrate, MigrateCommand
+from flask_security.utils import encrypt_password
 
 from OpenAgua import app, db
 from OpenAgua.models import *
@@ -57,9 +58,8 @@ def addsuperuser():
     print("Creating account...", end=" ")
     
     # Create user
-    user = User(username=username,
-                email=email,
-                password=app.user_manager.hash_password(password),
+    user = User(email=email,
+                password=encrypt_password(password),
                 active=True,
                 confirmed_at=datetime.utcnow())
 
