@@ -1,5 +1,5 @@
 from flask import render_template
-from flask_user import login_required
+from flask_security import login_required
 
 # import blueprint definition
 from . import main_overview

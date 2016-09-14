@@ -4,7 +4,7 @@ import zipfile
 import datetime
 
 from flask import render_template, request, session, json, jsonify, redirect
-from flask_user import login_required, current_user
+from flask_security import login_required, current_user
 
 from ..connection import make_connection, load_hydrauser
 

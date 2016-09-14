@@ -2,13 +2,11 @@ import os
 from subprocess import Popen, call
 
 from flask import render_template, request, session, json, jsonify, current_app
-from flask_user import login_required
+from flask_security import login_required
 
 from OpenAgua import app
 from ..connection import connection
 from ..utils import decrypt
-#from ..hydra_apps.openaguamodel.progress_check import get_completed
-
 
 # import blueprint definition
 from . import model_dashboard

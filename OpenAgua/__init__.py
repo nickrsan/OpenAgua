@@ -5,7 +5,10 @@ from sys import stderr
 from flask import Flask
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
-from flask_user import UserManager, SQLAlchemyAdapter
+#from flask_user import UserManager, SQLAlchemyAdapter
+from flask_security import Security, SQLAlchemyUserDatastore, \
+    UserMixin, RoleMixin, login_required
+
 from flask_login import current_user
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -25,8 +28,11 @@ db = SQLAlchemy(app)
 mail = Mail(app)
 
 # Setup Flask-User
-db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
-user_manager = UserManager(db_adapter, app)    # Initialize Flask-User
+#db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
+#user_manager = UserManager(db_adapter, app)    # Initialize Flask-User
+# Setup Flask-Security
+user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+security = Security(app, user_datastore)
 
 import OpenAgua.views
 
@@ -54,7 +60,7 @@ admin = Admin(app, name=__name__, template_mode='bootstrap3')
 class UserView(ModelView):
     
     column_exclude_list = ['password', ]
-    column_searchable_list = ['username', 'email']
+    column_searchable_list = ['email']
     
     def is_accessible(self):
         if not current_user.is_active or not current_user.is_authenticated:

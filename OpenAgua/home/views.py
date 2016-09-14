@@ -1,9 +1,9 @@
 from flask import render_template, request, session, redirect, url_for
-from flask_user import login_required, current_user
+from flask_security import login_required, current_user
 
 from ..connection import make_connection, create_hydrauser, load_hydrauser
 from . import user_home
-from OpenAgua import app, db, user_manager
+from OpenAgua import app, db
 from OpenAgua.models import User, HydraUrl, HydraUser, HydraProject
 
 @user_home.route('/home')
@@ -21,12 +21,12 @@ def home():
                          encrypt_key=app.config['SECRET_ENCRYPT_KEY'],
                          hydra_admin_username=app.config['HYDRA_ROOT_USERNAME'],
                          hydra_admin_password=app.config['HYDRA_ROOT_PASSWORD'],
-                         hydra_user_username=current_user.username,
+                         hydra_user_username=current_user.email,
                          hydra_user_password='password')
         
         # update the user new_user flag
         user = User.query \
-            .filter(User.username == current_user.username).first()  
+            .filter(User.email == current_user.email).first()  
         user.new_user = False  
     
     # load hydrauser

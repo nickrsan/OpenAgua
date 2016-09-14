@@ -1,5 +1,5 @@
 from flask import render_template, request, session, json, jsonify, g
-from flask_user import login_required
+from flask_security import login_required
 from ..connection import make_connection, load_hydrauser
 
 # import blueprint definition

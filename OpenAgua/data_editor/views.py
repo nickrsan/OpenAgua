@@ -2,7 +2,7 @@ from collections import OrderedDict
 from datetime import datetime
 
 from flask import render_template, request, session, jsonify, json, g
-from flask_user import login_required, current_user
+from flask_security import login_required, current_user
 from ..connection import connection, make_connection, save_data
 from ..utils import hydra_timeseries, d2o, \
      eval_scalar, eval_timeseries, eval_function, eval_data
@@ -139,7 +139,7 @@ def check_or_save_data():
         res_attr_data = json.loads(request.args.get('res_attr_data'))    
         scen_id = int(request.args.get('scen_id'))
         
-        metadata = {'source':'OpenAgua/%s' % current_user.username}
+        metadata = {'source':'OpenAgua/%s' % current_user.email}
     
         status = save_data(conn, orig_data_type, cur_data_type,
                            res_attr, res_attr_data, new_value,

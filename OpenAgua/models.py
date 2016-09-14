@@ -1,36 +1,22 @@
 from flask_sqlalchemy import SQLAlchemy
-from flask_user import UserMixin
+from flask_security import UserMixin, RoleMixin
 
 db = SQLAlchemy()
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
-
-    # User authentication information
-    username = db.Column(db.String(50), nullable=False, unique=True)
-    password = db.Column(db.String(255), nullable=False, server_default='')
-    reset_password_token = db.Column(db.String(100), nullable=False, server_default='')
-
-    # User email information
-    email = db.Column(db.String(255), nullable=False, unique=True)
+    email = db.Column(db.String(255), unique=True)
+    password = db.Column(db.String(255))
+    active = db.Column(db.Boolean())
     confirmed_at = db.Column(db.DateTime())
-
-    # User information
-    active = db.Column('is_active', db.Boolean(), nullable=False, server_default='0')
-    first_name = db.Column(db.String(100), nullable=False, server_default='')
-    last_name = db.Column(db.String(100), nullable=False, server_default='')
-    organization = db.Column(db.String(100), nullable=False, server_default='')
-    
-    # Meta information
-    new_user = db.Column(db.Boolean(), nullable=False, server_default='1')
-
-    # Relationships
+    new_user = db.Column(db.Boolean(), server_default='1')
     roles = db.relationship('Role', secondary='user_roles',
-            backref=db.backref('users', lazy='dynamic'))
+                            backref=db.backref('users', lazy='dynamic'))  
 
-class Role(db.Model):
+class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
-    name = db.Column(db.String(50), unique=True)
+    name = db.Column(db.String(80), unique=True)
+    description = db.Column(db.String(255))
 
 class UserRoles(db.Model):
     id = db.Column(db.Integer(), primary_key=True)

@@ -1,6 +1,5 @@
 from flask import session, redirect, url_for, render_template
-from flask_user import login_required
-from flask_login import current_user
+from flask_security import login_required, current_user
 
 from OpenAgua import app
 

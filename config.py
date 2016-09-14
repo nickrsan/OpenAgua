@@ -16,30 +16,23 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/instance/users.sqlite'.format(APP_ROOT)
 PYOMO_APP_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
 PYOMO_APP_NAME = 'OpenAguaModel'
 
-# Flask-User settings
-USER_APP_NAME = "OpenAgua"
-USER_LOGIN_TEMPLATE  = 'flask_user/login.html'
-USER_REGISTER_TEMPLATE = 'flask_user/register.html'
-USER_CHANGE_PASSWORD_TEMPLATE = 'flask_user/change_password.html'
-USER_PROFILE_TEMPLATE = 'flask_user/user_profile.html'
-USER_MANAGE_EMAILS_TEMPLATE = 'flask_user/manage_emails.html'
-USER_FORGOT_PASSWORD_TEMPLATE = 'flask_user/forgot_password.html'
-USER_CHANGE_USERNAME_TEMPLATE = 'flask_user/change_username.html'
-USER_INVITE_TEMPLATE = 'flask_user/invite.html'
-USER_INVITE_ACCEPT_TEMPLATE = 'flask_user/register_accept.html'
-USER_RESET_PASSWORD_TEMPLATE = 'flask_user/reset_password.html'
-USER_AFTER_LOGIN_ENDPOINT = 'user_home.home'
-USER_AFTER_LOGOUT_ENDPOINT = 'index'
-#USER_AFTER_RESET_PASSWORD_ENDPOINT = 'user_home.home'
-USER_AFTER_REGISTER_ENDPOINT = 'index'
-#USER_AFTER_CHANGE_PASSWORD_ENDPOINT = 'user_home.home'
-#USER_AFTER_CHANGE_USERNAME_ENDPOINT = 'user_home.home'
+# Flask-Security settings
+SECURITY_FLASH_MESSAGES = True
+SECURITY_PASSWORD_HASH = 'sha512_crypt'
+SECURITY_PASSWORD_SALT = ''
+SECURITY_EMAIL_SENDER = 'admin@openagua.org'
+#SECURITY_TOKEN_AUTHENTICATION_KEY
+#SECURITY_TOKEN_AUTHENTICATION_HEADER
+SECURITY_TOKEN_MAX_AGE = 600
 
-USER_ENABLE_CHANGE_PASSWORD = True  # Allow users to change their password
-USER_ENABLE_CHANGE_USERNAME = True  # Allow users to change their username
-USER_ENABLE_CONFIRM_EMAIL = False  # Force users to confirm their email
-USER_ENABLE_FORGOT_PASSWORD = True  # Allow users to reset their passwords
-USER_ENABLE_EMAIL = True  # Register with Email
-USER_ENABLE_REGISTRATION = True  # Allow new users to register
-USER_ENABLE_RETYPE_PASSWORD = True  # Prompt for `retype password` in:
-USER_ENABLE_USERNAME = True  # Register and Login with username
+SECURITY_POST_REGISTER_VIEW = 'index'
+SECURITY_POST_CONFIRM_VIEW = 'user_home.home'
+
+SECURITY_CONFIRMABLE = False
+SECURITY_REGISTERABLE = True
+SECURITY_RECOVERABLE = True
+SECURITY_TRACKABLE = False
+SECURITY_PASSWORDLESS = False
+SECURITY_CHANGEABLE = True
+
+SECURITY_LOGIN_WITHOUT_CONFIRMATION = False
