@@ -41,7 +41,7 @@ class HydraUser(db.Model):
     hydra_sessionid = db.Column(db.String(255), nullable=False, server_default='')
     
 class HydraProject(db.Model):
-    __tablename__ = 'hydraproj'
-    id = db.Column(db.Integer(), db.ForeignKey('user.id'), primary_key=True)
+    __tablename__ = 'hydraproject'
+    id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
     hydra_project_id = db.Column(db.Integer())
