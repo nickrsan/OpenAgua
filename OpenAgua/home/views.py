@@ -35,15 +35,6 @@ def home():
                           include_template=False)
     conn.load_active_study()
     
-    #if not conn:
-        ## shouldn't get here since sessionid should be permanent
-        #f = Fernet(app.config['SECRET_ENCRYPT_KEY'])
-        #hydra_user_pw = f.decrypt(hydra_user_pw_encrypted)
-        #conn = connection(url=hydrauser.hydra_url)
-        #conn.login(username=current_user.hydra_username, password=hydra_user_pw) 
-        #session['hydra_sessionid'] = conn.session_id
-        #hydra_user_pw = None # just to be safe
-    
     if session['project_id'] is None \
        or session['network_id'] is None \
        or session['template_id'] is None:

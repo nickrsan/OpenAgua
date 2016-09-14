@@ -3,6 +3,7 @@ import sys
 import requests
 import json
 from flask import session
+from flask_security import current_user
 
 import logging
 
@@ -111,7 +112,7 @@ class connection(object):
     
     def make_geojson_from_node(self, node=None):
         type_id = [t.id for t in node.types \
-                   if t.template_id==self.template_id][0]
+                   if t.template_id==session['template_id']][0]
         ttype = self.ttypes[type_id]
         gj = {'type':'Feature',
               'geometry':{'type':'Point',
@@ -122,7 +123,7 @@ class connection(object):
                             'template_type_name':ttype.name,
                             'template_type_id':ttype.id,
                             'image':ttype.layout.image,
-                            'template_name':self.template_name}}
+                            'template_name':session['template_name']}}
         return gj
 
     def make_geojson_from_link(self, link=None):
@@ -130,7 +131,7 @@ class connection(object):
         coords = get_coords(self.network.nodes)
         
         type_id = [t.id for t in link.types \
-                   if t.template_id==self.template_id][0]
+                   if t.template_id==session['template_id']][0]
         ttype = self.ttypes[type_id]
 
         n1_id = link['node_1_id']
@@ -153,7 +154,7 @@ class connection(object):
                            'template_type_name':ttype.name,
                            'template_type_id':ttype.id,
                            'image':ttype.layout.image,
-                           'template_name':self.template_name,
+                           'template_name':session['template_name'],
                            'color': name_to_hex(ttype.layout.colour),
                            'weight': ttype.layout.line_weight,
                            'opacity': 0.7,
@@ -186,8 +187,8 @@ class connection(object):
         typesummary = dict(
             name = template_type_name,
             id = template_type_id,
-            template_name = self.template_name,
-            template_id = self.template_id
+            template_name = session['template_name'],
+            template_id = session['template_id']
         )
         node = dict(
             id = -1,
@@ -218,8 +219,8 @@ class connection(object):
         typesummary = dict(
             name = template_type_name,
             id = template_type_id,
-            template_name = self.template_name,
-            template_id = self.template_id
+            template_name = session['template_name'],
+            template_id = session['template_id']
         )
 
         links = []
@@ -251,9 +252,9 @@ class connection(object):
         return links
     
     def load_active_study(self):
-        session['project_name'] = app.config['HYDRA_PROJECT_NAME']
-        session['network_name'] = app.config['HYDRA_NETWORK_NAME']
-        session['template_name'] = app.config['HYDRA_TEMPLATE_NAME']
+        session['project_name'] = current_user.email
+        session['network_name'] = 'test network'
+        session['template_name'] = 'OpenAgua'
         
         # load / create project
         projects = self.call('get_projects', {})
@@ -306,9 +307,6 @@ def make_connection(session,
                            password=decrypt(session['hydra_password'],
                                             app.config['SECRET_ENCRYPT_KEY']))
             session['hydra_sessionid'] = sessionid
-    
-    for i in ['hydra_sessionid', 'hydra_user_id']:
-        exec("conn.%s = session['%s']" % (i,i))
     
     if include_network:
         conn.network = conn.get_network(network_id = session['network_id'],
