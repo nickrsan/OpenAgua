@@ -35,12 +35,13 @@ class HydraUser(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
     hydra_url_id = db.Column(db.Integer(), db.ForeignKey('hydraurl.id'))
-    hydra_userid = db.Column(db.Integer(), nullable=False, primary_key=True)
+    hydra_userid = db.Column(db.Integer(), nullable=False)
     hydra_username = db.Column(db.String(50), nullable=False)
     hydra_password = db.Column(db.String(255), nullable=False)
     hydra_sessionid = db.Column(db.String(255), nullable=False, server_default='')
     
 class HydraProject(db.Model):
     __tablename__ = 'hydraproj'
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), primary_key=True)
-    hydra_project_id = db.Column(db.Integer(), primary_key=True)
+    id = db.Column(db.Integer(), db.ForeignKey('user.id'), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
+    hydra_project_id = db.Column(db.Integer())
