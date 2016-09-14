@@ -32,9 +32,9 @@ class HydraUrl(db.Model):
 
 class HydraUser(db.Model):
     __tablename__ = 'hydrauser'
-    #id = db.Column(db.Integer(), primary_key=True)
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'), primary_key=True)
-    hydra_url_id = db.Column(db.Integer(), db.ForeignKey('hydraurl.id'), primary_key=True)
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id'))
+    hydra_url_id = db.Column(db.Integer(), db.ForeignKey('hydraurl.id'))
     hydra_userid = db.Column(db.Integer(), nullable=False, primary_key=True)
     hydra_username = db.Column(db.String(50), nullable=False)
     hydra_password = db.Column(db.String(255), nullable=False)
