@@ -3,4 +3,5 @@
 *.sqlite
 *.log
 instance/
+migrations/
 OpenAgua/model_dashboard/popen test.py

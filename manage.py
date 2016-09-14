@@ -18,17 +18,11 @@ def addsuperuser():
     Add a user with admin privledges.
     '''
     
-    role = Role.query.filter(Role.name == 'admin').first()
+    role = Role.query.filter(Role.name == 'superuser').first()
     if not role:
-        role = Role(name='admin')
+        role = Role(name='superuser')
         db.session.add(role)
 
-    username = input("Username: ")
-    user = User.query.filter(User.username == username).first()
-    if user:
-        print('User already exists. Exiting.')
-        return
-    
     email = input("Email: ")
     user = User.query.filter(User.email == email).first()
     if user:
