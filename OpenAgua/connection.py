@@ -307,6 +307,8 @@ def make_connection(session,
                            password=decrypt(session['hydra_password'],
                                             app.config['SECRET_ENCRYPT_KEY']))
             session['hydra_sessionid'] = sessionid
+            
+            # ALSO: need to add to database
     
     if include_network:
         conn.network = conn.get_network(network_id = session['network_id'],

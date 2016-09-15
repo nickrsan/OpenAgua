@@ -5,9 +5,9 @@ from sys import stderr
 from flask import Flask
 from flask_mail import Mail
 from flask_sqlalchemy import SQLAlchemy
-#from flask_user import UserManager, SQLAlchemyAdapter
 from flask_security import Security, SQLAlchemyUserDatastore, \
     UserMixin, RoleMixin, login_required
+from flask_security.forms import RegisterForm, StringField, Required
 
 from flask_login import current_user
 from flask_admin import Admin
@@ -27,12 +27,15 @@ from OpenAgua.views import *
 db = SQLAlchemy(app)
 mail = Mail(app)
 
-# Setup Flask-User
-#db_adapter = SQLAlchemyAdapter(db, User)        # Register the User model
-#user_manager = UserManager(db_adapter, app)    # Initialize Flask-User
 # Setup Flask-Security
 user_datastore = SQLAlchemyUserDatastore(db, User, Role)
-security = Security(app, user_datastore)
+
+class ExtendedRegisterForm(RegisterForm):
+    firstname = StringField('First Name', [Required()])
+    lastname = StringField('Last Name', [Required()])
+    
+security = Security(app, user_datastore,
+                    register_form=ExtendedRegisterForm)    
 
 import OpenAgua.views
 
@@ -95,4 +98,4 @@ admin.add_view(UserView(User, db.session))
 admin.add_view(RoleView(Role, db.session))
 
 # Add menu links
-admin.add_link(MenuLink(name='Sign out', url='/user/sign-out'))
+admin.add_link(MenuLink(name='Sign out', url='/logout'))

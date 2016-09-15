@@ -1,6 +1,7 @@
 from pyomo.core import *
 
 from model import create_model, update_instance
+from utils import create_logger
 from os.path import join
 
 import wingdbstub

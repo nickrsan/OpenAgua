@@ -34,7 +34,7 @@ function model_progress(status) {
         $("#status_message").text("No model running.");
     } else if (status == 1) {
         $("#status_message").text("Model running...");
-        myInterval = setInterval(update_model_progress, 1000);
+        //myInterval = setInterval(update_model_progress, 1000);
     } else if (status == 2) {
         $("button#run_model").button('reset');
         $("#status_message").text("Model complete!");  

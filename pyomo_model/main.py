@@ -1,21 +1,15 @@
-import argparse as ap
-import logging
+import argparse
 import os
 from os.path import join
 import multiprocessing
 from functools import partial
 
-from dateutil import rrule
-
 from connection import connection
-from model import create_model
 from scenario import run_scenario
 
 from utils import get_completed
 
-import wingdbstub
-
-def run_scenarios(args):
+def run_scenarios(args, log):
     """
         This is a wrapper for running all the scenarios, where scenario runs are
         processor-independent.
@@ -79,17 +73,18 @@ def run_scenarios(args):
     #stop the pool
     pool.close()
     pool.join()
+    return
     
 def commandline_parser():
     """
         Parse the arguments passed in from the command line.
     """
-    parser = ap.ArgumentParser(
+    parser = argparse.ArgumentParser(
         description="""Run the OpenAgua pyomo optimization model.
                     Written by David Rheinheimer <david.rheinheimer@gmail.com>
                     (c) Copyright 2016, Tecnologico de Monterrey.
         """, epilog="For more information visit www.openaguadss.org",
-       formatter_class=ap.RawDescriptionHelpFormatter)
+       formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-app', '--app-name',
                         help='''Name of the app.''')
@@ -124,36 +119,21 @@ def commandline_parser():
                         help='''The log file directory for the scenarios.''')
     parser.add_argument('-sol', '--solver',
                         help='''The solver to use (e.g., glpk, gurobi, etc.).''')
-    parser.add_argument('-ms', '--model-status',
-                        help='''Check the status of the model run''')
     return parser
-
-def create_logger(appname, logfile):
-    logger = logging.getLogger(appname)
-    logger.setLevel(logging.INFO)
-    fh = logging.FileHandler(logfile)
-    fh.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
-    return logger
     
 if __name__=='__main__':
     
     parser = commandline_parser()
     args = parser.parse_args()
     
+    here = os.path.abspath(os.path.dirname(__file__))
+    
     # specify scenarios log dir
     if args.scenario_log_dir is None:
         args.scenario_log_dir = 'logs'
-    args.scenario_log_dir = os.path.join(here, args.scenario_log_dir)    
-
-    # check status? if so, do so, and don't proceed further
-    if args.check_status:
-        return get_completed(args.scenario_log_dir)
+    args.scenario_log_dir = join(here, args.scenario_log_dir)
     
     # specify local top-level log dir
-    here = os.path.abspath(os.path.dirname(__file__))
     if args.log_dir is None:
         args.log_dir = '.'
     args.log_dir = join(here, args.log_dir)
@@ -168,6 +148,4 @@ if __name__=='__main__':
     for fname in os.listdir(args.scenario_log_dir):
         os.remove(join(args.scenario_log_dir, fname))
     
-    run_scenarios(args)
-    
-    return
+    run_scenarios(args, log)

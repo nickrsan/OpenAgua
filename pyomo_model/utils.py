@@ -1,4 +1,15 @@
 import os
+import logging
+
+def create_logger(appname, logfile):
+    logger = logging.getLogger(appname)
+    logger.setLevel(logging.INFO)
+    fh = logging.FileHandler(logfile)
+    fh.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    return logger
 
 def get_completed(logsdir):
     timesteps_completed = 0

@@ -79,7 +79,8 @@ def run_model():
 
 @model_dashboard.route('/_model_progress')
 def model_progress():
-    command = 'python %s -s' % session['app_path']
+    #command = 'python %s -cs True' % session['app_path']
+    command = 'python -c %s'
     result = call(command)
     ts_completed = result['timesteps_completed']
     ts_count = result['timesteps_count']
