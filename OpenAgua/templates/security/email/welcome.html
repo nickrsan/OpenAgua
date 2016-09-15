@@ -1,7 +1,15 @@
-<p>Welcome {{ user.email }}!</p>
+<p>Dear {{ user.firstname }},</p><br>
+
+<p>Welcome to OpenAgua! This email is to confirm your registration.</p>
 
 {% if security.confirmable %}
 <p>You can confirm your email through the link below:</p>
 
 <p><a href="{{ confirmation_link }}">Confirm my account</a></p>
+
+<p>If you did not register with us, please just ignore this email.</p>
+
 {% endif %}
+
+<p>Sincerely,</p><br>
+<p>The OpenAgua team</p>

@@ -33,12 +33,8 @@ def home():
     load_hydrauser()
     conn = make_connection(session, include_network=False, 
                           include_template=False)
-    conn.load_active_study()
     
-    if session['project_id'] is None \
-       or session['network_id'] is None \
-       or session['template_id'] is None:
-        return redirect(url_for('projects_manager.manage'))
+    conn.load_active_study()
 
     return redirect(url_for('main_overview.overview'))
     #return render_template('user_home.html')

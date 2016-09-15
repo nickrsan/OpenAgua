@@ -1,7 +1,15 @@
-Welcome {{ user.email }}!
+Dear {{ user.firstname }},
+
+Welcome to OpenAgua! This email is to confirm your registration.
 
 {% if security.confirmable %}
 You can confirm your email through the link below:
 
 {{ confirmation_link }}
 {% endif %}
+
+If you did not register with us, please just ignore this email.
+
+Sincerely,
+
+The OpenAgua team

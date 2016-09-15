@@ -253,35 +253,71 @@ class connection(object):
     
     def load_active_study(self):
         session['project_name'] = current_user.email
-        session['network_name'] = 'test network'
+        session['network_name'] = 'default network'
         session['template_name'] = 'OpenAgua'
+        
+        # load / activate template
+        templates = self.call('get_templates',{})    
+        template_names = [t.name for t in templates]    
+        if session['template_name'] not in template_names:
+            zf = zipfile.ZipFile(
+                os.path.join(here, 'static/hydra_templates/OpenAgua.zip'))
+            template_xml = zf.read('OpenAgua/template/template.xml')
+            default_tpl \
+                = conn.call('upload_template_xml',
+                            {'template_xml': template_xml.decode('utf-8')})
+            templates.append(tpl)
+        session['template_id'] \
+            = [t.id for t in templates if t.name==session['template_name']][0]        
         
         # load / create project
         projects = self.call('get_projects', {})
         if session['project_name'] in [proj.name for proj in projects]:
             project = self.get_project_by_name(session['project_name'])
-            session['project_id'] = project.id
         else:
-            session['project_id'] = None
+            desc = 'Default OpenAgua project created for for %s %s (%s)' \
+                % (current_user.firstname,
+                   current_user.lastname,
+                   current_user.email)
+            proj = {'name': session['project_name'],
+                    'description': desc,
+                    'user_id': session['hydra_user_id']}
+            project = \
+                self.call('add_project',
+                          {'project': proj})
+        session['project_id'] = project.id
         
         # load / activate network
-        if session['project_id']:
-            networks = self.call('get_networks',{'project_id':project.id})
-            if session['network_name'] in [net.name for net in networks]:
-                network = self.get_network_by_name(session['project_id'], session['network_name'])
-                session['network_id'] = network.id    
-            else:
-                session['network_id'] = None
-        else: session['network_id'] = None
-            
-        # load / activate template (temporary fix)
-        templates = self.call('get_templates',{})    
-        template_names = [t.name for t in templates]    
-        if session['template_name'] in template_names:
-            session['template_id'] = [t.id for t in templates if t.name==session['template_name']][0]
+      
+        networks = self.call('get_networks',{'project_id':project.id})
+        if session['network_name'] in [net.name for net in networks]:
+            network = self.get_network_by_name(session['project_id'],
+                                               session['network_name'])
         else:
-            session['template_id'] = None
-            
+            net = {'name': session['network_name'],
+                   'description': 'Default OpenAgua network',
+                   'project_id': project.id}
+            network = self.call('add_network', {'net': net})
+        session['network_id'] = network.id
+        
+        default_is_attached = True
+        if 'types' in network.keys():
+            net_tpls_names = [t.template_name for t in network.types]
+            if session['template_name'] not in net_tpls_names:
+                default_is_attached = False
+        else:
+            default_is_attached = False
+        if not default_is_attached:
+            self.call('apply_template_to_network',
+                      {'template_id': session['template_id'],
+                       'network_id': network.id})
+        
+        if not network.scenarios:
+            scen = {'name': 'Baseline',
+                    'description': 'Default OpenAgua scenario',
+                    'time_step': 'month'}
+            self.call('add_scenario', {'network_id': network.id, 'scen': scen})
+        
         session['appname'] = 'pyomo_network_lp'    
     
 class JSONObject(dict):

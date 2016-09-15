@@ -35,22 +35,12 @@ def manage():
         networks = []
         
     # get list of all templates
-    #template_id = conn.call('get_template_by_name', {'template_name':session['template_name']})
     templates = conn.call('get_templates',{})
-    template_names = [t.name for t in templates]
     
-    if session['template_name'] not in template_names:
-        zf = zipfile.ZipFile(os.path.join(here, 'static/hydra_templates/OpenAgua.zip'))
-        template_xml = zf.read('OpenAgua/template/template.xml')
-        conn.call('upload_template_xml', {'template_xml':template_xml.decode('utf-8')})
-        
-    templates = conn.call('get_templates',{})
-        
     return render_template('projects_manager.html',
                            projects=projects,
                            networks=networks,
                            templates=templates)
-
 
 @projects_manager.route('/_add_project')
 @login_required
@@ -101,12 +91,12 @@ def add_network():
         # add a default scenario (similar to Hydra Modeller)
         scenario = dict(
             name = 'Baseline',
-            description = 'Baseline scenario'
+            description = 'Default OpenAgua scenario'
         )
 
         result = conn.call('add_scenario',
                            {'network_id': network.id, 'scen': scenario})
-        network = conn.call('get_network', {'network_id': network.id})
+        #network = conn.call('get_network', {'network_id': network.id})
             
         return jsonify(result={'status_code': 1})
 
