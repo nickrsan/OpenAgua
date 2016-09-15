@@ -3,47 +3,36 @@ import os
 from os.path import join
 import multiprocessing
 from functools import partial
+from pyomo.core import *
 
-from connection import connection
 from scenario import run_scenario
+from utils import create_logger, connection
 
-from utils import get_completed
+import wingdbstub
 
 def run_scenarios(args, log):
     """
         This is a wrapper for running all the scenarios, where scenario runs are
-        processor-independent.
+        processor-independent. As much of the Pyomo model is created here as
+        possible.
     """
+    
+    # get connection
+    conn = connection(url=args.hydra_url, session_id=args.session_id, log=log)    
+    
+    # move the following to a function later
+    
+    # pyomo optimization model
+    m = AbstractModel()
 
-    # do any one-time processing here
-
-    # =====
-    # input
-    # =====
+    # add nodes and links (arcs)
+    network = conn.get_network(args)
     
-    # general parameters
+    m.Nodes = Set(initialize=[n.id for n in network.nodes])
+    m.Nodes1 = Set(initialize=[link.node_1_id for link in network.links]) 
+    m.Nodes2 = Set(initialize=[link.node_2_id for link in network.links]) 
+    m.Links = m.Nodes1 * m.Nodes2
     
-    # ===============================
-    # initializations & preprocessors
-    # ===============================
-    
-    # ==============================
-    # hydrologic info pre-processing
-    # ==============================
-    
-        
-    # ============
-    # create model
-    # ============
-  
-    #model = 
-
-    # =============
-    # run scenarios
-    # =============
-    
-    # set up the scenarios based on scenario_sets
-        
     # ==================
     # multi core routine
     # ==================

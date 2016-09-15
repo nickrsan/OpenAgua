@@ -10,8 +10,8 @@ SECRET_KEY = 'a deep, dark secret'
 SECRET_ENCRYPT_KEY = b'3SmE-pwbieJubimO2BM15nzAqxD6TTijeFrSAgwOZVU='
 SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/instance/users.sqlite'.format(APP_ROOT)
 
-PYOMO_APP_DIR = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
-PYOMO_CHECK_DIR = os.path.join(APP_ROOT, 'pyomo_model', 'utils.py')
+PYOMO_APP_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
+PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'utils.py')
 PYOMO_APP_NAME = 'OpenAguaModel'
 
 # Flask-Security settings

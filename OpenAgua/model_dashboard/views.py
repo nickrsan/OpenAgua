@@ -1,5 +1,5 @@
 import os
-from subprocess import Popen, call
+from subprocess import Popen, check_output
 
 from flask import render_template, request, session, json, jsonify, current_app
 from flask_security import login_required
@@ -18,6 +18,7 @@ def model_dashboard_main():
     # setup pyomo app directory
     
     session['app_path'] = app.config['PYOMO_APP_PATH']
+    session['check_path'] = app.config['PYOMO_CHECK_PATH']
     session['app_name'] = app.config['PYOMO_APP_NAME']
     
     # check status and progress of any running model
@@ -79,9 +80,8 @@ def run_model():
 
 @model_dashboard.route('/_model_progress')
 def model_progress():
-    #command = 'python %s -cs True' % session['app_path']
-    command = 'python -c %s'
-    result = call(command)
+    command = ['python', session['check_path'], '-dir', 'logs']
+    result = subprocess.check_output(command)
     ts_completed = result['timesteps_completed']
     ts_count = result['timesteps_count']
     if ts_count is not None:

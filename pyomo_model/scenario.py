@@ -1,8 +1,10 @@
 from pyomo.core import *
 
 from model import create_model, update_instance
-from utils import create_logger
 from os.path import join
+
+from utils import connection
+from utils import create_logger
 
 import wingdbstub
 
@@ -11,36 +13,24 @@ def run_scenario(scenario, args=None):
     
     logfile = join(args.scenario_log_dir, 'scenario_{}.log'.format(scenario))
     log = create_logger(args.app_name, logfile)
-    log.info('starting scenario {}'.format(scenario))
-    
-    # log in to Hydra Platform
-    log.info('connecting to Hydra Server URL: {}'.format(args.hydra_url))
-    conn = connection(url=args.hydra_url, app_name=args.app_name)
-    log.info('connected to Hydra Server URL: {}'.format(args.hydra_url))
-    try:
-        if args.session_id is not None:
-            conn.session_id=args.session_id
-            log.info('logged in to Hydra Server with provided session ID: %s' % conn.session_id)
-        else:
-            log.info('attempting to log in...'.format(args.hydra_url))
-            conn.login(username=args.hydra_username, password=args.hydra_password)
-            log.info('logged in to Hydra Server with new session ID: %s' % conn.session_id)
-    except:
-        log.info('could not log in to Hydra Server')
-        raise Exception
+    log.info('starting scenario {}'.format(scenario))    
 
     # specify scenario-level parameters parameters (this are sent via params)
     try:
         log.info('creating timesteps')
         ti = dt.datetime.strptime(args.initial_timestep, args.timestep_format)
         tf = dt.datetime.strptime(args.final_timestep, args.timestep_format)
-        dates = [date for date in rrule.rrule(rrule.MONTHLY, dtstart=ti, until=tf)]
+        dates = [date for date in rrule.rrule(rrule.MONTHLY,
+                                              dtstart=ti, until=tf)]
     except:
         log.info('failed to create timesteps with args: {}'.format(args))
     finally:
         log.info('failed to create timesteps')    
     log.info('running scenario {} for {} months: {} to {}'
-             .format(scenario, len(dates), args.initial_timestep, args.final_timestep))
+             .format(scenario,
+                     len(dates),
+                     args.initial_timestep,
+                     args.final_timestep))
 
     # ===========================
     # load scenario data
