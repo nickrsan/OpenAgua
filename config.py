@@ -15,7 +15,7 @@ PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'utils.py')
 PYOMO_APP_NAME = 'OpenAguaModel'
 TEMPLATE_FILE = os.path.join(APP_ROOT,
                              'OpenAgua/static/hydra/templates/OpenAgua.zip')
-SOLVER = 'glpk'
+SOLVER = "glpk"
 
 # Flask-Security settings
 SECURITY_FLASH_MESSAGES = True

@@ -3,7 +3,8 @@ from datetime import datetime
 import json
 from collections import OrderedDict
 
-from pyomo.environ import *
+from pyomo.environ import ConcreteModel, Set, Objective, Var, Param, \
+     Constraint, NonNegativeReals, maximize, summation
 from pyomo.opt import SolverFactory
 from dateutil import rrule
 from dateutil.parser import parse
@@ -104,7 +105,21 @@ def create_model(network, template_id, timestep_dict):
     model.I = Var(model.Nodes * model.TS, domain=NonNegativeReals) # inflow
     model.L = Var(model.Nodes * model.TS, domain=NonNegativeReals) # loss (outflow)
     model.Q = Var(model.Links * model.TS, domain=NonNegativeReals) # flow in links
-       
+    
+    # paramters 
+    
+    def Priority_rule(model, j, t):
+        priority = -1 # default 
+        if 'Priority' in p.keys() and (j, t) in p['Priority'].keys():
+            priority = p['Priority'][(j, t)]
+        elif j in model.Outflow:
+            priority = 0
+        return priority
+    model.Demand_Priority = Param(model.Non_reservoir, model.TS,
+                                  rule=Priority_rule)
+    model.Storage_Priority = Param(model.Reservoir, model.TS,
+                                   rule=Priority_rule)    
+    
     # constraints
     
     def MassBalance_rule(model, j, t):
@@ -169,20 +184,11 @@ def create_model(network, template_id, timestep_dict):
 
     # objective function
 
-    def OBJ_rule(model, j, t):
-        if 'Priority' in p.keys() and (j, t) in p['Priority'].keys():
-            priority = p['Priority'][(j, t)]
-        else:
-            priority = -1 # default
-        if j in model.Reservoir:
-            expr = priority * model.S[j, t]
-        else:
-            if j in model.Outflow:
-                priority = 0
-            expr = priority * model.D[j, t]
-
+    def Objective_fn(model):
+        expr = summation(model.Demand_Priority, model.D) \
+            + summation(model.Storage_Priority, model.S)
         return expr
-    model.OBJ = Objective(model.Nodes, model.TS, rule=OBJ_rule, sense=maximize)
+    model.Ojective = Objective(rule=Objective_fn, sense=maximize)
 
     return model
 
@@ -208,16 +214,10 @@ def run_scenario(scenario_id, args=None):
         timestep_dict[date] = [hpt, oat]
     
     # create the model
-    model = create_model(conn.network, args.template_id, timestep_dict)
+    instance = create_model(conn.network, args.template_id, timestep_dict)
     log.info('model created')
-    
-    # create the solver
-    #stream_solver = True     # True prints solver output to screen
-    #keepfiles =     False    # True prints intermediate file names (.nl,.sol,...)    
     opt = SolverFactory(args.solver)
-    
-    # solve the model
-    results = opt.solve(model)
+    results = opt.solve(instance)
     log.info('model solved')
 
     # ===========================
