@@ -44,9 +44,10 @@ def run_model():
     # 1. get user input
     user_args = request.args.get('user_args')
     user_args = json.loads(user_args)
+    scids = request.args.get('scenario_ids')
     ti = user_args['ti']
     tf = user_args['tf']
-    scids = [1] # need to get these from scenario
+    scids = [3] # need to get these from scenario
     session['scenarios_count'] = len(scids)
     
     # 2. define app name and arguments
@@ -65,7 +66,10 @@ def run_model():
         scids = '"%s"' % scids,
         ti = ti,
         tf = tf,
-        tsf = '%m/%Y')
+        tsf = '%m/%Y',
+        htsf = '%Y-%m-%dT%H:%M:%S.%f000Z',
+        sol = app.config['SOLVER']
+    )
     
     # 3. run the model as a subprocess
     # in the future, this will be via a web server with json

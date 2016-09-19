@@ -1,9 +1,11 @@
+import os
 from webcolors import name_to_hex
 import sys
 import requests
 import json
 from flask import session
 from flask_security import current_user
+import zipfile
 
 import logging
 
@@ -257,16 +259,15 @@ class connection(object):
         session['template_name'] = 'OpenAgua'
         
         # load / activate template
-        templates = self.call('get_templates',{})    
+        templates = self.call('get_templates',{})
         template_names = [t.name for t in templates]    
         if session['template_name'] not in template_names:
-            zf = zipfile.ZipFile(
-                os.path.join(here, 'static/hydra_templates/OpenAgua.zip'))
+            zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
             template_xml = zf.read('OpenAgua/template/template.xml')
             default_tpl \
-                = conn.call('upload_template_xml',
-                            {'template_xml': template_xml.decode('utf-8')})
-            templates.append(tpl)
+                = self.call('upload_template_xml',
+                            {'template_xml': template_xml.decode()})
+            templates.append(default_tpl)
         session['template_id'] \
             = [t.id for t in templates if t.name==session['template_name']][0]        
         

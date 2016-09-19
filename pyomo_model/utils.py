@@ -18,12 +18,28 @@ def create_logger(appname, logfile):
 
 class connection(object):
 
-    def __init__(self, url=None, session_id=None, app_name=None, log=None):
-        self.url = url
-        self.app_name = app_name
-        self.session_id = session_id
+    def __init__(self, args=None, scenario_id=None, log=None):
+        self.url = args.hydra_url
+        self.app_name = args.app_name
+        self.session_id = args.session_id
         self.log = log
         
+        get_network_params = dict(
+            network_id = args.network_id,
+            include_data = 'Y',
+            template_id = args.template_id,
+            #scenario_ids = [scenario_id],
+            summary = 'N'
+        )        
+        
+        response = self.call('get_network', get_network_params)
+        
+        if 'faultcode' in response:
+            if response['faultcode'] == 'No Session':
+                self.session_id = self.login(username=args.hydra_username,
+                                             password=args.hydra_password)
+            response = self.call('get_network', get_network_params)
+        self.network = response
 
     def call(self, func, args):
         self.log.info("Calling: %s" % (func))
@@ -42,7 +58,7 @@ class connection(object):
             except:                
                 self.log.debug('Something went wrong. Check command sent.')
                 self.log.debug("URL: %s"%self.url)
-                self.log.debug("Call: %s" % json.dumps(call_json))             
+                self.log.debug("Call: %s" % data)             
 
                 if response.content != '':
                     err = response.content
@@ -66,17 +82,6 @@ class connection(object):
         self.log.info("Session ID: %s", self.session_id)
         return self.session_id
     
-    def get_network(self, args):
-        get_network_params = dict(
-            network_id = eval(args.network_id),
-            include_data = 'Y',
-            template_id = eval(args.template_id),
-            scenario_ids = eval(args.scenario_ids),
-            summary = 'N'
-        )
-        network = self.call('get_network', get_network_params)
-        return network
-    
 class JSONObject(dict):
     def __init__(self, obj_dict):
         for k, v in obj_dict.items():
@@ -84,3 +89,16 @@ class JSONObject(dict):
             setattr(self, k, v)
 
 
+def parse_function(s):
+    s = s.rstrip()
+    lines = s.split('\n')
+    if 'return ' not in lines[-1]:
+        lines[-1] = 'return ' + lines[-1]
+    fs = 'def f(date):\n    %s' % '\n    '.join(lines)
+    return fs
+
+def eval_function(s, date, **kwargs):
+    fs = parse_function(s)
+    exec(fs, globals())
+    
+    return f(date)

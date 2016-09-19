@@ -11,8 +11,6 @@ from ..connection import make_connection, load_hydrauser
 # import blueprint definition
 from . import projects_manager
 
-here = os.path.dirname(os.path.abspath(__file__))
-
 @projects_manager.route('/manage')
 @login_required
 def manage():
@@ -163,4 +161,9 @@ def hydra_call():
     args = request.args.get('args')
     args = json.loads(args)
     result = conn.call(func, args)
+    
+    if func == 'delete_template':
+        session['template_id'] = None
+        session['template_name'] = None
+    
     return jsonify(result=result)

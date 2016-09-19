@@ -26,12 +26,13 @@ def data_editor_main():
                                          .format(res_type.lower())) \
                          if ttype.id in [t.id for t in r.types]]
                 if feats:
-                    features[(ttype.id, ttype.name.replace('_', ' '),
+                    features[(ttype.id, ttype.name,
                               ttype.resource_type)] = feats
+    scenarios = [{'id':s.id, 'name':s.name} for s in conn.network.scenarios]
     
     return render_template('data_editor.html',
                            features=features,
-                           scenarios=conn.network.scenarios)
+                           scenarios=scenarios)
 
 @data_editor.route('/_get_variables', methods=['GET','POST'])
 @login_required

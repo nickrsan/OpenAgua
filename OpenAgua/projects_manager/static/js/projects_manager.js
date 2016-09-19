@@ -87,7 +87,7 @@ var network_actions =
         .append($('<li>').html('<a href="#">Clean up</a>'))
         .append($('<li>').html('<a href="#">Export</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
-        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Delete this network from the project, but keep it in the database.">Deactivate</a>'))
+        .append(menu_item('purge_network', 'Delete', 'Permanently delete this network.'));
 
 // actions for templates attached to a network
 var template_actions =

@@ -17,22 +17,6 @@ def run_scenarios(args, log):
         possible.
     """
     
-    # get connection
-    conn = connection(url=args.hydra_url, session_id=args.session_id, log=log)    
-    
-    # move the following to a function later
-    
-    # pyomo optimization model
-    m = AbstractModel()
-
-    # add nodes and links (arcs)
-    network = conn.get_network(args)
-    
-    m.Nodes = Set(initialize=[n.id for n in network.nodes])
-    m.Nodes1 = Set(initialize=[link.node_1_id for link in network.links]) 
-    m.Nodes2 = Set(initialize=[link.node_2_id for link in network.links]) 
-    m.Links = m.Nodes1 * m.Nodes2
-    
     # ==================
     # multi core routine
     # ==================
@@ -45,13 +29,12 @@ def run_scenarios(args, log):
     pool = multiprocessing.Pool(processes=poolsize, maxtasksperchild=maxtasks)
     
     # run the model
-    scenarios = eval(args.scenario_ids)
-    
+    scenario_ids = args.scenario_ids
     p = partial(run_scenario, args=args)
     
     log.info('Running {} scenarios in multicore mode with {} workers, {} chunks each.' \
-             .format(len(scenarios), poolsize, chunksize))  
-    pools = pool.imap(p, scenarios, chunksize=chunksize)
+             .format(len(scenario_ids), poolsize, chunksize))  
+    pools = pool.imap(p, scenario_ids, chunksize=chunksize)
     
     # iterate over results
     #for result in enumerate(pools):
@@ -102,6 +85,8 @@ def commandline_parser():
                         help='''The final timestep of the model.''')
     parser.add_argument('-tsf', '--timestep-format',
                         help='''The format of the timestep (e.g., as found on http://strftime.org).''')
+    parser.add_argument('-htsf', '--hydra-timestep-format',
+                        help='''The format of a time step in Hydra Platform (found in hydra.ini).''')
     parser.add_argument('-log', '--log-dir',
                         help='''The main log file directory.''')
     parser.add_argument('-slog', '--scenario-log-dir',
@@ -115,12 +100,7 @@ if __name__=='__main__':
     parser = commandline_parser()
     args = parser.parse_args()
     
-    here = os.path.abspath(os.path.dirname(__file__))
-    
-    # specify scenarios log dir
-    if args.scenario_log_dir is None:
-        args.scenario_log_dir = 'logs'
-    args.scenario_log_dir = join(here, args.scenario_log_dir)
+    here = os.path.abspath(os.path.dirname(__file__))    
     
     # specify local top-level log dir
     if args.log_dir is None:
@@ -128,13 +108,26 @@ if __name__=='__main__':
     args.log_dir = join(here, args.log_dir)
 
     # top-level log
-    logfile = join(args.log_dir, 'log.log')
+    logfile = join(args.log_dir, 'log.txt')
     log = create_logger(args.app_name, logfile)
     
-    log.info('started model run with args: %s' % str(args))
+    # specify scenarios log dir
+    if args.scenario_log_dir is None:
+        args.scenario_log_dir = 'logs'
+    args.scenario_log_dir = join(here, args.scenario_log_dir)
     
     # delete old scenario log files
-    for fname in os.listdir(args.scenario_log_dir):
-        os.remove(join(args.scenario_log_dir, fname))
+    if os.path.exists(args.scenario_log_dir):
+        for fname in os.listdir(args.scenario_log_dir):
+            os.remove(join(args.scenario_log_dir, fname))
+    else:
+        os.mkdir(args.scenario_log_dir)
+        
+    # pre-processing
+    for arg in ['network_id', 'scenario_ids', 'template_id']:
+        if eval('args.%s' % arg) is not None:
+            exec('args.%s = eval(args.%s)' % (arg, arg))
+    
+    log.info('started model run with args: %s' % str(args))
     
     run_scenarios(args, log)

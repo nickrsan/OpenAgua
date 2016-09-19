@@ -33,7 +33,6 @@ def home():
     load_hydrauser()
     conn = make_connection(session, include_network=False, 
                           include_template=False)
-    
     conn.load_active_study()
 
     return redirect(url_for('main_overview.overview'))
