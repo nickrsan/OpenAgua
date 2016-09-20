@@ -8,8 +8,8 @@ from pyomo.environ import ConcreteModel, Set, Objective, Var, Param, \
 from pyomo.opt import SolverFactory
 from dateutil import rrule
 from dateutil.parser import parse
+from matplotlib import pyplot as plt
 
-from model import update_instance
 from utils import connection, create_logger, eval_function
 
 import wingdbstub
@@ -18,7 +18,7 @@ def create_model(network, template_id, timestep_dict):
     
     # prepare data
     
-    nodes =[n.id for n in network.nodes]
+    nodes = [n.id for n in network.nodes]
     links = [(l.node_1_id, l.node_2_id) for l in network.links]
     
     timesteps = [ot for (ht, ot) in timestep_dict.values()]
@@ -137,10 +137,11 @@ def create_model(network, template_id, timestep_dict):
     model.MassBalance = Constraint(model.Nodes, model.TS, rule=MassBalance_rule)
     
     def IntialStorage_rule(model, j, t):
-        if t==model.TS.first():
-            return model.Si[j, t] == p['Initial_Storage'][j]
+        if t == model.TS.first():
+            expr = model.Si[j, t] == p['Initial_Storage'][j]
         else:
-            return model.Si[j, t] == model.S[j, model.TS.prev(t)]
+            expr = model.Si[j, t] == model.S[j, model.TS.prev(t)]
+        return expr
     model.IntialStorage = Constraint(model.Reservoir, model.TS, rule=IntialStorage_rule)
     
     def Delivery_rule(model, j, t):
@@ -149,26 +150,30 @@ def create_model(network, template_id, timestep_dict):
     
     def ChannelCap_rule(model, i, j, t):
         if 'Flow_Capacity' in p.keys() and (i,j) in p['Flow_Capacity'].keys():
-            return (model.Q[i,j,t], p['Flow_Capacity'][(i,j,t)])
+            return (0, model.Q[i,j,t], p['Flow_Capacity'][(i,j,t)])
         else:
             return Constraint.Skip
     model.ChannelCapacity = Constraint(model.Links, model.TS, rule=ChannelCap_rule)
-    
-    def MinStorage_rule(model, j, t):
-        return (p['Inactive_Pool'][(j,t)], model.S[j,t])
-    model.MinStorage = Constraint(model.Reservoir, model.TS, rule=MinStorage_rule)
 
-    def MaxStorage_rule(model, j, t):
-        return (model.S[j,t], p['Storage_Capacity'][(j,t)])
-    model.MaxStorage = Constraint(model.Reservoir, model.TS, rule=MaxStorage_rule)
+    def DeliveryCap_rule(model, j, t):
+        if 'Demand' in p.keys() and (j,t) in p['Demand'].keys():
+            return (0, model.D[j,t], p['Demand'][(j,t)])
+        else:
+            return Constraint.Skip
+    model.DeliveryCap = Constraint(model.Non_reservoir, model.TS, rule=DeliveryCap_rule)
     
+    def StorageBounds_rule(model, j, t):
+        return (p['Inactive_Pool'][(j,t)], model.S[j,t], p['Storage_Capacity'][(j,t)])
+    model.StorageBounds = Constraint(model.Reservoir, model.TS, rule=StorageBounds_rule)
+
     # boundary conditions
     
     def Inflow_rule(model, j, t):
         if 'Runoff' in p.keys() and (j,t) in p['Runoff'].keys():
-            return (0, model.I[j,t] - p['Runoff'][j,t], 0)
+            inflow = p['Runoff'][(j,t)]
         else:
-            return (0, model.I[j,t], 0)
+            inflow = 0        
+        return model.I[j,t] == inflow
     model.Inflow = Constraint(model.Nodes, model.TS, rule=Inflow_rule)
     
     def Loss_rule(model, j, t):
@@ -219,7 +224,17 @@ def run_scenario(scenario_id, args=None):
     opt = SolverFactory(args.solver)
     results = opt.solve(instance)
     log.info('model solved')
-
+    
+    x = dict()
+    for n in instance.Reservoir:
+        x[n] = []
+        for t in instance.TS:
+            x[n].append(instance.S[n, t].value)
+        plt.plot(x[n], '-o')
+    plt.show()
+    
+    log.info('model results saved')
+    
     # ===========================
     # start the per timestep loop
     # ===========================

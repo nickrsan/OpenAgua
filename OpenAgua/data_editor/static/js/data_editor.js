@@ -383,10 +383,10 @@ function checkData(data) {
 }
 
 function saveData(data) {
-  data.orig_data_type = orig_data_type,
-  data.scen_id = scen_id,
-  data.res_attr = JSON.stringify(res_attr), 
-  data.res_attr_data = JSON.stringify(res_attr_data), // old data container
+  data.orig_data_type = orig_data_type;
+  data.scen_id = scen_id;
+  data.res_attr = JSON.stringify(res_attr);
+  data.res_attr_data = JSON.stringify(res_attr_data); // old data container
   
   $.getJSON('/_check_or_save_data', data, function(resp) {
     switch(resp.status) {
