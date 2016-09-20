@@ -35,7 +35,8 @@ class ExtendedRegisterForm(RegisterForm):
     lastname = StringField('Last Name', [Required()])
     
 security = Security(app, user_datastore,
-                    register_form=ExtendedRegisterForm)    
+                    register_form=ExtendedRegisterForm,
+                    confirm_register_form=ExtendedRegisterForm)    
 
 import OpenAgua.views
 
