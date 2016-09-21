@@ -169,9 +169,9 @@ def eval_data(data_type, data, do_eval=False, function=None):
     
 def encrypt(text, key):
     f = Fernet(key)
-    return f.encrypt(str.encode(text))    
+    return f.encrypt(str.encode(text))  
     
 def decrypt(ciphertext, key):
     f = Fernet(key)
-    return f.decrypt(ciphertext).decode()
+    return f.decrypt(bytes(ciphertext)).decode()
 
