@@ -483,7 +483,7 @@ def add_default_network(conn, project_id, template_id, scenario_name):
                     'description': 'Default OpenAgua scenario',
                     'time_step': 'month'}
         scenario = conn.call('add_scenario',
-                             {'network_id': network_id, 'scen': scen})        
+                             {'network_id': network.id, 'scen': scen})        
         
     return network
 
