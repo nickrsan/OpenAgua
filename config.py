@@ -13,8 +13,11 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/instance/users.sqlite'.format(APP_ROOT)
 PYOMO_APP_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
 PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'utils.py')
 PYOMO_APP_NAME = 'OpenAguaModel'
-TEMPLATE_FILE = os.path.join(APP_ROOT,
-                             'OpenAgua/static/hydra/templates/OpenAgua.zip')
+DEFAULT_HYDRA_TEMPLATE = 'OpenAgua'
+DEFAULT_SCENARIO_NAME = 'Baseline'
+TEMPLATE_FILE \
+    = os.path.join(APP_ROOT, 'OpenAgua/static/hydra/templates/{}.zip' \
+                   .format(DEFAULT_HYDRA_TEMPLATE))
 SOLVER = "glpk"
 
 # Flask-Security settings

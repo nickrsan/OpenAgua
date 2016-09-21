@@ -47,8 +47,12 @@ class HydraUser(db.Model):
     hydra_password = db.Column(db.String(255), nullable=False)
     hydra_sessionid = db.Column(db.String(255), nullable=False, server_default='')
     
-class HydraProject(db.Model):
-    __tablename__ = 'hydraproject'
+class HydraStudy(db.Model):
+    __tablename__ = 'hydrastudy'
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
-    hydra_project_id = db.Column(db.Integer())
+    hydrauser_id = db.Column(db.Integer(), db.ForeignKey('hydrauser.id', ondelete='CASCADE'))
+    project_id = db.Column(db.Integer(), nullable=False)
+    network_id = db.Column(db.Integer(), nullable=False)
+    template_id = db.Column(db.Integer(), nullable=False)
+    active = db.Column(db.Boolean(), nullable=False)

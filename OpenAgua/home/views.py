@@ -1,20 +1,19 @@
 from flask import render_template, request, session, redirect, url_for
 from flask_security import login_required, current_user
 
-from ..connection import make_connection, create_hydrauser, load_hydrauser
+from ..connection import make_connection, create_hydrauser, load_hydrauser, \
+     add_default_study
 from . import user_home
 from OpenAgua import app, db
-from OpenAgua.models import User, HydraUrl, HydraUser, HydraProject
+from OpenAgua.models import User, HydraUrl, HydraUser, HydraStudy
 
 @user_home.route('/home')
 @login_required
 def home():
 
-    hydrauser = HydraUser.query \
-        .filter(HydraUser.hydra_username==current_user.email).first()
-    
-    if not hydrauser: # we should do this after email confirmation, not here
+    if current_user.new_user:
         
+        # 1. create hydra user account
         create_hydrauser(db=db,
                          user_id=current_user.id,
                          hydra_url=app.config['HYDRA_URL'],
@@ -24,16 +23,30 @@ def home():
                          hydra_user_username=current_user.email,
                          hydra_user_password='password')
         
-        # update the user new_user flag
+        # 2. load just-created hydra user info
+        load_hydrauser()
+        
+        # 3. connect to hydra using the now-loaded hydrauser info
+        conn = make_connection()
+        
+        # 4. add defaults...
+        
+        add_default_study(conn, db,
+                          app.config['DEFAULT_HYDRA_TEMPLATE'],
+                          session['hydrauser_id'],
+                          app.config['DEFAULT_SCENARIO_NAME'])
+        
+        # 5. turn off new_user flag
         user = User.query \
             .filter(User.email == current_user.email).first()  
         user.new_user = 0
         db.session.commit()
     
-    # load hydrauser
-    load_hydrauser()
-    conn = make_connection(session, include_network=False, 
-                          include_template=False)
+    else:
+        # load hydrauser
+        load_hydrauser()
+        conn = make_connection()
+    
     conn.load_active_study()
 
     return redirect(url_for('main_overview.overview'))

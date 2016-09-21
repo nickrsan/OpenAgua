@@ -13,7 +13,8 @@ from . import data_editor
 @data_editor.route('/data_editor')
 @login_required
 def data_editor_main():    
-    conn = make_connection(session)
+    conn = make_connection()
+    conn.load_active_study()
     
     features = OrderedDict()
     
@@ -37,9 +38,7 @@ def data_editor_main():
 @data_editor.route('/_get_variables', methods=['GET','POST'])
 @login_required
 def get_variables():
-    
-    conn = make_connection(session, include_network=False,
-                           include_template=False)
+    conn = make_connection()
     
     type_id = int(request.args.get('type_id'))
     feature_id = int(request.args.get('feature_id'))
@@ -67,8 +66,7 @@ def get_variables():
 @data_editor.route('/_get_variable_data')
 @login_required
 def get_variable_data():
-    conn = make_connection(session, include_network=False,
-                           include_template=False)
+    conn = make_connection()
     
     feature_type = request.args.get('feature_type').lower()
     feature_id = int(request.args.get('feature_id'))
@@ -132,8 +130,7 @@ def check_or_save_data():
         eval_data(cur_data_type, new_value, do_eval=True)
     
     if action == 'save' and errcode == 1:
-        conn = make_connection(session,
-                               include_network=False, include_template=False)
+        conn = make_connection()
         
         orig_data_type = request.args.get('orig_data_type')
         res_attr = json.loads(request.args.get('res_attr'))
