@@ -11,7 +11,7 @@ from OpenAgua.models import User, HydraUrl, HydraUser, HydraProject
 def home():
 
     hydrauser = HydraUser.query \
-        .filter(HydraUser.user_id==current_user.id).first()
+        .filter(HydraUser.hydra_username==current_user.email).first()
     
     if not hydrauser: # we should do this after email confirmation, not here
         
