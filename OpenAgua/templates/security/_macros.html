@@ -2,9 +2,9 @@
   <p>
     {{ field.label }} {{ field(**kwargs)|safe }}
     {% if field.errors %}
-      <ul>
+      <ul class="list-group">
       {% for error in field.errors %}
-        <li>{{ error }}</li>
+        <li class="list-group-item">{{ error }}</li>
       {% endfor %}
       </ul>
     {% endif %}
