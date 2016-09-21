@@ -20,15 +20,15 @@ app = Flask(__name__, instance_relative_config=True)
 app.config.from_object('config')
 app.config.from_pyfile('config.py')
 
-from OpenAgua.models import *
-from OpenAgua.views import *
-
 # Initialize extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
 
+# import models and views
+from OpenAgua import models, views
+
 # Setup Flask-Security
-user_datastore = SQLAlchemyUserDatastore(db, User, Role)
+user_datastore = SQLAlchemyUserDatastore(db, models.User, models.Role)
 
 class ExtendedRegisterForm(RegisterForm):
     firstname = StringField('First Name', [Required()])
@@ -95,8 +95,8 @@ class RoleView(ModelView):
             return redirect(url_for('login', next=request.url)) # divert to login 
     
 # Add administrative views here
-admin.add_view(UserView(User, db.session))
-admin.add_view(RoleView(Role, db.session))
+admin.add_view(UserView(models.User, db.session))
+admin.add_view(RoleView(models.Role, db.session))
 
 # Add menu links
 admin.add_link(MenuLink(name='Sign out', url='/logout'))

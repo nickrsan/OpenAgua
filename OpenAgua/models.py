@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_security import UserMixin, RoleMixin
 
-db = SQLAlchemy()
+from OpenAgua import db
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer(), primary_key=True)
