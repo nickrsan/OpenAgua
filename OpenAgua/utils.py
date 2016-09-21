@@ -173,5 +173,5 @@ def encrypt(text, key):
     
 def decrypt(ciphertext, key):
     f = Fernet(key)
-    return f.decrypt(bytes(ciphertext)).decode()
+    return f.decrypt(bytes(ciphertext, 'utf-8')).decode()
 
