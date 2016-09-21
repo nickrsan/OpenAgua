@@ -27,7 +27,8 @@ def home():
         # update the user new_user flag
         user = User.query \
             .filter(User.email == current_user.email).first()  
-        user.new_user = False  
+        user.new_user = False
+        db.session.commit()
     
     # load hydrauser
     load_hydrauser()
