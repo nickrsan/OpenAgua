@@ -269,6 +269,10 @@ class connection(object):
             ttypes[tt.id] = tt
         self.ttypes = ttypes
         
+        session['project_id'] = study.project_id
+        session['network_id'] = study.network_id
+        session['template_id'] = study.template_id
+        
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
