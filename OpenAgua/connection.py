@@ -339,11 +339,10 @@ def make_connection(session,
         if ping.faultcode == 'No Session':
             conn = connection(url=session['hydra_url'])
             # NOT SECURE IN TRANSMISSION
-            sessionid = \
-                conn.login(username=session['hydra_username'],
-                           password=decrypt(session['hydra_password'],
-                                            app.config['SECRET_ENCRYPT_KEY']))
-            session['hydra_sessionid'] = sessionid
+            conn.login(username=session['hydra_username'],
+                       password=decrypt(session['hydra_password'],
+                                        app.config['SECRET_ENCRYPT_KEY']))
+            session['hydra_sessionid'] = conn.session_id
             
             # ALSO: need to add to database
     
