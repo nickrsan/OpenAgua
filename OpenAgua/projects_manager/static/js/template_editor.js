@@ -1,5 +1,5 @@
 // create the editor
-var container = $("#jsoneditor")[0];
+var container = $("#json_editor")[0];
 var options = {
     modes: ['code', 'tree'],
     ace: ace
@@ -53,6 +53,8 @@ function update_all_templates() {
 // load the template
 $(document).on('click', '.edit_template', function(e) {
     e.preventDefault();
+    
+    $('#json_editor_wrapper').show()    
     
     var id = Number($(this).attr('data-id'));
     var name = $(this).attr('data-name');
@@ -111,10 +113,14 @@ $(document).on('click', '#save_template', function(e) {
             notify('danger','Failure!', 'Template not updated.');
         } else {
             notify('success','Success!', 'Template updated.');
-            jsoneditor.set(template);
+            jsoneditor.set(resp.result);
         }        
         
     });
+});
+
+$(document).on('click', '#close_editor', function(e) {
+    $('#json_editor_wrapper').hide()
 });
 
 

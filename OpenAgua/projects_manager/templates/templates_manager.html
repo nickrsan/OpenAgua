@@ -6,9 +6,15 @@
 {% include 'navbar.html' %}
 
 <style>
-    #jsoneditor {
-      height:400px;
-      width=100%
+    #json_editor {
+      height: 400px;
+      width: 100%;
+    }
+    #json_editor_wrapper {
+      display:none;    
+    }
+    #editor_buttons {
+      margin-top: 5px;    
     }
 </style>
 
@@ -26,31 +32,34 @@
     
         <!--manage templates-->  
         <div class="col sm-6 col-md-4">
-
-
             <h4 style="margin:7px">Templates</h4>
-
-
+            
               <div id="template_list_all">
                 <ul class="list-group">
                 </ul>
               </div>
         
-              <label class="control-label">Upload new template - DOES NOT WORK</label>
-              <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
-              <script>
-                $(document).on('ready', function() {
-                    $("#upload-template").fileinput({showCaption: false});
-                });
-              </script>
+              <div style="margin-bottom:10px">
+                <label class="control-label">Upload new template - DOES NOT WORK</label>
+                <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
+                <script>
+                  $(document).on('ready', function() {
+                      $("#upload-template").fileinput({showCaption: false});
+                  });
+                </script>
+              </div>
 
         </div> 
         
       
         <div class="col sm-6 col-md-8">
-
-          <div id='jsoneditor'></div>
-          <input id='save_template' class="btn btn-default" type="button" value="Save">
+          <div id="json_editor_wrapper">
+            <div id='json_editor'></div>
+            <div id="editor_buttons">
+              <input id='save_template' class="btn btn-primary" type="button" value="Save">
+              <input id='close_editor' class="btn btn-default" type="button" value="Close">
+            </div>
+          </div>
         
         </div>
       </div> <!--end templates pane-->  

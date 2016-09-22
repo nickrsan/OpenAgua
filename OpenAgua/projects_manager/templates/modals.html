@@ -46,14 +46,6 @@
               <label for="network_description">Description:</label>
               <input type="comment" class="form-control" rows="3" id="network_description">
             </div>
-            <div class="form-group">
-              <label for="net_template">Template:</label>
-              <select id="net_template">
-                {% for template in templates %}
-                  <option value="{{ template.id }}">{{ template.name }}</option>
-                {% endfor %}
-              </select><br>
-            </div>
         </form>
         <div id="add_network_error"></div>
       </div>

@@ -1,11 +1,12 @@
-from flask import render_template, request, session, json, jsonify
-from flask_security import login_required
+from flask import render_template, redirect, url_for, request, session, json, jsonify
+from flask_security import login_required, current_user
 
-from ..connection import make_connection, load_hydrauser
+from ..connection import make_connection, load_hydrauser, add_hydrastudy, \
+     activate_study
 
 # import blueprint definition
 from . import projects_manager
-from OpenAgua import app
+from OpenAgua import app, db
 
 @projects_manager.route('/manage')
 @login_required
@@ -14,20 +15,13 @@ def manage():
     conn = make_connection()
     conn.load_active_study()
     
-    session['project_id'] = conn.project.id
-    session['network_id'] = conn.network.id
-    
     # get the list of project names, and network names for the test project
     projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-    networks = conn.call('get_networks', {'project_id': conn.project.id})
-    
-    # get list of all templates
-    templates = conn.call('get_templates',{})
+    networks = conn.call('get_networks', {'project_id': session['project_id']})
     
     return render_template('projects_manager.html',
                            projects=projects,
-                           networks=networks,
-                           templates=templates)
+                           networks=networks)
 
 @projects_manager.route('/manage/templates')
 @login_required
@@ -39,6 +33,17 @@ def manage_templates():
     
     return render_template('templates_manager.html',
                            templates=templates)
+
+@projects_manager.route('/_edit_schematic')
+@login_required
+def edit_schematic():
+    conn = make_connection()
+    network_id = int(request.args.get('network_id'))
+    activate_study(db, session['hydrauser_id'], session['project_id'],
+                   network_id)
+    conn.load_active_study()
+    
+    return jsonify(resp=0)
 
 @projects_manager.route('/_add_project')
 @login_required
@@ -62,40 +67,49 @@ def add_project():
 @projects_manager.route('/_add_network', methods=['GET', 'POST'])
 @login_required
 def add_network():
-    
-    # connect & get networks
     conn = make_connection()
+
     networks = conn.call('get_networks',
                          {'project_id': session['project_id'],
                           'include_data': 'N'})
     network_names = [network.name for network in networks]
-    #activate_net = request.args.get('activate_network')
     
     # add network
     new_net = request.args.get('net')
     new_net = json.loads(new_net)
-    tpl_id = int(request.args.get('tpl_id'))
+    tpl_id = session['template_id']
     if new_net['name'] in network_names:
         return jsonify(result={'status_code': -1})
-    else:
-        new_net['project_id'] = session['project_id']
-        network = conn.call('add_network', {'net':new_net})
+    
+    new_net['project_id'] = session['project_id']
+    network = conn.call('add_network', {'net':new_net})
 
-        # add the template
-        conn.call('apply_template_to_network',
-                  {'template_id': tpl_id, 'network_id': network.id})
+    # add the template
+    conn.call('apply_template_to_network',
+              {'template_id': tpl_id, 'network_id': network.id})
+    
+    # add a default scenario (similar to Hydra Modeller)
+    scenario = dict(
+        name = 'Baseline',
+        description = 'Default OpenAgua scenario'
+    )
+
+    result = conn.call('add_scenario',
+                       {'network_id': network.id, 'scen': scenario})
+    
+    # create a default study consisting of the project, network, and scenario
+    add_hydrastudy(db,
+        user_id = current_user.id,
+        hydrauser_id = session['hydrauser_id'],
+        project_id = session['project_id'],
+        network_id = network.id,
+        template_id = session['template_id'],
+        active = 1
+    )
+    
+    conn.load_active_study()
         
-        # add a default scenario (similar to Hydra Modeller)
-        scenario = dict(
-            name = 'Baseline',
-            description = 'Default OpenAgua scenario'
-        )
-
-        result = conn.call('add_scenario',
-                           {'network_id': network.id, 'scen': scenario})
-        #network = conn.call('get_network', {'network_id': network.id})
-            
-        return jsonify(result={'status_code': 1})
+    return jsonify(result={'status_code': 1})
 
 
 @projects_manager.route('/_purge_project')
@@ -149,10 +163,11 @@ def update_template():
     
     template_id = int(request.args.get('template_id'))
     
+    # upload the new template    
     zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
-    template_xml = zf.read('OpenAgua/template/template.xml')
+    template_xml = zf.read('OpenAgua/template/template.xml').decode('utf-8')
     resp = conn.call('upload_template_xml',
-                            {'template_xml': template_xml.decode()}) 
+                            {'template_xml': template_xml}) 
     
     if 'faultcode' not in resp:
         status_code = 1        

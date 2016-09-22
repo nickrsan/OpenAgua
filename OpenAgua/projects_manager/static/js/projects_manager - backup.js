@@ -55,18 +55,23 @@ var network_actions =
     $('<ul>').addClass("dropdown-menu")
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share network with another OpenAgua user.">Share</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
-        .append(menu_item('edit_schematic', 'Edit schematic', 'Edit the network schematic'))
-        .append(menu_item('edit_details', 'Edit details', 'Edit the network name, description and template'))
-        //.append(menu_item('attach_template', 'Attach', 'Attach a new template to the selected network.'))
-        //.append(menu_item('detach_template', 'Detach', 'Detach template from the selected network.'));
-        .append(menu_item('upgrade_template', 'Upgrade', 'Upgrade the template to the latest version'))
+        .append($('<li>').html('<a href="#">Edit</a>'))
+        .append($('<li>').html('<a href="#">Rename</a>'))
+        .append($('<li>').html('<a href="#">Attach template</a>'))
         .append($('<li>').html('<a href="#">Clean up</a>'))
         .append($('<li>').html('<a href="#">Export</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
-        .append(menu_item('purge_network', 'Delete', 'Permanently delete this network'));
+        .append(menu_item('purge_network', 'Delete', 'Permanently delete this network.'));
+
+// actions for templates attached to a network
+var template_actions =
+    $('<ul>').addClass("dropdown-menu")
+        .append(menu_item('upgrade_template', 'Upgrade', 'Upgrade the template to the latest version.'))
+        .append(menu_item('detach_template', 'Detach', 'Detach template from the selected network.'));
 
 project_dropdown = make_button_div('project', project_actions);
 network_dropdown = make_button_div('network', network_actions);
+template_dropdown = make_button_div('template', template_actions);
 
 // update project list
 function update_projects(active_project_id) {
@@ -147,6 +152,40 @@ function update_networks(active_project_id, active_network_id) {
     });
 }
 
+// update network templates list
+function update_templates(active_network_id, active_template_id) {
+    $.getJSON($SCRIPT_ROOT + '/_get_templates_for_network', {network_id: active_network_id}, function(resp) {
+        var templates = resp.templates,
+            template_list = $('#template_list');
+        template_list.empty();
+        if (templates.length) {
+            var ul = $('<ul>').addClass('list-group');        
+        
+            $.each(templates, function(index, template){
+    
+                var dropdown = template_dropdown.clone()
+                    .find('a')
+                    .attr('data-name', template.name)
+                    .attr('data-id', template.id)
+                    .end();
+            
+                var li = $('<li>')
+                    .text(template.name)
+                    .addClass("list-group-item clearfix")
+                    .addClass("template_item")
+                    .val(template.id)
+                    .append(dropdown);
+                if (template.id == active_template_id) {
+                    li.addClass('active')
+                }
+                ul.append(li);    
+            });
+            template_list.append(ul);
+        }
+    });
+}
+
+
 // purge project
 $(document).on('click', '.purge_project', function(e) {
     e.preventDefault();
@@ -223,14 +262,6 @@ $(document).on('click', '.purge_network', function(e) {
 });
 
 // upgrade template
-$(document).on('click', '.edit_schematic', function(e) {
-    var network_id = Number($(this).attr('data-id'));
-    $.get('/_edit_schematic', { network_id: network_id }, function() {
-        window.location.href = "/network_editor";    
-    });
-});
-
-// upgrade template
 $(document).on('click', '.upgrade_template', function(e) {
     e.preventDefault();
     var id = Number($(this).attr('data-id'));
@@ -255,4 +286,5 @@ $(document).on('click', '.upgrade_template', function(e) {
 $( document ).ready(function() {
     update_projects(active_project_id);
     update_networks(active_project_id, active_network_id);
+    update_templates(active_network_id, active_template_id);
 });

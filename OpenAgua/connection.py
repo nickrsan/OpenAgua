@@ -258,21 +258,29 @@ class connection(object):
     
     def load_active_study(self):
         study = HydraStudy.query \
-            .filter(HydraStudy.user_id == current_user.id \
-                    and HydraStudy.active == 1).first()
+            .filter(HydraStudy.user_id == current_user.id) \
+            .filter(HydraStudy.active == 1) \
+            .first()
         
-        self.project = self.get_project(study.project_id)
-        self.network = self.get_network(study.network_id)
-        self.template = self.get_template(study.template_id)
-        ttypes = {}
-        for tt in self.template.types:
-            ttypes[tt.id] = tt
-        self.ttypes = ttypes
+        if study:
+            self.project = self.get_project(study.project_id)
+            self.network = self.get_network(study.network_id)
+            self.template = self.get_template(study.template_id)
+            ttypes = {}
+            for tt in self.template.types:
+                ttypes[tt.id] = tt
+            self.ttypes = ttypes
         
-        session['project_id'] = study.project_id
-        session['network_id'] = study.network_id
-        session['template_id'] = study.template_id
-        
+            session['project_id'] = study.project_id
+            if 'faultcode' in self.network:
+                session['network_id'] = None
+            else:
+                session['network_id'] = study.network_id
+            session['template_id'] = study.template_id
+        else: # no active study (though we shouldn't get here)
+            self.project = None
+            self.network = None
+            self.template = None
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
@@ -481,10 +489,24 @@ def add_default_network(conn, project_id, template_id, scenario_name):
                     'description': 'Default OpenAgua scenario',
                     'time_step': 'month'}
         scenario = conn.call('add_scenario',
-                             {'network_id': network.id, 'scen': scen})        
-        
+                             {'network_id': network.id, 'scen': scen})
     return network
 
+
+def activate_study(db, hydrauser_id, project_id, network_id):
+    
+    # deactivate other studies
+    HydraStudy.query \
+        .filter(HydraStudy.user_id == current_user.id).update({'active': 0})
+    db.session.commit()
+    
+    # activate current study
+    HydraStudy.query \
+        .filter(HydraStudy.hydrauser_id == hydrauser_id) \
+        .filter(HydraStudy.project_id == project_id) \
+        .filter(HydraStudy.network_id == network_id) \
+        .update({'active': 1})        
+    db.session.commit()
 
 def add_hydrastudy(db, **kwargs):
 
@@ -492,8 +514,10 @@ def add_hydrastudy(db, **kwargs):
     for k, v in kwargs.items():
         exec('hydrastudy.{} = {}'.format(k, v))
     db.session.add(hydrastudy)
+    if 'active' in kwargs and kwargs['active']:
+        activate_study(db, kwargs['hydrauser_id'],
+                       kwargs['project_id'], kwargs['network_id'])
     db.session.commit()
-    
 
 def add_default_study(conn, db, template_name, hydrauser_id, scenario_name):
     template = add_default_template(conn, template_name) # should be done with manage.py
