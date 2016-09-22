@@ -25,9 +25,9 @@ $(document).on('click', '.edit_template', function(e) {
 
 
 $(document).on('click', '#save_template', function(e) {
-    var template = jsoneditor.getText();
+    var template = jsoneditor.get();
     var func = 'update_template'
-    var args = {'template': template}
+    var args = {'tmpl': template}
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
         if ("faultcode" in resp.result) {
             notify('danger','Failure!', 'Template not updated.');
