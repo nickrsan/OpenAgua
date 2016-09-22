@@ -5,6 +5,7 @@ from ..connection import make_connection, load_hydrauser
 
 # import blueprint definition
 from . import projects_manager
+from OpenAgua import app
 
 @projects_manager.route('/manage')
 @login_required
@@ -101,6 +102,52 @@ def purge_project():
     else:
         status_code = -1
     return jsonify(result={'status_code': status_code})
+
+@projects_manager.route('/_upgrade_template')
+@login_required
+def upgrade_template():
+    conn = make_connection()
+    
+    network_id = int(request.args.get('network_id'))
+    template_id = int(request.args.get('template_id'))
+    
+    # simply detach existing template and re-attach
+    resp = conn.call('remove_template_from_network',
+                     {'network_id': network_id,
+                      'template_id': template_id,
+                      'remove_attrs': 'N'})
+    
+    resp = conn.call('apply_template_to_network',
+                      {'template_id': template_id,
+                       'network_id': network_id})
+    
+    # attach new template
+    
+    if resp=='OK':
+        status_code = 1        
+    else:
+        status_code = -1
+    return jsonify(status=status_code)
+
+@projects_manager.route('/_update_template')
+@login_required
+def update_template():
+    import zipfile
+    
+    conn = make_connection()
+    
+    template_id = int(request.args.get('template_id'))
+    
+    zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
+    template_xml = zf.read('OpenAgua/template/template.xml')
+    resp = conn.call('upload_template_xml',
+                            {'template_xml': template_xml.decode()}) 
+    
+    if 'faultcode' not in resp:
+        status_code = 1        
+    else:
+        status_code = -1
+    return jsonify(status=status_code)
 
 
 @projects_manager.route('/_get_templates_for_network')
