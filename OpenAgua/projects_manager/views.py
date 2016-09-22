@@ -29,11 +29,22 @@ def manage():
                            networks=networks,
                            templates=templates)
 
+@projects_manager.route('/manage/templates')
+@login_required
+def manage_templates():
+    conn = make_connection()
+    
+    # get list of all templates
+    templates = conn.call('get_templates', {})
+    
+    return render_template('templates_manager.html',
+                           templates=templates)
+
 @projects_manager.route('/_add_project')
 @login_required
 def add_project():
-    conn = make_connection(session, include_network=False,
-                           include_template=False)
+    conn = make_connection()
+    
     projects = conn.call('get_projects', {'user_id':session['hydra_user_id']})
     project_names = [project.name for project in projects]
     activate = request.args.get('activate')

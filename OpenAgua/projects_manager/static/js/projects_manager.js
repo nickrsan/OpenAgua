@@ -40,32 +40,6 @@ $("button#add_network_confirm").bind('click', function() {
     });
 });
 
-// create menu items that result in modals
-function menu_item_modal(text, title, target) {
-    var li = $('<li>')
-        .append($('<a>')
-            .attr('type','button')
-            .attr('data-target', target)
-            .attr('data-toggle', 'modal')
-            .attr('title', title)
-            .text(text)
-        );
-    return li;
-}
-
-// create menu item
-function menu_item(action, text, tooltip) {
-    var li = $('<li>')
-        .append($('<a>')
-            .attr('href', '')
-            .attr('type','button')
-            .addClass(action)
-            .attr('title', tooltip)
-            .text(text)
-        );
-    return li;
-}
-
 // project actions
 var project_actions =
     $('<ul>').addClass("dropdown-menu")
@@ -95,39 +69,9 @@ var template_actions =
         .append(menu_item('upgrade_template', 'Upgrade', 'Upgrade the template to the latest version.'))
         .append(menu_item('detach_template', 'Detach', 'Detach template from the selected network.'));
 
-// template actions for template manager
-var template_all_actions =
-    $('<ul>').addClass("dropdown-menu")
-        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share template with another OpenAgua user.">Share</a>'))
-        .append($('<li>').attr('role','separator').addClass('divider'))
-        .append(menu_item('edit_template', 'Edit', 'Edit this template here.'))
-        .append($('<li>').html('<a href="#">Rename</a>'))
-        .append($('<li>').html('<a href="#">Attach to network</a>'))
-        .append($('<li>').html('<a href="#">Export</a>'))
-        .append(menu_item('update_template', 'Update', 'Update this template to the latest version.'))
-        .append($('<li>').attr('role','separator').addClass('divider'))
-        .append(menu_item('delete_template', 'Delete', 'Permanently delete this template.'));
-        
-function make_button_div(class_type, actions) {
-    var btn_div = $('<div>')
-    .addClass("btn-group pull-right")
-    .append(
-        $('<button>')
-            //.addClass(class_type+"_dropdown")
-            .addClass("btn btn-default btn-sm dropdown-toggle")
-            .attr("type", "button")
-            .attr("data-toggle", "dropdown")
-            .text("Action")
-            .append($('<span>').addClass("caret"))
-    )
-    .append(actions);
-    return btn_div;
-}
-
 project_dropdown = make_button_div('project', project_actions);
 network_dropdown = make_button_div('network', network_actions);
 template_dropdown = make_button_div('template', template_actions);
-template_all_dropdown = make_button_div('template_all', template_all_actions);
 
 // update project list
 function update_projects(active_project_id) {
@@ -241,34 +185,6 @@ function update_templates(active_network_id, active_template_id) {
     });
 }
 
-// update all templates list
-var all_templates
-function update_all_templates() {
-    var func = 'get_templates'
-    var args = {}
-    $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
-        all_templates = resp.result
-        var ul = $('#template_list_all ul');
-        ul.empty();
-        $.each(all_templates, function(index, template){
-
-            var dropdown = template_all_dropdown.clone()
-                .find('a')
-                .attr('data-name', template.name)
-                .attr('data-id', template.id)
-                .end();
-        
-            var li = $('<li>')
-                .text(template.name)
-                .addClass("list-group-item clearfix")
-                .addClass("template_item")
-                .val(template.id)
-                .append(dropdown);
-            ul.append(li);
-            
-        });
-    });
-};
 
 // purge project
 $(document).on('click', '.purge_project', function(e) {
@@ -345,21 +261,6 @@ $(document).on('click', '.purge_network', function(e) {
     });
 });
 
-// delete template
-$(document).on('click', '.delete_template', function(e) {
-    e.preventDefault();
-    var id = Number($(this).attr('data-id'));
-    var name = $(this).attr('data-name');
-    var msg = 'Permanently delete template "'+name+'?"<br><b>WARNING: This cannot be undone!<b>'
-    bootbox.confirm(msg, function(confirm) {
-        if (confirm) {
-            result = hydra_call('delete_template', {template_id: id});
-            update_templates(active_network_id, active_template_id);
-            notify('success','Success!', 'Template "'+name+'" has been permanently deleted.');
-        };
-    });
-});
-
 // upgrade template
 $(document).on('click', '.upgrade_template', function(e) {
     e.preventDefault();
@@ -382,30 +283,8 @@ $(document).on('click', '.upgrade_template', function(e) {
     });
 });
 
-// update master template
-$(document).on('click', '.update_template', function(e) {
-    e.preventDefault();
-    var id = Number($(this).attr('data-id'));
-    var msg = 'Update template?<br>The old template will be overwritten, and all new networks will use the updated template.'
-    bootbox.confirm(msg, function(confirm) {
-        if (confirm) {
-            var data = {
-                template_id: id,
-            }
-            $.getJSON($SCRIPT_ROOT + '/_update_template', data, function(resp) {
-                status = resp.status;
-                if (status==1) {
-                    notify('success','Success!', 'Template has been updated.');
-                }
-            });
-        };
-    });
-});
-
-
 $( document ).ready(function() {
     update_projects(active_project_id);
     update_networks(active_project_id, active_network_id);
     update_templates(active_network_id, active_template_id);
-    update_all_templates();
 });
