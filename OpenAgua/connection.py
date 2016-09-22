@@ -10,7 +10,7 @@ import zipfile
 import logging
 
 from .utils import hydra_timeseries, eval_data, encrypt, decrypt
-from .models import User, HydraUser, HydraUrl
+from .models import User, HydraUser, HydraUrl, HydraStudy
 from . import app # delete later
 
 log = logging.getLogger(__name__)
@@ -82,7 +82,10 @@ class connection(object):
         if username is None:
             err = 'Error. Username not provided.'
         resp = self.call('get_user_by_name', {'username': username})        
-        return resp  
+        return resp
+    
+    def get_project(self, project_id=None):
+        return self.call('get_project', {'project_id': project_id})
     
     def get_project_by_name(self, project_name=None):
         if project_name is None:
@@ -114,7 +117,7 @@ class connection(object):
     
     def make_geojson_from_node(self, node=None):
         type_id = [t.id for t in node.types \
-                   if t.template_id==session['template_id']][0]
+                   if t.template_id==self.template.id][0]
         ttype = self.ttypes[type_id]
         gj = {'type':'Feature',
               'geometry':{'type':'Point',
@@ -125,7 +128,7 @@ class connection(object):
                             'template_type_name':ttype.name,
                             'template_type_id':ttype.id,
                             'image':ttype.layout.image,
-                            'template_name':session['template_name']}}
+                            'template_name':self.template.name}}
         return gj
 
     def make_geojson_from_link(self, link=None):
@@ -133,7 +136,7 @@ class connection(object):
         coords = get_coords(self.network.nodes)
         
         type_id = [t.id for t in link.types \
-                   if t.template_id==session['template_id']][0]
+                   if t.template_id==self.template.id][0]
         ttype = self.ttypes[type_id]
 
         n1_id = link['node_1_id']
@@ -156,7 +159,7 @@ class connection(object):
                            'template_type_name':ttype.name,
                            'template_type_id':ttype.id,
                            'image':ttype.layout.image,
-                           'template_name':session['template_name'],
+                           'template_name':self.template.name,
                            'color': name_to_hex(ttype.layout.colour),
                            'weight': ttype.layout.line_weight,
                            'opacity': 0.7,
@@ -189,8 +192,8 @@ class connection(object):
         typesummary = dict(
             name = template_type_name,
             id = template_type_id,
-            template_name = session['template_name'],
-            template_id = session['template_id']
+            template_name = self.template.name,
+            template_id = self.template.id
         )
         node = dict(
             id = -1,
@@ -221,8 +224,8 @@ class connection(object):
         typesummary = dict(
             name = template_type_name,
             id = template_type_id,
-            template_name = session['template_name'],
-            template_id = session['template_id']
+            template_name = self.template.name,
+            template_id = self.template.id
         )
 
         links = []
@@ -254,72 +257,22 @@ class connection(object):
         return links
     
     def load_active_study(self):
-        session['project_name'] = current_user.email
-        session['network_name'] = 'default network'
-        session['template_name'] = 'OpenAgua'
+        study = HydraStudy.query \
+            .filter(HydraStudy.user_id == current_user.id \
+                    and HydraStudy.active == 1).first()
         
-        # load / activate template
-        templates = self.call('get_templates',{})
-        template_names = [t.name for t in templates]    
-        if session['template_name'] not in template_names:
-            zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
-            template_xml = zf.read('OpenAgua/template/template.xml')
-            default_tpl \
-                = self.call('upload_template_xml',
-                            {'template_xml': template_xml.decode()})
-            templates.append(default_tpl)
-        session['template_id'] \
-            = [t.id for t in templates if t.name==session['template_name']][0]        
+        self.project = self.get_project(study.project_id)
+        self.network = self.get_network(study.network_id)
+        self.template = self.get_template(study.template_id)
+        ttypes = {}
+        for tt in self.template.types:
+            ttypes[tt.id] = tt
+        self.ttypes = ttypes
         
-        # load / create project
-        projects = self.call('get_projects', {})
-        if session['project_name'] in [proj.name for proj in projects]:
-            project = self.get_project_by_name(session['project_name'])
-        else:
-            desc = 'Default OpenAgua project created for for %s %s (%s)' \
-                % (current_user.firstname,
-                   current_user.lastname,
-                   current_user.email)
-            proj = {'name': session['project_name'],
-                    'description': desc,
-                    'user_id': session['hydra_user_id']}
-            project = \
-                self.call('add_project',
-                          {'project': proj})
-        session['project_id'] = project.id
+        session['project_id'] = study.project_id
+        session['network_id'] = study.network_id
+        session['template_id'] = study.template_id
         
-        # load / activate network
-      
-        networks = self.call('get_networks',{'project_id':project.id})
-        if session['network_name'] in [net.name for net in networks]:
-            network = self.get_network_by_name(session['project_id'],
-                                               session['network_name'])
-        else:
-            net = {'name': session['network_name'],
-                   'description': 'Default OpenAgua network',
-                   'project_id': project.id}
-            network = self.call('add_network', {'net': net})
-        session['network_id'] = network.id
-        
-        default_is_attached = True
-        if 'types' in network.keys():
-            net_tpls_names = [t.template_name for t in network.types]
-            if session['template_name'] not in net_tpls_names:
-                default_is_attached = False
-        else:
-            default_is_attached = False
-        if not default_is_attached:
-            self.call('apply_template_to_network',
-                      {'template_id': session['template_id'],
-                       'network_id': network.id})
-        
-        if not network.scenarios:
-            scen = {'name': 'Baseline',
-                    'description': 'Default OpenAgua scenario',
-                    'time_step': 'month'}
-            self.call('add_scenario', {'network_id': network.id, 'scen': scen})
-        
-        session['appname'] = 'pyomo_network_lp'    
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
@@ -327,36 +280,21 @@ class JSONObject(dict):
             self[k] = v
             setattr(self, k, v)                            
             
-def make_connection(session,
-                    include_network=True,
-                    include_template=True):
+def make_connection():
         
     conn = connection(url=session['hydra_url'],
                       session_id=session['hydra_sessionid'])
-    ping = conn.call('get_username', {'uid': session['hydra_user_id']})
+    ping = conn.call('get_username', {'uid': session['hydra_userid']})
     
-    if 'faultcode' in ping:
-        if ping.faultcode == 'No Session':
-            conn = connection(url=session['hydra_url'])
-            # NOT SECURE IN TRANSMISSION
-            conn.login(username=session['hydra_username'],
-                       password=decrypt(session['hydra_password'],
-                                        app.config['SECRET_ENCRYPT_KEY']))
-            session['hydra_sessionid'] = conn.session_id
-            
-            # ALSO: need to add to database
-    
-    if include_network:
-        conn.network = conn.get_network(network_id = session['network_id'],
-                                        include_data = 'N')
-    
-    if include_template:
-        conn.template = conn.get_template(template_id = session['template_id'])
-    
-        ttypes = {}
-        for tt in conn.template.types:
-            ttypes[tt.id] = tt
-        conn.ttypes = ttypes    
+    if 'faultcode' in ping and ping.faultcode == 'No Session':
+        conn = connection(url=session['hydra_url'])
+        # NOT SECURE IN TRANSMISSION
+        conn.login(username=session['hydra_username'],
+                   password=decrypt(session['hydra_password'],
+                                    app.config['SECRET_ENCRYPT_KEY']))
+        session['hydra_sessionid'] = conn.session_id
+        
+        # ALSO: need to add to database 
     
     return conn
 
@@ -430,8 +368,8 @@ def create_hydrauser(db,
         db.session.add(hydraurl)
         db.session.commit()
 
-    hydraurl = HydraUrl.query \
-        .filter(HydraUrl.hydra_url == hydra_url).first()
+        hydraurl = HydraUrl.query \
+            .filter(HydraUrl.hydra_url == hydra_url).first()
 
     # create new Hydra user account
     hydra_user_pw_encrypted = encrypt(hydra_user_password, encrypt_key)        
@@ -440,27 +378,37 @@ def create_hydrauser(db,
                password=hydra_admin_password) 
     hydra_user = conn.call('get_user_by_name',
                            {'username':hydra_user_username})
-    if not hydra_user:
+    hydrauser = False
+    if hydra_user:
+        conn.call('update_user_password',
+                  {'user_id': hydra_user.id,
+                   'new_password': hydra_user_password})
+        
+        hydrauser = HydraUser.query \
+            .filter(HydraUser.hydra_username == hydra_user.username).first()
+        if hydrauser: # update hydrauser record
+            hydrauser.hydra_userid = hydra_user.id
+            hydrauser.hydra_password = hydra_user_pw_encrypted
+
+    else:
         hydra_user = conn.call('add_user',
                                {'user': {'username': hydra_user_username,
                                          'password': hydra_user_password}})
 
-    # log in with the new username and password
-    conn.login(username=hydra_user_username,
-               password=hydra_user_password)
-
     # add hydra user & session information to database
-    hydrauser = HydraUser( \
-        user_id = user_id,
-        hydra_url_id = hydraurl.id,
-        hydra_userid = hydra_user.id,
-        hydra_username = hydra_user.username,
-        hydra_password = hydra_user_pw_encrypted,
-        hydra_sessionid = conn.session_id
-    )
-    db.session.add(hydrauser)
-
-    db.session.commit()    
+    if not hydrauser:
+        hydrauser = HydraUser( \
+            user_id = user_id,
+            hydra_url_id = hydraurl.id,
+            hydra_userid = hydra_user.id,
+            hydra_username = hydra_user.username,
+            hydra_password = hydra_user_pw_encrypted,
+        )
+        db.session.add(hydrauser)
+    db.session.commit()
+    
+    session['hydra_username'] = hydrauser.hydra_username
+    session['hydra_password'] = hydrauser.hydra_password
 
 def load_hydrauser():
 
@@ -471,9 +419,94 @@ def load_hydrauser():
         hydraurl = HydraUrl.query \
             .filter(HydraUrl.id==hydrauser.hydra_url_id).first()
 
-        session['hydra_user_id'] = hydrauser.hydra_userid
+        session['hydrauser_id'] = hydrauser.id
         session['hydra_url'] = hydraurl.hydra_url
+        session['hydra_userid'] = hydrauser.hydra_userid
         session['hydra_username'] = hydrauser.hydra_username
         session['hydra_password'] = hydrauser.hydra_password # it's encrypted
-        session['hydra_sessionid'] = hydrauser.hydra_sessionid        
+        session['hydra_sessionid'] = hydrauser.hydra_sessionid
+
+
+def add_default_template(conn, template_name):
     
+    # load / activate template
+    templates = conn.call('get_templates',{})
+    default_tpl = [t for t in templates if t.name == template_name][0]
+    if not default_tpl:
+        zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
+        template_xml = zf.read('OpenAgua/template/template.xml')
+        default_tpl \
+            = conn.call('upload_template_xml',
+                        {'template_xml': template_xml.decode()}) 
+    return default_tpl
+        
+def add_default_project(conn):
+
+    # add project
+    project = conn.call('get_project_by_name',
+                        {'project_name': session['hydra_username']})
+    
+    if 'faultstring' in project:
+        project = dict(
+            name = session['hydra_username'],
+            description = 'Default project created for %s %s (%s)' \
+            % (current_user.firstname, current_user.lastname, current_user.email),
+        )
+        project = conn.call('add_project', {'project':project})
+        
+    return project
+
+
+def add_default_network(conn, project_id, template_id, scenario_name):
+
+    network_name = 'Default network'
+    
+    network = conn.call('get_network_by_name',
+                        {'project_id':project_id,
+                         'network_name': network_name})
+    if 'faultstring' in network and 'not found' in network.faultstring:
+        net = dict(
+            name = network_name,
+            description = 'Default network created for %s %s (%s)' \
+            % (current_user.firstname, current_user.lastname, current_user.email),
+            project_id = project_id
+        )
+        
+        network = conn.call('add_network', {'net': net})
+    
+        conn.call('apply_template_to_network',
+                      {'template_id': template_id,
+                       'network_id': network.id})
+        
+        # add scenario
+        scen = {'name': scenario_name,
+                    'description': 'Default OpenAgua scenario',
+                    'time_step': 'month'}
+        scenario = conn.call('add_scenario',
+                             {'network_id': network.id, 'scen': scen})        
+        
+    return network
+
+
+def add_hydrastudy(db, **kwargs):
+
+    hydrastudy = HydraStudy()
+    for k, v in kwargs.items():
+        exec('hydrastudy.{} = {}'.format(k, v))
+    db.session.add(hydrastudy)
+    db.session.commit()
+    
+
+def add_default_study(conn, db, template_name, hydrauser_id, scenario_name):
+    template = add_default_template(conn, template_name) # should be done with manage.py
+    project = add_default_project(conn)
+    network = add_default_network(conn, project.id, template.id, scenario_name)
+    
+    add_hydrastudy(db,
+        user_id = current_user.id,
+        hydrauser_id = hydrauser_id,
+        project_id = project.id,
+        network_id = network.id,
+        template_id = template.id,
+        active = 1
+    )

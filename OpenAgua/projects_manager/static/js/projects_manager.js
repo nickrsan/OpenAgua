@@ -92,6 +92,7 @@ var network_actions =
 // actions for templates attached to a network
 var template_actions =
     $('<ul>').addClass("dropdown-menu")
+        .append(menu_item('upgrade_template', 'Upgrade', 'Upgrade the template to the latest version.'))
         .append(menu_item('detach_template', 'Detach', 'Detach template from the selected network.'));
 
 // template actions for template manager
@@ -99,10 +100,11 @@ var template_all_actions =
     $('<ul>').addClass("dropdown-menu")
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share template with another OpenAgua user.">Share</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
-        .append($('<li>').html('<a href="#">Edit</a>'))
+        .append(menu_item('edit_template', 'Edit', 'Edit this template here.'))
         .append($('<li>').html('<a href="#">Rename</a>'))
         .append($('<li>').html('<a href="#">Attach to network</a>'))
         .append($('<li>').html('<a href="#">Export</a>'))
+        .append(menu_item('update_template', 'Update', 'Update this template to the latest version.'))
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append(menu_item('delete_template', 'Delete', 'Permanently delete this template.'));
         
@@ -357,6 +359,49 @@ $(document).on('click', '.delete_template', function(e) {
         };
     });
 });
+
+// upgrade template
+$(document).on('click', '.upgrade_template', function(e) {
+    e.preventDefault();
+    var id = Number($(this).attr('data-id'));
+    var name = $(this).attr('data-name');
+    var msg = 'Upgrade template?<br><b>WARNING: This cannot be undone!<b>'
+    bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+            var data = {
+                template_id: id,
+                network_id: active_network_id
+            }
+            $.getJSON($SCRIPT_ROOT + '/_upgrade_template', data, function(resp) {
+                status = resp.status;
+                if (status==1) {
+                    notify('success','Success!', 'Template has been upgraded.');
+                }
+            });
+        };
+    });
+});
+
+// update master template
+$(document).on('click', '.update_template', function(e) {
+    e.preventDefault();
+    var id = Number($(this).attr('data-id'));
+    var msg = 'Update template?<br>The old template will be overwritten, and all new networks will use the updated template.'
+    bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+            var data = {
+                template_id: id,
+            }
+            $.getJSON($SCRIPT_ROOT + '/_update_template', data, function(resp) {
+                status = resp.status;
+                if (status==1) {
+                    notify('success','Success!', 'Template has been updated.');
+                }
+            });
+        };
+    });
+});
+
 
 $( document ).ready(function() {
     update_projects(active_project_id);

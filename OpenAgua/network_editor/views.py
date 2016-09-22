@@ -9,7 +9,7 @@ from . import net_editor
 @login_required
 def network_editor():
     load_hydrauser() # do this at the top of every page
-    conn = make_connection(session)
+    conn = make_connection()
     conn.load_active_study()
     
     ntypes = [t for t in conn.template.types if t.resource_type == 'NODE']
@@ -22,7 +22,8 @@ def network_editor():
 @net_editor.route('/_load_network')
 @login_required
 def load_network():
-    conn = make_connection(session)
+    conn = make_connection()
+    conn.load_active_study()
     
     features = conn.make_geojson_features()
     features = json.dumps(features)
@@ -36,7 +37,8 @@ def load_network():
 @net_editor.route('/_add_node')
 @login_required
 def add_node():
-    conn = make_connection(session)
+    conn = make_connection()
+    conn.load_active_study()
 
     new_node = request.args.get('new_node')
     gj = json.loads(new_node)
@@ -61,7 +63,8 @@ def add_node():
 @net_editor.route('/_add_link')
 @login_required
 def add_link():
-    conn = make_connection(session)
+    conn = make_connection()
+    conn.load_active_study()
 
     new_link = request.args.get('new_link')
     gj = json.loads(new_link)
@@ -90,9 +93,7 @@ def add_link():
 @net_editor.route('/_delete_feature')
 @login_required
 def delete_feature():
-    conn = make_connection(session,
-                           include_network = False,
-                           include_template = False)
+    conn = make_connection()
     
     deleted_feature = request.args.get('deleted')
     gj = json.loads(deleted_feature)
@@ -109,9 +110,7 @@ def delete_feature():
 @net_editor.route('/_purge_feature')
 @login_required
 def purge_feature():
-    conn = make_connection(session,
-                           include_network = False,
-                           include_template = False)
+    conn = make_connection()
     
     purged_feature = request.args.get('purged')
     gj = json.loads(purged_feature)

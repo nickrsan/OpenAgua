@@ -13,8 +13,11 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/instance/users.sqlite'.format(APP_ROOT)
 PYOMO_APP_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
 PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'utils.py')
 PYOMO_APP_NAME = 'OpenAguaModel'
-TEMPLATE_FILE = os.path.join(APP_ROOT,
-                             'OpenAgua/static/hydra/templates/OpenAgua.zip')
+DEFAULT_HYDRA_TEMPLATE = 'OpenAgua'
+DEFAULT_SCENARIO_NAME = 'Baseline'
+TEMPLATE_FILE \
+    = os.path.join(APP_ROOT, 'OpenAgua/static/hydra/templates/{}.zip' \
+                   .format(DEFAULT_HYDRA_TEMPLATE))
 SOLVER = "glpk"
 
 # Flask-Security settings
@@ -22,8 +25,6 @@ SECURITY_FLASH_MESSAGES = True
 SECURITY_PASSWORD_HASH = 'sha256_crypt'
 SECURITY_PASSWORD_SALT = 'salty'
 SECURITY_EMAIL_SENDER = 'no-reply@gmail.com'
-#SECURITY_TOKEN_AUTHENTICATION_KEY
-#SECURITY_TOKEN_AUTHENTICATION_HEADER
 
 SECURITY_POST_REGISTER_VIEW = 'index'
 SECURITY_POST_LOGIN_VIEW = 'user_home.home'

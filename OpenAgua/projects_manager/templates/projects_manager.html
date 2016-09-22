@@ -4,6 +4,18 @@
 
 {% block head_master %}
 {% include 'navbar.html' %}
+
+<style>
+    #jsoneditor {
+      height:400px;
+      width=100%
+    }
+</style>
+
+<!--jsoneditor-->
+<link rel="stylesheet" href="{{ url_for('static', filename='lib/jsoneditor/jsoneditor.min.css') }}" />
+<script src="{{ url_for('static', filename='lib/jsoneditor/jsoneditor.min.js') }}"></script>
+
 {% endblock %}    
     
 {% block main %}
@@ -126,6 +138,13 @@ var active_template_id = {{ session['template_id'] }};
           </div>
         </div> 
         
+      
+        <div class="col sm-6 col-md-8">
+
+          <div id='jsoneditor'></div>
+          <input id='save_template' class="btn btn-default" type="button" value="Save">
+        
+        </div>
       </div> <!--end templates pane-->
     
   </div>   
@@ -134,5 +153,6 @@ var active_template_id = {{ session['template_id'] }};
 {% include "modals.html" %}
   
 <script src="{{ url_for('projects_manager.static', filename='js/projects_manager.js') }}"></script>
+<script src="{{ url_for('projects_manager.static', filename='js/template_editor.js') }}"></script>
 
 {% endblock %}
