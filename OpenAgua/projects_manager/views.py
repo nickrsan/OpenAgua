@@ -177,8 +177,4 @@ def hydra_call():
     args = json.loads(args)
     result = conn.call(func, args)
     
-    if func == 'delete_template':
-        session['template_id'] = None
-        session['template_name'] = None
-    
     return jsonify(result=result)
