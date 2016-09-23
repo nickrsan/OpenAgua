@@ -2,25 +2,41 @@
 
 {% block head_master %}
 {% include 'navbar_index.html' %} 
+
+<style>
+.logo {
+  margin-top: 10px;
+  margin-bottom: 30px;
+  margin-left: 25px;
+  margin-right: 25px;
+  text-align: center;
+}
+#main {
+  padding-left: 50px;
+  padding-right:50px;
+}
+</style>
+
 {% endblock %}
 
 {% block main %}
 
 <div class="container-fluid">
-  <div class="row" style="margin-top:20px">   
+  <div class="row" style="margin-top:5px">   
     <div class="col-sm-12 col-md-10 col-sm-offset-0 col-md-offset-1">
       {{ macros.messages()}}
     </div>
   </div>
 </div>
 
-<div class="container-fluid" style="margin-top: 15px;">
+<div class="container-fluid" style="margin-top: 10px;">
   <div class="row">   
-    <div class="col-sm-10 col-md-10 col-sm-offset-1 col-md-offset-1">
+    <div id="main" class="col-sm-7 col-md-8">
       
       <h1>Welcome to OpenAgua!</h1>
       <p>OpenAgua is a next-generation decision support system for water resources planning.</p>
-      
+      <p>Planned features include:</p>
+      <ul>
         <li>Optimization-based simulation modeling of water resources systems. (<a href="#">learn more</a>)</li>
         <li>Standardized data organization based on <a href="http://www.hydraplatform.org">Hydra Platform</a>. (<a href="#">learn more</a>)</li>
         <li>Easy and flexible sharing for collaboration between experts, decision-makers, and stakeholders. (<a href="#">learn more</a>)</li>
@@ -32,16 +48,26 @@
       </ul>
       <br/>
       <div>
-      <a class="btn btn-primary btn-md label-default" href="/register" role="button">Create account</a>
-      <a class="btn btn-primary btn-md label-success" href="/login" role="button">Sign in</a>
+        <a class="btn btn-primary btn-md label-default" href="/register" role="button">Create account</a>
+        <a class="btn btn-primary btn-md label-success" href="/login" role="button">Sign in</a>
       </div>
-      <br>
-      <img src="{{ url_for('static', filename='images/') }}"></img>
-      <p>OpenAgua is a collaboration between the <a href="https://watershed.ucdavis.edu/">Center for Watershed Sciences</a> at the <a href="http://www.ucdavis.edu/">University of California, Davis</a> and the <a href="http://www.centrodelagua.org/">Centro del Agua para Am&eacute;rica Latina y el Caribe</a> at <a href="http://www.itesm.mx/">Tecnol&oacute;gico de Monterrey</a>. Seed funding is from the University of California's <a href="http://citris-uc.org">Center for Information Technology Research in the Interest of Society (CITRIS)</a>.</p>
+  
+    <div class="row">
+      <h3>Institutional partners</h3>
+          <a href="http://www.centrodelagua.org/"><img class="logo" src="{{ url_for('static', filename='images/centrodelagua.png') }}" width="200px"></img></a>
+          <a href="http://watershed.ucdavis.edu/"><img class="logo" src="{{ url_for('static', filename='images/ucdcws.png') }}" width=200px"></img></a>
+          <a href="http://citris-uc.org"><img class="logo" src="{{ url_for('static', filename='images/citris_logo.png') }}" width="200px"></img></a>
+    </div>      
       
+    </div>
+    
+    <div class="col-sm-4 col-md-3">
+      <!--<h3>Latest news</h3>-->
+      <!--<h3>Meet the team</h3>-->
     </div>
 
   </div>
+
 </div>
 
 {% endblock %}

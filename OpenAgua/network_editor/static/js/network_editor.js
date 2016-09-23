@@ -161,7 +161,8 @@ $('button#add_node_confirm').bind('click', function() {
     gj.properties.name = $('#node_name').val();
     gj.properties.description = $('#node_description').val();
     gj.properties.template_type_id = $("#node_type option:selected").val();
-    gj.properties.template_type_name = $("#node_type option:selected").text();
+    gj.properties.template_type_name = $("#node_type option:selected").text();    
+    
     $.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(data) {
         status_code = data.result.status_code;
         if ( status_code == -1 ) {
