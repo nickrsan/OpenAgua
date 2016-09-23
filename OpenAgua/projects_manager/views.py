@@ -42,6 +42,21 @@ def edit_schematic():
     activate_study(db, session['hydrauser_id'], session['project_id'],
                    network_id)
     conn.load_active_study()
+    if conn.invalid_study:
+        # create a new study with the just-selected network + default scenario
+        templates = conn.call('get_templates', {})
+        template = [t for t in templates if t.name == 'OpenAgua'][0]
+        add_hydrastudy(db,
+                       user_id = current_user.id,
+                       hydrauser_id = session['hydrauser_id'],
+                       project_id = session['project_id'],
+                       network_id = network_id,
+                       template_id = template.id,
+                       active = 1
+                       )
+        activate_study(db, session['hydrauser_id'], session['project_id'],
+                       network_id)
+        conn.load_active_study()    
     
     return jsonify(resp=0)
 
