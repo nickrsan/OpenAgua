@@ -280,7 +280,9 @@ class connection(object):
                 
                 segnodes[n] = node_id
 
-            link = {'node_1_id': segnodes[1], 'node_2_id': segnodes[2],
+            node_1_id = segnodes[1]
+            node_2_id = segnodes[2]
+            link = {'node_1_id': node_1_id, 'node_2_id': node_2_id,
                     'types': [typesummary]}
             if not desc:
                 desc = '{} [{}]'.format(lname, ttype_name)

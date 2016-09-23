@@ -50,7 +50,6 @@
               </select><br>
               <label for="link_name">Name:</label>
               <input type="text" class="form-control" id="link_name" autofocus>
-              Leave blank for automatic naming.
             </div>
             <div class="form-group">
               <label for="link_description">Description:</label>
@@ -76,11 +75,11 @@
         <h4 class="modal-title" id="delete_feature_name"></h4>
       </div>
       <div class="modal-body">
-        <p>Are you sure you want to delete this feature? This will delete the feature from the network, but it will remain in the database. If you wish to completely delete the feature and any attached data from the database, click CANCEL and use "purge" instead.</p>
+        <p>Are you sure you want to deactivate this feature? This will remove the feature from the network, but it will remain in the database. Deactivated features can be deleted in the network manager.</p>
       </div>
       <div class="modal-footer">
         <button id="delete_feature_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button id="delete_feature_confirm" type="submit" class="btn btn-danger">Delete</button>
+        <button id="delete_feature_confirm" type="submit" class="btn btn-danger">Deactivate</button>
       </div>
     </div>
   </div>
@@ -94,11 +93,11 @@
         <h4 class="modal-title" id="purge_feature_name"></h4>
       </div>
       <div class="modal-body">
-        <p>Are you sure you want to purge this feature? This will completely delete the feature and any attached data from the database. THIS CANNOT BE UNDONE! If you wish to delete the node from the network, but keep the node in the database, click CANCEL and use "delete" instead.</p>
+        <p>Permanently delete this feature?</p>
       </div>
       <div class="modal-footer">
         <button id="purge_feature_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button id="purge_feature_confirm" type="submit" class="btn btn-danger">Purge</button>
+        <button id="purge_feature_confirm" type="submit" class="btn btn-danger">Delete</button>
       </div>
     </div>
   </div>

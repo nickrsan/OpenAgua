@@ -67,15 +67,17 @@ var drawControl = new L.Control.Draw({
         //remove: false
     //}
 });
-map.addControl(drawControl);
 
 // snapping
 var guideLayers = new Array();
-guideLayers.push(currentItems);
+//guideLayers.push(currentItems);
+
 drawControl.setDrawingOptions({
-    marker: { guideLayers: guideLayers, snapDistance: 15 },
-    polyline: { guideLayers: guideLayers, snapDistance: 15 },
+    marker: { guideLayers: guideLayers, snapDistance: 25 },
+    polyline: { guideLayers: guideLayers, snapDistance: 25 },
 });
+
+map.addControl(drawControl);
 
 // load existing network
 map.spin(true);
@@ -84,15 +86,16 @@ $( document ).ready(function() {
         tileLayer.addTo(map); // add the tiles
         var featuresGJ = JSON.parse(resp.result.features);
         currentItems.addData(featuresGJ);
+        guideLayers.push(currentItems);
         refreshCurrentItems();
         var n = currentItems.getLayers().length;
         var status_message;
         if (n > 0 ) {
             map.fitBounds(currentItems.getBounds(), {padding: [50,50]});
-            status_message = 'Network loaded, with ' + n + ' features added.'
+            //status_message = 'Network loaded, with ' + n + ' features added.'
         } else {
             map.setView([0, 0], 2);
-            status_message = 'Empty network loaded. Please add features.'
+            //status_message = 'Empty network loaded. Please add features.'
         };
         map.addLayer(currentItems); // add the layers
         //$("#load_status").text(status_message);
@@ -124,6 +127,7 @@ refreshCurrentItems = function() {
                 iconUrl: iconUrl
             });
             layer.setIcon(icon); // add icon
+
         } else {
             layer.setStyle({
                 color: prop.color,
@@ -249,11 +253,11 @@ getContextmenuOptions = function(featureName) {
             separator: true,
             index: 1
         }, {
-            text: 'Delete',
+            text: 'Deactivate',
             index: 2,
             callback: deleteFeature
         }, {
-            text: 'Purge',
+            text: 'Delete',
             index: 3,
             callback: purgeFeature
         }, {
@@ -312,7 +316,6 @@ $('button#delete_feature_confirm').bind('click', function() {
         if ( status_code == 1 ) { // there should be only success
             currentItems.removeLayer(deleted_layer);
             $("#delete_feature_name").text(""); // probably not necessary...
-            //$("#save_status").text("Feature deleted!");
             $("#modal_delete_feature").modal("hide");
         };
     });
@@ -325,7 +328,6 @@ $('button#purge_feature_confirm').bind('click', function() {
         if ( status_code == 1 ) { // there should be only success
             currentItems.removeLayer(purged_layer);
             $("#purge_feature_name").text(""); // probably not necessary...
-            //$("#save_status").text("Feature purged!");
             $("#modal_purge_feature").modal("hide");
         };
     });
