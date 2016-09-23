@@ -46,7 +46,6 @@ var project_actions =
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share project with another OpenAgua user.">Share</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Rename this project.">Rename</a>'))
-        .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Permanently delete previously deactivated networks.">Clean up</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append(menu_item('purge_project', 'Delete', 'Permanently delete this project.'));
         
@@ -60,7 +59,7 @@ var network_actions =
         //.append(menu_item('attach_template', 'Attach', 'Attach a new template to the selected network.'))
         //.append(menu_item('detach_template', 'Detach', 'Detach template from the selected network.'));
         .append(menu_item('upgrade_template', 'Upgrade', 'Upgrade the template to the latest version'))
-        .append($('<li>').html('<a href="#">Clean up</a>'))
+        .append(menu_item('clean_up_network', 'Clean up', 'Permanently delete previously deactivated features.'))
         .append($('<li>').html('<a href="#">Export</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append(menu_item('purge_network', 'Delete', 'Permanently delete this network'));
@@ -218,6 +217,20 @@ $(document).on('click', '.purge_network', function(e) {
             result = hydra_call('purge_network', {network_id: id});
             update_networks(active_project_id, active_network_id);
             notify('success','Success!', 'Network "'+name+'" has been permanently deleted.');
+        };
+    });
+});
+
+// clean up network
+$(document).on('click', '.clean_up_network', function(e) {
+    e.preventDefault();
+    var id = Number($(this).attr('data-id'));
+    var name = $(this).attr('data-name');
+    var msg = 'Permanently delete previously removed features?<br><b>WARNING: This cannot be undone!<b>'
+    bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+            result = hydra_call('clean_up_network', {network_id: id});
+            notify('success','Success!', 'Network has been cleaned up.');
         };
     });
 });

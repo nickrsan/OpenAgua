@@ -178,14 +178,14 @@ $('button#add_node_confirm').bind('click', function() {
 $('button#add_link_confirm').bind('click', function() {
     gj.properties.name = $('#link_name').val();
     gj.properties.description = $('#link_description').val();
-    gj.properties.template_type_id = $("#link_type").val();
-    gj.properties.template_type_name = $("#link_type").val();
-    $.getJSON($SCRIPT_ROOT + '/_add_link', {new_link: JSON.stringify(gj)}, function(data) {
-        status_code = data.result.status_code;
+    gj.properties.template_type_id = $("#link_type option:selected").val();
+    gj.properties.template_type_name = $("#link_type option:selected").text();
+    $.getJSON($SCRIPT_ROOT + '/_add_link', {new_link: JSON.stringify(gj)}, function(resp) {
+        status_code = resp.status_code;
         if ( status_code == -1 ) {
             $("#add_link_error").text('Name already in use. Please try again.');
         } else {
-            var new_gj = data.result.new_gj;
+            var new_gj = resp.new_gj;
             newItems.clearLayers();
             currentItems.addData(new_gj);
             refreshCurrentItems();

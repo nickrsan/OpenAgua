@@ -6,6 +6,7 @@ import json
 from flask import session
 from flask_security import current_user
 import zipfile
+from attrdict import AttrDict
 
 import logging
 
@@ -113,7 +114,7 @@ class connection(object):
         return self.call('get_template', {'template_id':template_id})
     
     def get_node(self, node_id=None):
-        return self.call('get_node',{'node_id':node_id})
+        return self.call('get_node',{'node_id':node_id})    
     
     def make_geojson_from_node(self, node=None):
         type_id = [t.id for t in node.types \
@@ -186,12 +187,12 @@ class connection(object):
     # convert geoJson node to Hydra node
     def make_node_from_geojson(self, gj=None):
         x, y = gj['geometry']['coordinates']
-        template_type_name = gj['properties']['template_type_name']
-        template_type_id = int(gj['properties']['template_type_id'])
+        ttype_name = gj['properties']['template_type_name']
+        ttype_id = int(gj['properties']['template_type_id'])
         
         typesummary = dict(
-            name = template_type_name,
-            id = template_type_id,
+            name = ttype_name,
+            id = ttype_id,
             template_name = self.template.name,
             template_id = self.template.id
         )
@@ -205,7 +206,34 @@ class connection(object):
         )
         return node
     
+    def make_generic_node(self, ttype_name, xy, lname, i):
+        typesummary = dict(
+            name = ttype_name,
+            id = self.ttype_dict[ttype_name],
+            template_name = self.template.name,
+            template_id = self.template.id
+        )
+        node = dict(
+            id = -1,
+            name = '{} {}'.format(lname, ttype_name),
+            description = '%s added automatically' % ttype_name,
+            x = str(xy[0]),
+            y = str(xy[1]),
+            types = [typesummary]
+        )
+        if ttype_name == 'Junction':
+            node['name'] += ' ({},{})'.format(xy[0], xy[1])
+            
+        hydra_node = self.call('add_node',
+                               {'network_id': self.network.id,
+                                'node': node})          
+        return hydra_node
+    
     def make_links_from_geojson(self, gj=None):
+        
+        self.ttype_dict = {}
+        for ttype in self.template.types:
+            self.ttype_dict[ttype.name] = ttype.id         
         
         coords = get_coords(self.network.nodes)
         
@@ -218,43 +246,64 @@ class connection(object):
         
         lname = gj['properties']['name'] # link name
         desc = gj['properties']['description']
-        template_type_name = gj['properties']['template_type_name']
-        template_type_id = int(gj['properties']['template_type_id'])
+        ttype_name = gj['properties']['template_type_name']
+        ttype_id = int(gj['properties']['template_type_id'])
         
         typesummary = dict(
-            name = template_type_name,
-            id = template_type_id,
+            name = ttype_name,
+            id = ttype_id,
             template_name = self.template.name,
             template_id = self.template.id
         )
 
         links = []
-        nsegments = len(xys) - 1        
-        for i in range(nsegments):
+        hydra_nodes = [] # extra nodes created
+        nsegments = len(xys) - 1
+        segments = range(nsegments)
+        for i in segments:
             
-            node_1_id = nlookup[xys[i]]
-            node_2_id = nlookup[xys[i+1]]
+            segnodes = {}
+            for x, n in enumerate([1,2]):
+                xy = xys[i+x]
+                if xy in nlookup:
+                    node_id = nlookup[xy]
+                else:
+                    if i==segments[0] and n==1:
+                        hydra_node = self.make_generic_node('Inflow', xy, lname, i)
+                    elif i==segments[-1] and n==2:
+                        hydra_node = self.make_generic_node('Outflow', xy, lname, i)
+                    else:
+                        hydra_node = self.make_generic_node('Junction', xy, lname, i) 
+                    hydra_nodes.append(hydra_node)
+                    node_id = hydra_node.id
+                    nlookup[xy] = node_id
+                
+                segnodes[n] = node_id
 
-            link = dict(
-                node_1_id = node_1_id,
-                node_2_id = node_2_id,
-                types = [typesummary]
-            )
+            link = {'node_1_id': segnodes[1], 'node_2_id': segnodes[2],
+                    'types': [typesummary]}
+            if not desc:
+                desc = '{} [{}]'.format(lname, ttype_name)
             if len(lname) and nsegments == 1:
                 link['name'] = lname
                 link['description'] = desc
             elif len(lname) and nsegments > 1:
-                link['name'] = '{}_{:02}'.format(lname, i+1)
+                link['name'] = '{} {:02}'.format(lname, i+1)
                 link['description'] = '{} (Segment {})'.format(desc, i+1)
             else:
                 n1_name = self.get_node(node_1_id).name
                 n2_name = self.get_node(node_2_id).name
-                link['name'] = '{}_{}'.format(n1_name, n2_name)
+                link['name'] = '{} to {}'.format(n1_name, n2_name)
                 link['description'] = '{} from {} to {}' \
-                    .format(template_type_name, n1_name, n2_name)
+                    .format(ttype_name, n1_name, n2_name)
                 
-        links.append(link)
-        return links
+            links.append(link)
+        
+        hydra_links = self.call('add_links',
+                                {'network_id': self.network.id,
+                                 'links': links})
+        
+        return hydra_links, hydra_nodes
     
     def load_active_study(self):
         study = HydraStudy.query \

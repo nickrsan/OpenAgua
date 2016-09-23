@@ -77,18 +77,20 @@ def add_link():
         
     # create the new link(s)
     else:
-        links_new = conn.make_links_from_geojson(gj)
-        links = conn.call('add_links', {'network_id':session['network_id'], 'links':links_new})
-        if links:
-            new_gj = []
-            for link in links:
+        hlinks, hnodes = conn.make_links_from_geojson(gj)
+        conn.load_active_study() # reload the network with the new links
+        status_code = -1
+        new_gj = []
+        if hlinks:
+            for link in hlinks:
                 gj = conn.make_geojson_from_link(link)
                 new_gj.append(gj)
             status_code = 1
-        else:
-            status_code = -1
-    result = dict(new_gj=new_gj, status_code=status_code)
-    return jsonify(result=result)
+        if hnodes:
+            for node in hnodes:
+                gj = conn.make_geojson_from_node(node)
+                new_gj.append(gj)
+    return jsonify(new_gj=new_gj, status_code=status_code)
 
 @net_editor.route('/_delete_feature')
 @login_required
