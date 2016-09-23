@@ -513,7 +513,7 @@ def add_default_template(conn, template_name):
             = conn.call('upload_template_xml',
                         {'template_xml': template_xml.decode()})
     else:
-        default_tpl = [t for t in templates if t.name==template_name]
+        default_tpl = [t for t in templates if t.name==template_name][0]
     return default_tpl
         
 def add_default_project(conn):

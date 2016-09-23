@@ -45,7 +45,7 @@ def addsuperuser():
                 break
         else:
             password2 = getpass("Verify password: ")
-            if password2 != password1 and not failed:
+            if password2 != password1:
                 print("Passwords don't match. Please enter passwords again.")
                 tries += 1
             
