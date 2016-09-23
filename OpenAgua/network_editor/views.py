@@ -1,4 +1,5 @@
-from flask import render_template, request, session, json, jsonify, g
+from flask import redirect, url_for, render_template, request, session, json, \
+     jsonify, g
 from flask_security import login_required
 from ..connection import make_connection, load_hydrauser
 
@@ -11,6 +12,8 @@ def network_editor():
     load_hydrauser() # do this at the top of every page
     conn = make_connection()
     conn.load_active_study()
+    if conn.invalid_study:
+        return redirect(url_for('projects_manager.manage'))    
     
     ntypes = [t for t in conn.template.types if t.resource_type == 'NODE']
     ltypes = [t for t in conn.template.types if t.resource_type == 'LINK']

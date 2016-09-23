@@ -48,8 +48,11 @@ def home():
         conn = make_connection()
     
     conn.load_active_study()
-
-    return redirect(url_for('main_overview.overview'))
+    
+    if conn.invalid_study:
+        return redirect(url_for('projects_manager.manage'))
+    else:
+        return redirect(url_for('main_overview.overview'))
     #return render_template('user_home.html')
 
 # Load projects

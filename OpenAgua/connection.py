@@ -313,25 +313,43 @@ class connection(object):
             .filter(HydraStudy.active == 1) \
             .first()
         
+        self.invalid_study = False
         if study:
+            
+            # get project
+            
             self.project = self.get_project(study.project_id)
-            self.network = self.get_network(study.network_id)
-            self.template = self.get_template(study.template_id)
-            ttypes = {}
-            for tt in self.template.types:
-                ttypes[tt.id] = tt
-            self.ttypes = ttypes
-        
-            session['project_id'] = study.project_id
-            if 'faultcode' in self.network:
-                session['network_id'] = None
+            if 'faultcode' in self.project:
+                self.project = None
+                session['project_id'] = None
+                self.invalid_study = True
             else:
-                session['network_id'] = study.network_id
-            session['template_id'] = study.template_id
-        else: # no active study (though we shouldn't get here)
-            self.project = None
-            self.network = None
-            self.template = None
+                session['project_id'] = study.project_id
+            
+            # get network
+            self.network = self.get_network(study.network_id)
+            if 'faultcode' in self.network:
+                self.network = None
+                session['network_id'] = None
+                self.invalid_study = True
+            else:
+                session['network_id'] = study.network_id                
+            
+            # get template
+            self.template = self.get_template(study.template_id)
+            if 'faultstring' in self.template:
+                self.template = None
+                self.ttypes = None
+                session['template_id'] = None
+                self.invalid_study = True
+            else:
+                session['template_id'] = study.template_id
+                ttypes = {}
+                for tt in self.template.types:
+                    ttypes[tt.id] = tt
+                self.ttypes = ttypes
+        else:
+            self.invalid_study = True
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
