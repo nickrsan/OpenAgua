@@ -488,13 +488,14 @@ def add_default_template(conn, template_name):
     
     # load / activate template
     templates = conn.call('get_templates',{})
-    default_tpl = [t for t in templates if t.name == template_name][0]
-    if not default_tpl:
+    if not templates or template_name not in [t.name for t in templates]:
         zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
         template_xml = zf.read('OpenAgua/template/template.xml')
         default_tpl \
             = conn.call('upload_template_xml',
-                        {'template_xml': template_xml.decode()}) 
+                        {'template_xml': template_xml.decode()})
+    else:
+        default_tpl = [t for t in templates if t.name==template_name]
     return default_tpl
         
 def add_default_project(conn):
