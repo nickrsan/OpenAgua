@@ -15,9 +15,7 @@ PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'utils.py')
 PYOMO_APP_NAME = 'OpenAguaModel'
 DEFAULT_HYDRA_TEMPLATE = 'OpenAgua'
 DEFAULT_SCENARIO_NAME = 'Baseline'
-TEMPLATE_FILE \
-    = os.path.join(APP_ROOT, 'OpenAgua/static/hydra/templates/{}.zip' \
-                   .format(DEFAULT_HYDRA_TEMPLATE))
+UPLOADED_TEMPLATES_DEST = os.path.join(APP_ROOT, 'OpenAgua/static/hydra/templates')
 SOLVER = "glpk"
 
 # Flask-Security settings

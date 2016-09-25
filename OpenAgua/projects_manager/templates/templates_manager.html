@@ -40,13 +40,9 @@
               </div>
         
               <div style="margin-bottom:10px">
-                <label class="control-label">Upload new template - DOES NOT WORK</label>
-                <input id="upload-template" name="upload-template[]" type="file" multiple class="file-loading">
-                <script>
-                  $(document).on('ready', function() {
-                      $("#upload-template").fileinput({showCaption: false});
-                  });
-                </script>
+                <form action="{{ url_for('projects_manager.upload_template')}}" method="POST" enctype="multipart/form-data">
+                    <input id="template_file" name="template" class="file" type="file">
+                </form>
               </div>
 
         </div> 

@@ -257,7 +257,7 @@ class connection(object):
         )
 
         links = []
-        hydra_nodes = [] # extra nodes created
+        hnodes = [] # extra nodes created
         nsegments = len(xys) - 1
         segments = range(nsegments)
         for i in segments:
@@ -269,13 +269,13 @@ class connection(object):
                     node_id = nlookup[xy]
                 else:
                     if i==segments[0] and n==1:
-                        hydra_node = self.make_generic_node('Inflow', xy, lname, i)
+                        hnode = self.make_generic_node('Inflow', xy, lname, i)
                     elif i==segments[-1] and n==2:
-                        hydra_node = self.make_generic_node('Outflow', xy, lname, i)
+                        hnode = self.make_generic_node('Outflow', xy, lname, i)
                     else:
-                        hydra_node = self.make_generic_node('Junction', xy, lname, i) 
-                    hydra_nodes.append(hydra_node)
-                    node_id = hydra_node.id
+                        hnode = self.make_generic_node('Junction', xy, lname, i) 
+                    hnodes.append(hnode)
+                    node_id = hnode.id
                     nlookup[xy] = node_id
                 
                 segnodes[n] = node_id
@@ -301,11 +301,11 @@ class connection(object):
                 
             links.append(link)
         
-        hydra_links = self.call('add_links',
+        hlinks = self.call('add_links',
                                 {'network_id': self.network.id,
                                  'links': links})
         
-        return hydra_links, hydra_nodes
+        return hlinks, hnodes
     
     def load_active_study(self):
         study = HydraStudy.query \

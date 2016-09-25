@@ -1,5 +1,10 @@
-from flask import render_template, redirect, url_for, request, session, json, jsonify
+from os.path import join
+
+from flask import render_template, redirect, url_for, request, session, json, \
+     jsonify, flash
 from flask_security import login_required, current_user
+
+from flask_uploads import UploadSet, configure_uploads, ARCHIVES
 
 from ..connection import make_connection, load_hydrauser, add_hydrastudy, \
      activate_study
@@ -7,6 +12,9 @@ from ..connection import make_connection, load_hydrauser, add_hydrastudy, \
 # import blueprint definition
 from . import projects_manager
 from OpenAgua import app, db
+
+templates = UploadSet('templates', ARCHIVES)
+configure_uploads(app, templates)
 
 @projects_manager.route('/manage')
 @login_required
@@ -177,10 +185,12 @@ def update_template():
     conn = make_connection()
     
     template_id = int(request.args.get('template_id'))
+    template_name = request.args.get('template_name')
     
-    # upload the new template    
-    zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
-    template_xml = zf.read('OpenAgua/template/template.xml').decode('utf-8')
+    # upload the new template
+    zipfpath = join(app.config['TEMPLATE_DIR'], '%s.zip' % template_name)
+    zf = zipfile.ZipFile(zipfpath)
+    template_xml = zf.read('%s/template/template.xml' % template_name).decode('utf-8')
     resp = conn.call('upload_template_xml',
                             {'template_xml': template_xml}) 
     
@@ -191,6 +201,13 @@ def update_template():
     return jsonify(status=status_code)
 
 
+@projects_manager.route('/manage/templates/_upload', methods=['GET', 'POST'])
+@login_required
+def upload_template():
+    if request.method == 'POST' and 'template' in request.files:
+        filename = templates.save(request.files['template'])
+    return redirect(url_for('projects_manager.manage_templates'))
+        
 @projects_manager.route('/_get_templates_for_network')
 @login_required
 def get_templates_for_network():

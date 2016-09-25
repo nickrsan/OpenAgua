@@ -88,11 +88,13 @@ $(document).on('click', '.delete_template', function(e) {
 $(document).on('click', '.update_template', function(e) {
     e.preventDefault();
     var id = Number($(this).attr('data-id'));
+    var name = $(this).attr('data-name');
     var msg = 'Update template?<br>The old template will be overwritten, and all new networks will use the updated template.'
     bootbox.confirm(msg, function(confirm) {
         if (confirm) {
             var data = {
                 template_id: id,
+                template_name: name,
             }
             $.getJSON($SCRIPT_ROOT + '/_update_template', data, function(resp) {
                 status = resp.status;
