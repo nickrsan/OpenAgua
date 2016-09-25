@@ -15,7 +15,7 @@ var template_all_actions =
         .append($('<li>').html('<a href="#">Rename</a>'))
         .append($('<li>').html('<a href="#">Attach to network</a>'))
         .append($('<li>').html('<a href="#">Export</a>'))
-        .append(menu_item('update_template', 'Update', 'Update this template to the latest version.'))
+        .append(menu_item('update_template', 'Update', 'Update this template with a new one.'))
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append(menu_item('delete_template', 'Delete', 'Permanently delete this template.'));
 

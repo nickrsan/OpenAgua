@@ -1,4 +1,5 @@
 from os.path import join
+import zipfile
 
 from flask import render_template, redirect, url_for, request, session, json, \
      jsonify, flash
@@ -177,35 +178,33 @@ def upgrade_template():
         status_code = -1
     return jsonify(status=status_code)
 
-@projects_manager.route('/_update_template')
-@login_required
-def update_template():
-    import zipfile
-    
-    conn = make_connection()
-    
-    template_id = int(request.args.get('template_id'))
-    template_name = request.args.get('template_name')
-    
-    # upload the new template
-    zipfpath = join(app.config['TEMPLATE_DIR'], '%s.zip' % template_name)
-    zf = zipfile.ZipFile(zipfpath)
-    template_xml = zf.read('%s/template/template.xml' % template_name).decode('utf-8')
-    resp = conn.call('upload_template_xml',
-                            {'template_xml': template_xml}) 
-    
-    if 'faultcode' not in resp:
-        status_code = 1        
-    else:
-        status_code = -1
-    return jsonify(status=status_code)
-
 
 @projects_manager.route('/manage/templates/_upload', methods=['GET', 'POST'])
 @login_required
 def upload_template():
+
     if request.method == 'POST' and 'template' in request.files:
-        filename = templates.save(request.files['template'])
+        
+        conn = make_connection()
+        
+        template = request.files['template']
+        
+        filename = templates.save(template)
+
+        zf  = zipfile.ZipFile(template.stream)
+        
+        # load template
+        template_xml_path = zf.namelist()[0]
+        template_xml = zf.read(template_xml_path).decode('utf-8')
+        resp = conn.call('upload_template_xml',
+                                {'template_xml': template_xml}) 
+        zf.extractall(path=app.config['UPLOADED_TEMPLATES_DEST'])
+        
+        template_name = template_xml_path.split('/')[0]
+        flash('Template %s uploaded successfully' % template_name, category='info')
+    else:
+        flash('Something went wrong.')
+        
     return redirect(url_for('projects_manager.manage_templates'))
         
 @projects_manager.route('/_get_templates_for_network')

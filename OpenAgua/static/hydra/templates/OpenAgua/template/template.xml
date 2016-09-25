@@ -1,120 +1,5 @@
 <template_definition>
   <template_name>OpenAgua</template_name>
-  <layout>
-    <item>
-      <name>grouping</name>
-      <value>
-        <name>OpenAgua</name>
-        <description>OpenAgua</description>
-        <categories>
-          <category>
-            <name>Nodes</name>
-            <description>Nodes</description>
-            <displayname>Nodes</displayname>
-            <groups>
-              <group>
-                <name>reservoir</name>
-                <description>Reservoir</description>
-                <displayname>Reservoir</displayname>
-                <image>images\reservoir.png</image>
-              </group>
-              <group>
-                <name>misc_source</name>
-                <description>Misc. other water supply</description>
-                <displayname>Misc source</displayname>
-                <image>images\misc_source.png</image>
-              </group>
-              <group>
-                <name>urban_demand</name>
-                <description>Urban demand</description>
-                <displayname>Urban demand</displayname>
-                <image>images\urban_demand.png</image>
-              </group>
-              <group>
-                <name>ag_demand</name>
-                <description>Agricultural demand</description>
-                <displayname>Ag demand</displayname>
-                <image>images\ag_demand.png</image>
-              </group>
-              <group>
-                <name>catchment</name>
-                <description>Catchment</description>
-                <displayname>Catchment</displayname>
-                <image>images\catchment.png</image>
-              </group>
-              <group>
-                <name>flow_requirement</name>
-                <description>Flow requirement</description>
-                <displayname>Flow requirement</displayname>
-                <image>images\flow_requirement.png</image>
-              </group>
-              <group>
-                <name>withdrawal_node</name>
-                <description>Withdrawal node</description>
-                <displayname>Withdrawal</displayname>
-                <image>images\withdrawal_node.png</image>
-              </group>
-              <group>
-                <name>return_flow_node</name>
-                <description>Return flow node</description>
-                <displayname>Return flow</displayname>
-                <image>images\return_flow_node.png</image>
-              </group>
-              <group>
-                <name>junction</name>
-                <description>River/diversion junction</description>
-                <displayname>Junction</displayname>
-                <image>images\junction.png</image>
-              </group>
-              <group>
-                <name>inflow</name>
-                <description>Inflow</description>
-                <displayname>Inflow</displayname>
-                <image>images\inflow.png</image>
-              </group>
-              <group>
-                <name>outflow</name>
-                <description>Outflow</description>
-                <displayname>Outflow</displayname>
-                <image>images\outflow.png</image>
-              </group>
-            </groups>
-          </category>
-          <category>
-            <name>Links</name>
-            <description>Links</description>
-            <displayname>Links</displayname>
-            <groups>
-              <group>
-                <name>river</name>
-                <description>River (i.e., natural channel)</description>
-                <displayname>River</displayname>
-                <image>images\river.png</image>
-              </group>
-              <group>
-                <name>conveyance</name>
-                <description>Constructed conveyance</description>
-                <displayname>Conveyance</displayname>
-                <image>images\conveyance.png</image>
-              </group>
-              <group>
-                <name>delivery_link</name>
-                <description>Delivery link to demand site</description>
-                <displayname>Delivery link</displayname>
-                <image>images\delivery_link.png</image>
-              </group>
-              <group>
-                <name>return_flow</name>
-                <description>Return flow from demand site</description>
-                <displayname>Return flow</displayname>
-                <image>images\return_flow.png</image>
-              </group>
-            </groups>
-          </category>
-        </categories>
-      </value>
-    </item>
-  </layout>
   <resources>
     <resource>
       <type>NETWORK</type>
@@ -127,10 +12,6 @@
         <item>
           <name>image</name>
           <value>images\reservoir.png</value>
-        </item>
-        <item>
-          <name>group</name>
-          <value>reservoir</value>
         </item>
       </layout>
       <attribute>
@@ -219,10 +100,6 @@
           <name>image</name>
           <value>images\misc_source.png</value>
         </item>
-        <item>
-          <name>group</name>
-          <value>misc_source</value>
-        </item>
       </layout>
       <attribute>
         <name>Inflow</name>
@@ -253,10 +130,6 @@
         <item>
           <name>image</name>
           <value>images\urban_demand.png</value>
-        </item>
-        <item>
-          <name>group</name>
-          <value>urban_demand</value>
         </item>
       </layout>
       <attribute>
@@ -303,10 +176,6 @@
           <name>image</name>
           <value>images\ag_demand.png</value>
         </item>
-        <item>
-          <name>group</name>
-          <value>ag_demand</value>
-        </item>
       </layout>
       <attribute>
         <name>Consumptive Loss</name>
@@ -352,10 +221,6 @@
           <name>image</name>
           <value>images\catchment.png</value>
         </item>
-        <item>
-          <name>group</name>
-          <value>catchment</value>
-        </item>
       </layout>
       <attribute>
         <name>Runoff</name>
@@ -386,10 +251,6 @@
         <item>
           <name>image</name>
           <value>images\flow_requirement.png</value>
-        </item>
-        <item>
-          <name>group</name>
-          <value>flow_requirement</value>
         </item>
       </layout>
       <attribute>
@@ -422,10 +283,6 @@
           <name>image</name>
           <value>images\withdrawal_node.png</value>
         </item>
-        <item>
-          <name>group</name>
-          <value>withdrawal_node</value>
-        </item>
       </layout>
       <attribute>
         <name>inflow</name>
@@ -449,10 +306,6 @@
         <item>
           <name>image</name>
           <value>images\return_flow_node.png</value>
-        </item>
-        <item>
-          <name>group</name>
-          <value>return_flow_node</value>
         </item>
       </layout>
       <attribute>
@@ -478,10 +331,6 @@
           <name>image</name>
           <value>images\junction.png</value>
         </item>
-        <item>
-          <name>group</name>
-          <value>junction</value>
-        </item>
       </layout>
       <attribute>
         <name>inflow</name>
@@ -506,10 +355,6 @@
           <name>image</name>
           <value>images\inflow.png</value>
         </item>
-        <item>
-          <name>group</name>
-          <value>inflow</value>
-        </item>
       </layout>
       <attribute>
         <name>inflow</name>
@@ -533,10 +378,6 @@
         <item>
           <name>image</name>
           <value>images\outflow.png</value>
-        </item>
-        <item>
-          <name>group</name>
-          <value>outflow</value>
         </item>
       </layout>
       <attribute>
@@ -573,10 +414,6 @@
         <item>
           <name>line_weight</name>
           <value>3</value>
-        </item>
-        <item>
-          <name>group</name>
-          <value>river</value>
         </item>
       </layout>
       <attribute>
@@ -663,10 +500,6 @@
           <name>line_weight</name>
           <value>3</value>
         </item>
-        <item>
-          <name>group</name>
-          <value>conveyance</value>
-        </item>
       </layout>
       <attribute>
         <name>Flow Capacity</name>
@@ -731,10 +564,6 @@
           <name>line_weight</name>
           <value>3</value>
         </item>
-        <item>
-          <name>group</name>
-          <value>delivery_link</value>
-        </item>
       </layout>
       <attribute>
         <name>Loss from System</name>
@@ -791,10 +620,6 @@
         <item>
           <name>line_weight</name>
           <value>3</value>
-        </item>
-        <item>
-          <name>group</name>
-          <value>return_flow</value>
         </item>
       </layout>
       <attribute>
