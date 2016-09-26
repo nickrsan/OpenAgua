@@ -35,7 +35,8 @@ def hydra_timeseries(data):
     for row in data:
         date = datetime.strptime(row['date'], session['date_format']) \
             .strftime(session['hydra_time_format'])
-        timeseries[date] = str(row['value'])
+        #timeseries[date] = str(row['value'])
+        timeseries[date] = row['value']
     timeseries = {'0':timeseries}
     return timeseries
 
@@ -92,7 +93,8 @@ def eval_timeseries(timeseries):
     for item in timeseries.items():
         ts = parser.parse(item[0]).strftime(session['date_format'])
         val = item[1]
-        tsnew[ts] = str(val)
+        #tsnew[ts] = str(val)
+        tsnew[ts] = val
     
     result = openagua_timeseries('tsnew[date]', tsnew=tsnew)
     returncode = 1

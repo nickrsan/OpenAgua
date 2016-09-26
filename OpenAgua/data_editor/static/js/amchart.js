@@ -1,11 +1,10 @@
 // make amchart
 function amchart(title, timeseries, dateFormat, divname, log) {
 
-    // prepare the data using Lodash (update: evaluate function was changed)
-    //var data = _.zip(eval_data.dates, eval_data.values);
-    //data = _.map(data, function(item) {
-      //return {date: item[0], value: item[1]}    
-    //})
+    // replace empty values with null
+    while(_.find(timeseries, {'value':''})){
+        (_.find(timeseries, {'value':''})).value = null;
+    }
   
   var chart = AmCharts.makeChart(divname, {
       "type": "serial",

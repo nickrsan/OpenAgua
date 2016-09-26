@@ -131,6 +131,72 @@ $(document).ready(function(){
 
 });
 
+
+// save data
+$('#check, #save').click(function() {
+
+  var action = $(this).attr('id')
+
+  var new_data,
+      unchanged;
+
+  switch(cur_data_type) {
+  
+    case "function":
+      new_data = aceEditor.getValue(); 
+      unchanged = (new_data == original_data);
+      break;
+      
+    case "timeseries":
+      new_data = _.map(hotEditor.getData(), function(row, index) {
+        return {date: row[0], value: row[1]}      
+      })
+      unchanged = _.isEqual(original_data, new_data)
+      break;
+
+    case "scalar":
+      new_data = scalarInput.val();
+      unchanged = new_data == original_data;
+      break;
+
+    case "descriptor":
+      new_data = textInput.val();
+      unchanged = new_data == original_data;
+      break;
+
+    case "array":
+      break;
+
+    default:
+      new_data = null;
+      unchanged = true;
+      break;
+  }
+  
+  // also check if the data type has changed
+  if (cur_data_type != orig_data_type) {
+    unchanged = false;  
+  }
+  
+  // notify if nothing has changed
+  if (unchanged) {
+    var msg;
+    if (action == 'save') {
+      msg = 'No change detected. Nothing saved';
+    } else {
+      msg = 'No change detected.'    
+    }
+    notify('info', 'Alert!', msg);
+    saveStatus(1);
+    return;
+  } else {
+    checkOrSaveData(new_data, action);
+  }
+  
+});
+
+// FUNCTIONS
+
 // error message
 function errmsg(msg) {
   if (msg.length) {
@@ -284,76 +350,13 @@ $('#revert').click(function() {
   errmsg('');
 });
 
-// save data
-$('#check, #save').click(function() {
-
-  var action = $(this).attr('id')
-
-  var new_data,
-      unchanged;
-
-  switch(cur_data_type) {
-  
-    case "function":
-      new_data = aceEditor.getValue(); 
-      unchanged = (new_data == original_data);
-      break;
-      
-    case "timeseries":
-      new_data = _.map(hotEditor.getData(), function(row, index) {
-        return {date: row[0], value: row[1]}      
-      })
-      unchanged = _.isEqual(original_data, new_data)
-      break;
-
-    case "scalar":
-      new_data = scalarInput.val();
-      unchanged = new_data == original_data;
-      break;
-
-    case "descriptor":
-      new_data = textInput.val();
-      unchanged = new_data == original_data;
-      break;
-
-    case "array":
-      break;
-
-    default:
-      new_data = null;
-      unchanged = true;
-      break;
-  }
-  
-  // also check if the data type has changed
-  if (cur_data_type != orig_data_type) {
-    unchanged = false;  
-  }
-  
-  // notify if nothing has changed
-  if (unchanged) {
-    var msg;
-    if (action == 'save') {
-      msg = 'No change detected. Nothing saved';
-    } else {
-      msg = 'No change detected.'    
-    }
-    notify('info', 'Alert!', msg);
-    saveStatus(1);
-    return;
-  } else {
-    checkOrSaveData(new_data, action);
-  }
-  
-});
-
 // data functions
 function checkOrSaveData(new_data, action) {
 
   var data = {
     action: action,
     cur_data_type: cur_data_type,
-    new_data: JSON.stringify(new_data)
+    new_data: new_data
   }
   
   switch(action) {
@@ -367,49 +370,64 @@ function checkOrSaveData(new_data, action) {
 }
 
 function checkData(data) {
-  $.getJSON('/_check_or_save_data', data, function(resp) {
-    switch(resp.errcode) {
-      case -1:
-        notify('danger','Looks bad!', 'Your data seems incorrect. See error message.');
-        errmsg(resp.errmsg);
-        break;
-      case 1:
-        notify('success','Looks good!', 'Remember to save your edits.');
-        errmsg('');
+
+  $.ajax({
+    type : "POST",
+    url : '/_check_or_save_data',
+    data: JSON.stringify(data),
+    contentType: 'application/json',
+    success: function(resp) {
+
+      switch(resp.errcode) {
+        case -1:
+          notify('danger','Not good!', 'Your data seems incorrect. See error message.');
+          errmsg(resp.errmsg);
+          break;
+        case 1:
+          notify('success','Looks good!', 'Remember to save your edits.');
+          errmsg('');
+        }
+        updateChart(scen_name, resp.timeseries);
+        saveStatus(0);
     }
-    updateChart(scen_name, resp.timeseries)
-    saveStatus(0)
   });
 }
 
 function saveData(data) {
   data.orig_data_type = orig_data_type;
   data.scen_id = scen_id;
-  data.res_attr = JSON.stringify(res_attr);
-  data.res_attr_data = JSON.stringify(res_attr_data); // old data container
+  data.res_attr = res_attr;
+  data.res_attr_data = res_attr_data; // old data container
   
-  $.getJSON('/_check_or_save_data', data, function(resp) {
-    switch(resp.status) {
-      case -1:
-        notify('danger','Warning!','Your data seems okay, but something still went wrong.');
-        errmsg(resp.errmsg);
-        saveStatus(0)
-        break;
-      case 0:
-        notify('danger','Warning!','Your data is not correct. Check error message. NOTHING SAVED.')
-        errmsg(resp.errmsg);
-        saveStatus(0)
-        break;
-      case 1:
-        data_type = cur_data_type;
-        res_attr.data_type = data_type; // update local record
-        var selected = $('#variables option:selected');
-        selected.data_tokens = JSON.stringify(res_attr);
-        $('#variables').selectpicker('refresh');
-        loadData();
-        notify('success','Success!','Data saved.');
-        errmsg('');
-        saveStatus(1);
+  $.ajax({
+    type : "POST",
+    url : '/_check_or_save_data',
+    data: JSON.stringify(data),
+    contentType: 'application/json',
+    success: function(resp) {
+  
+      switch(resp.status) {
+        case -1:
+          notify('danger','Warning!','Your data seems okay, but something still went wrong.');
+          errmsg(resp.errmsg);
+          saveStatus(0)
+          break;
+        case 0:
+          notify('danger','Warning!','Your data is not correct. Check error message. Nothing saved.')
+          errmsg(resp.errmsg);
+          saveStatus(0)
+          break;
+        case 1:
+          data_type = cur_data_type;
+          res_attr.data_type = data_type; // update local record
+          var selected = $('#variables option:selected');
+          selected.data_tokens = JSON.stringify(res_attr);
+          $('#variables').selectpicker('refresh');
+          loadData();
+          notify('success','Success!','Data saved.');
+          errmsg('');
+          saveStatus(1);
+      }
     }
   });   
 }
