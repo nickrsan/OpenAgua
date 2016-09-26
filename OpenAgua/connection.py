@@ -150,8 +150,10 @@ class connection(object):
                     replacement_node = 'Outflow'
                     lname = adj_links[0].name
                     node_name = '{} {}'.format(lname, replacement_node)
-                xy = [float(i) for i in gj['geometry']['coordinates']]
-                new_node = self.make_generic_node(replacement_node, xy, node_name)
+                x, y = [float(i) for i in gj['geometry']['coordinates']]
+                node = self.make_generic_node(replacement_node, node_name, x, y)
+                new_node = self.call('add_node', {'network_id': self.network.id,
+                                                  'node': node})                
                 if 'faultcode' in new_node and 'already in network' in new_node.faultstring:
                     new_node = [n for n in self.network.nodes if n.name==node_name][0]
                 self.update_links(node_id, new_node.id)
@@ -277,13 +279,13 @@ class connection(object):
         
         # update existing adjacent links, if any, with new node id
         # it would be best if we could get the attached links clientside
-        if old_node_id:
+        if old_node_id is not None:
             self.update_links(old_node_id, new_node.id)
             self.call('purge_node', {'node_id': old_node_id})
         
-        return new_node
+        return new_node, old_node_id
     
-    def make_generic_node(self, ttype_name, xy, node_name):
+    def make_generic_node(self, ttype_name, node_name, x, y):
         typesummary = dict(
             name = ttype_name,
             id = self.ttype_dict[ttype_name],
@@ -291,18 +293,19 @@ class connection(object):
             template_id = self.template.id
         )
         node = dict(
-            id = -1,
+            id = None,
             name = node_name,
             description = '%s added automatically' % ttype_name,
-            x = str(xy[0]),
-            y = str(xy[1]),
+            x = str(x),
+            y = str(y),
             types = [typesummary]
         )
             
-        hydra_node = self.call('add_node',
-                               {'network_id': self.network.id,
-                                'node': node})          
-        return hydra_node
+        #hydra_node = self.call('add_node',
+                               #{'network_id': self.network.id,
+                                #'node': node})          
+        #return hydra_node
+        return node
     
     def make_links_from_geojson(self, gj=None):        
         
@@ -326,37 +329,42 @@ class connection(object):
             template_name = self.template.name,
             template_id = self.template.id
         )
-
-        links = []
-        hnodes = [] # extra nodes created
+        
         nsegments = len(xys) - 1
         segments = range(nsegments)
-        for i in segments:
-            
-            segnodes = {}
-            for x, n in enumerate([1,2]):
-                xy = xys[i+x]
-                if xy in nlookup:
-                    node_id = nlookup[xy]
-                else:
-                    if i==segments[0] and n==1:
+        
+        # make nodes
+        nodes = []
+        for i, s in enumerate(segments):
+            for j, n in enumerate([1,2]):
+                x, y = xys[i+j]
+                if (x,y) not in nlookup:
+                    if i==0 and j==0:
                         node_type = 'Inflow'
                         node_name = '{} {}'.format(lname, node_type)
-                    elif i==segments[-1] and n==2:
+                    elif s==segments[-1] and j==1:
                         node_type = 'Outflow'
                         node_name = '{} {}'.format(lname, node_type)
                     else:
                         node_type = 'Junction'
-                        node_name = '{} {} ({},{})'.format(lname, node_type, xy[0], xy[1])
-                    hnode = self.make_generic_node(node_type, xy, node_name) 
-                    hnodes.append(hnode)
-                    node_id = hnode.id
-                    nlookup[xy] = node_id
-                
-                segnodes[n] = node_id
+                        node_name = '{} {} ({},{})'.format(lname, node_type, x, y)
+                    node = self.make_generic_node(node_type, node_name, x, y)
+                    node['id'] = -i # IDs should be unique
+                    nodes.append(node)
 
-            node_1_id = segnodes[1]
-            node_2_id = segnodes[2]
+                    nlookup[(x,y)] = None # to skip over next x, y
+                    
+        hnodes = self.call('add_nodes', {'network_id': self.network.id, 'nodes': nodes})
+        #self.network = self.get_network(network_id=self.network.id, include_data='N')
+        
+        for n in hnodes:
+            nlookup[(round(float(n.x),d), round(float(n.y),d))] = n.id
+            
+        # make links
+        links = []
+        for i in segments:
+            node_1_id = nlookup[xys[i]]
+            node_2_id = nlookup[xys[i+1]]
             link = {'node_1_id': node_1_id, 'node_2_id': node_2_id,
                     'types': [typesummary]}
             if not desc:

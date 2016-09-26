@@ -15,8 +15,15 @@ def network_editor():
     if conn.invalid_study:
         return redirect(url_for('projects_manager.manage'))    
     
-    ntypes = [t for t in conn.template.types if t.resource_type == 'NODE']
-    ltypes = [t for t in conn.template.types if t.resource_type == 'LINK']
+    ntypes = []
+    ltypes = []
+    for t in conn.template.types:
+        if t.resource_type == 'NODE':
+            typeattrs = [ta.attr_name for ta in t.typeattrs]
+            if not( len(typeattrs)==2 and set(['inflow','outflow']).issubset(typeattrs) ):
+                ntypes.append(t)
+        elif t.resource_type == 'LINK':
+            ltypes.append(t)
 
     return render_template('network_editor.html',
                            ntypes=ntypes,
@@ -35,28 +42,32 @@ def load_network():
     
     return jsonify(features=features, status_code=status_code)
 
-@net_editor.route('/_add_node')
+@net_editor.route('/_add_node', methods=['GET', 'POST'])
 @login_required
 def add_node():
+    
+    if request.method=='GET':
+        return redirect(url_for('net_editor.network_editor'))
+        
     conn = make_connection()
     conn.load_active_study()
 
-    new_node = request.args.get('new_node')
-    gj = json.loads(new_node)
-
-    new_gj = ''
+    gj = request.json
     
     # check if the node already exists in the network
     # NB: need to check if there can be duplicate names by 
     if gj['properties']['name'] in [f.name for f in conn.network.nodes]:
         status_code = -1
+        old_node_id = None,
+        new_gj = None
         
     # create the new node
     else:
-        new_node = conn.add_node_from_geojson(gj)
+        new_node, old_node_id = conn.add_node_from_geojson(gj)
         new_gj = [conn.make_geojson_from_node(new_node)]
         status_code = 1
-    return jsonify(new_gj=new_gj, status_code=status_code)
+    return jsonify(new_gj=new_gj, old_node_id=old_node_id, status_code=status_code)
+    
 
 @net_editor.route('/_add_link')
 @login_required

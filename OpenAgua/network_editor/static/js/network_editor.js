@@ -141,23 +141,33 @@ $('button#add_node_confirm').bind('click', function() {
     gj.properties.template_type_id = $("#node_type option:selected").val();
     gj.properties.template_type_name = $("#node_type option:selected").text();    
     
-    $.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(resp) {
-        status_code = resp.status_code;
-        if ( status_code == -1 ) {
-            map.spin(false);
-            $("#add_node_error").text('Name already in use. Please try again.');
-        } else {
-            $('#modal_add_node').modal('hide');
-            var new_gj = resp.new_gj;
-            newItems.clearLayers();
-            currentItems.addData(new_gj);
-            refreshCurrentItems();
-            $('#node_name').val('');
-            $('#node_description').val('');
-            map.spin(false);
-            notify('success', 'Success!', 'Feature added.')
-            
-        };
+    //$.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(resp) {
+    
+    $.ajax({
+        type : "POST",
+        url : $SCRIPT_ROOT + '/_add_node',
+        data: JSON.stringify(gj),
+        contentType: 'application/json',
+        success: function(resp) {    
+    
+            status_code = resp.status_code;
+            if ( status_code == -1 ) {
+                map.spin(false);
+                $("#add_node_error").text('Name already in use. Please try again.');
+            } else {
+                $('#modal_add_node').modal('hide');
+                newItems.clearLayers();
+                currentItems.removeLayer(pointLeafletId[resp.old_node_id])
+                currentItems.addData(resp.new_gj);
+                refreshCurrentItems();
+                $('#node_name').val('');
+                $('#node_description').val('');
+                map.spin(false);
+                notify('success', 'Success!', 'Feature added.')
+                
+            }
+        }
+    
     });
 });
 
