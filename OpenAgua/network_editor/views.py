@@ -33,9 +33,7 @@ def load_network():
     
     status_code = 1
     
-    result = dict(features=features, status_code=status_code)
-    
-    return jsonify(result=result)
+    return jsonify(features=features, status_code=status_code)
 
 @net_editor.route('/_add_node')
 @login_required
@@ -120,15 +118,23 @@ def purge_replace_feature():
 
     status_code = -1
     if gj['geometry']['type'] == 'Point':
-        new_node = conn.purge_replace_node(gj)
+        new_node, adj_links = conn.purge_replace_node(gj)
         if new_node:
+            old_gj = [gj]
             new_gj = [conn.make_geojson_from_node(new_node)]
             status_code = 1
+        elif adj_links:
+            old_gj = [gj]
+            old_gj += [conn.make_geojson_from_link(l) for l in adj_links]
+            new_gj = []
+            status_code = 0
         else:
-            new_gj = None
+            old_gj = [gj]
+            new_gj = []
             status_code = 0
     else:
         conn.call('purge_link',{'link_id': gj['properties']['id'], 'purge_data':'Y'})
-        new_gj = None
+        old_gj = [gj]
+        new_gj = []
         status_code = 0
-    return jsonify(new_gj=new_gj, status_code=status_code)
+    return jsonify(old_gj=old_gj, new_gj=new_gj, status_code=status_code)

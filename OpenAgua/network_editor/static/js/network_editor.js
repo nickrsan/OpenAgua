@@ -90,7 +90,7 @@ map.spin(true);
 $( document ).ready(function() {
     $.getJSON($SCRIPT_ROOT + '/_load_network', function(resp) {
         tileLayer.addTo(map); // add the tiles
-        var featuresGJ = JSON.parse(resp.result.features);
+        var featuresGJ = JSON.parse(resp.features);
         currentItems.addData(featuresGJ);
         guideLayers.push(currentItems);
         refreshCurrentItems();
@@ -98,13 +98,12 @@ $( document ).ready(function() {
         var status_message;
         if (n > 0 ) {
             map.fitBounds(currentItems.getBounds(), {padding: [50,50]});
-            //status_message = 'Network loaded, with ' + n + ' features added.'
+            notify('info', 'Network loaded!', 'Your network has ' + n + ' features.');
         } else {
             map.setView([0, 0], 2);
-            //status_message = 'Empty network loaded. Please add features.'
-        };
-        map.addLayer(currentItems); // add the layers
-        //$("#load_status").text(status_message);
+            notify('info', 'Welcome!', 'Empty network loaded. Please add features.');
+        }
+        map.addLayer(currentItems);
         map.spin(false);
     });
 });
@@ -235,15 +234,13 @@ function purgeFeature(e) {
         if (confirm) {
             var purged_json = JSON.stringify(e.relatedTarget.feature);
             $.getJSON($SCRIPT_ROOT+'/_purge_replace_feature', {purged: purged_json}, function(resp) {
-                status_code = resp.status_code;
-                if ( status_code == 0 ) { // there should be only success
-                    currentItems.removeLayer(e.relatedTarget);
-                } else if ( status_code == 1 ) {
-                    currentItems.removeLayer(e.relatedTarget);
-                    currentItems.addData(resp.new_gj)
-                    refreshCurrentItems()
-                    notify('success','Success!', 'Feature deleted and network updated.');
-                }
+                
+                $.each(resp.old_gj, function( gj ) {
+                    currentItems.removeLayer(gj);
+                });
+                currentItems.addData(resp.new_gj)
+                refreshCurrentItems()
+                notify('success','Success!', 'Network updated.');
             });
         }
     });

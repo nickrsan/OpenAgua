@@ -121,33 +121,45 @@ class connection(object):
         
         node_id = gj['properties']['id']
         
-        # update existing attached links
-        links = [l for l in self.network.links if node_id in [l.node_1_id, l.node_2_id]]
-        if links:
-            if len(links) > 1:
-                replacement_node = 'Junction'
-                lname = ' + '.join([l.name for l in links])
-                node_name = '{} {}'.format(lname, replacement_node)
-            elif links[0].node_1_id == node_id:
-                replacement_node = 'Inflow'
-                lname = links[0].name
-                node_name = '{} {}'.format(lname, replacement_node)
-            else:
-                replacement_node = 'Outflow'
-                lname = links[0].name
-                node_name = '{} {}'.format(lname, replacement_node)
-            xy = [float(i) for i in gj['geometry']['coordinates']]
-            new_node = self.make_generic_node(replacement_node, xy, node_name)
-            if 'faultcode' in new_node and 'already in network' in new_node.faultstring:
-                new_node = [n for n in self.network.nodes if n.name==node_name][0]
-            self.update_links(node_id, new_node.id)
-        else:
+        ttype = gj['properties']['template_type_name']
+        
+        links = adjacent_links = \
+            [l for l in self.network.links \
+             if node_id in [l.node_1_id, l.node_2_id]]
+        
+        if ttype == 'Junction':
             new_node = None
+        elif ttype == 'Inflow':
+            new_node = None
+        elif ttype == 'Outflow':
+            new_node = None           
+        else:
+            # update existing attached links
+            if links:
+                if len(links) > 1:
+                    replacement_node = 'Junction'
+                    lname = ' + '.join([l.name for l in links])
+                    node_name = '{} {}'.format(lname, replacement_node)
+                elif links[0].node_1_id == node_id:
+                    replacement_node = 'Inflow'
+                    lname = links[0].name
+                    node_name = '{} {}'.format(lname, replacement_node)
+                else:
+                    replacement_node = 'Outflow'
+                    lname = links[0].name
+                    node_name = '{} {}'.format(lname, replacement_node)
+                xy = [float(i) for i in gj['geometry']['coordinates']]
+                new_node = self.make_generic_node(replacement_node, xy, node_name)
+                if 'faultcode' in new_node and 'already in network' in new_node.faultstring:
+                    new_node = [n for n in self.network.nodes if n.name==node_name][0]
+                self.update_links(node_id, new_node.id)
+            else:
+                new_node = None
             
         # purge node
         self.call('purge_node', {'node_id': node_id, 'purge_data': 'Y'})        
         
-        return new_node
+        return new_node, adjacent_links
         
     def update_links(self, old_node_id, new_node_id):
         for link in self.network.links:
@@ -326,11 +338,13 @@ class connection(object):
                 else:
                     if i==segments[0] and n==1:
                         node_type = 'Inflow'
+                        node_name = '{} {}'.format(lname, node_type)
                     elif i==segments[-1] and n==2:
                         node_type = 'Outflow'
+                        node_name = '{} {}'.format(lname, node_type)
                     else:
                         node_type = 'Junction'
-                    node_name = '{} ({},{})'.format(lname, xy[0], xy[1])
+                        node_name = '{} {} ({},{})'.format(lname, node_type, xy[0], xy[1])
                     hnode = self.make_generic_node(node_type, xy, node_name) 
                     hnodes.append(hnode)
                     node_id = hnode.id
