@@ -4,7 +4,7 @@ from datetime import datetime
 from flask import redirect, url_for, render_template, \
      request, session, jsonify, json
 from flask_security import login_required, current_user
-from ..connection import connection, make_connection, save_data
+from ..connection import connection, make_connection, save_data, load_hydrauser
 from ..utils import hydra_timeseries, d2o, \
      eval_scalar, eval_timeseries, eval_function, eval_data
 
@@ -13,23 +13,23 @@ from . import data_editor
 
 @data_editor.route('/data_editor')
 @login_required
-def data_editor_main():    
-    conn = make_connection()
+def data_editor_main():
+    load_hydrauser() # do this at the top of every page
+    conn = make_connection(login=True)
     conn.load_active_study()
     
     features = OrderedDict()
     
-    for res_type in ['NETWORK','NODE','LINK']:
-        for ttype in conn.template.types:            
-            if ttype.resource_type=='NETWORK':
-                pass # not sure how to load these
-            elif ttype.resource_type==res_type:
-                feats = [r for r in eval('conn.network.{}s' \
-                                         .format(res_type.lower())) \
-                         if ttype.id in [t.id for t in r.types]]
-                if feats:
-                    features[(ttype.id, ttype.name,
-                              ttype.resource_type)] = feats
+    for res_type in ['node','link']:
+        for r in eval('conn.network.{}s'.format(res_type.lower())):
+            ttype = [t for t in r.types if t.template_id == session['template_id']][0]
+            if ttype.name in ['Inflow', 'Outflow', 'Junction', 'Withdrawal']:
+                continue
+            idx = (ttype.id, ttype.name, res_type)
+            if idx not in features.keys():
+                features[idx] = []
+            features[idx].append(r)
+            
     scenarios = [{'id':s.id, 'name':s.name} for s in conn.network.scenarios]
     
     return render_template('data_editor.html',
@@ -44,11 +44,11 @@ def get_variables():
     type_id = int(request.args.get('type_id'))
     feature_id = int(request.args.get('feature_id'))
     feature_type = request.args.get('feature_type').lower()
-    res_attrs = conn.call('get_%s_attributes'%feature_type,
-                          {'%s_id'%feature_type: feature_id, 'type_id':type_id})
+    res_attrs = conn.call('get_{}_attributes'.format(feature_type),
+                          {'{}_id'.format(feature_type): feature_id,
+                           'type_id':type_id})
     
-    # add templatetype attribute information to each resource attribute,
-    # so we can display useful variable information in the data editor
+    # add templatetype attribute information to each resource attribute
     
     # first, get the template type attributes
     ttype = conn.call('get_templatetype', {'type_id': type_id})

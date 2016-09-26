@@ -10,7 +10,7 @@ from . import net_editor
 @login_required
 def network_editor():
     load_hydrauser() # do this at the top of every page
-    conn = make_connection()
+    conn = make_connection(login=True)
     conn.load_active_study()
     if conn.invalid_study:
         return redirect(url_for('projects_manager.manage'))    

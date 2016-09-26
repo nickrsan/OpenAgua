@@ -21,7 +21,7 @@ configure_uploads(app, templates)
 @login_required
 def manage():
     load_hydrauser() # do this at the top of every page
-    conn = make_connection()
+    conn = make_connection(login=True)
     conn.load_active_study()
     
     # get the list of project names, and network names for the test project

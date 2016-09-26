@@ -373,12 +373,11 @@ class connection(object):
                 link['name'] = '{} to {}'.format(n1_name, n2_name)
                 link['description'] = '{} from {} to {}' \
                     .format(ttype_name, n1_name, n2_name)
-                
+            link['id'] = -i
             links.append(link)
-        
-        hlinks = self.call('add_links',
-                                {'network_id': self.network.id,
-                                 'links': links})
+            
+        hlinks = self.call('add_links', {'network_id': self.network.id,
+                                         'links': links})
         
         return hlinks, hnodes
     
@@ -435,21 +434,23 @@ class JSONObject(dict):
             self[k] = v
             setattr(self, k, v)                            
             
-def make_connection():
+def make_connection(login=False):
         
     conn = connection(url=session['hydra_url'],
                       session_id=session['hydra_sessionid'])
-    ping = conn.call('get_username', {'uid': session['hydra_userid']})
-    
-    if 'faultcode' in ping and ping.faultcode == 'No Session':
-        conn = connection(url=session['hydra_url'])
-        # NOT SECURE IN TRANSMISSION
-        conn.login(username=session['hydra_username'],
-                   password=decrypt(session['hydra_password'],
-                                    app.config['SECRET_ENCRYPT_KEY']))
-        session['hydra_sessionid'] = conn.session_id
+    if login:
         
-        # ALSO: need to add to database 
+        ping = conn.call('get_username', {'uid': session['hydra_userid']})
+        
+        if 'faultcode' in ping and ping.faultcode == 'No Session':
+            conn = connection(url=session['hydra_url'])
+            # NOT SECURE IN TRANSMISSION
+            conn.login(username=session['hydra_username'],
+                       password=decrypt(session['hydra_password'],
+                                        app.config['SECRET_ENCRYPT_KEY']))
+            session['hydra_sessionid'] = conn.session_id
+            
+            # ALSO: need to add to database 
     
     return conn
 
