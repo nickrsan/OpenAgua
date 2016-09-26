@@ -102,7 +102,7 @@ $( document ).ready(function() {
             notify('info', 'Network loaded!', 'Your network has ' + n + ' features.');
         } else {
             map.setView([0, 0], 2);
-            notify('info', 'Welcome!', 'Empty network loaded. Please add features.');
+            notify('info', 'Welcome!', 'Your network is empty. Please add features.');
         }
         map.addLayer(currentItems);
         map.spin(false);
@@ -135,6 +135,7 @@ map.on('draw:created', function (e) {
 });
 
 $('button#add_node_confirm').bind('click', function() {
+    map.spin(true);
     gj.properties.name = $('#node_name').val();
     gj.properties.description = $('#node_description').val();
     gj.properties.template_type_id = $("#node_type option:selected").val();
@@ -143,21 +144,25 @@ $('button#add_node_confirm').bind('click', function() {
     $.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(resp) {
         status_code = resp.status_code;
         if ( status_code == -1 ) {
+            map.spin(false);
             $("#add_node_error").text('Name already in use. Please try again.');
         } else {
+            $('#modal_add_node').modal('hide');
             var new_gj = resp.new_gj;
             newItems.clearLayers();
             currentItems.addData(new_gj);
             refreshCurrentItems();
             $('#node_name').val('');
             $('#node_description').val('');
-            //$("#save_status").text('node added!');
-            $('#modal_add_node').modal('hide');
+            map.spin(false);
+            notify('success', 'Success!', 'Feature added.')
+            
         };
     });
 });
 
 $('button#add_link_confirm').bind('click', function() {
+    map.spin(true);
     gj.properties.name = $('#link_name').val();
     gj.properties.description = $('#link_description').val();
     gj.properties.template_type_id = $("#link_type option:selected").val();
@@ -165,16 +170,18 @@ $('button#add_link_confirm').bind('click', function() {
     $.getJSON($SCRIPT_ROOT + '/_add_link', {new_link: JSON.stringify(gj)}, function(resp) {
         status_code = resp.status_code;
         if ( status_code == -1 ) {
+            map.spin(false);
             $("#add_link_error").text('Name already in use. Please try again.');
         } else {
+            $('#modal_add_link').modal('hide');
             var new_gj = resp.new_gj;
             newItems.clearLayers();
             currentItems.addData(new_gj);
             refreshCurrentItems();
             $('#link_name').val('');
             $('#link_description').val('');
-            //$("#save_status").text('link added!');
-            $('#modal_add_link').modal('hide');
+            map.spin(false);
+            notify('success', 'Success!', 'Feature added.')
         };
     });
 });
@@ -325,6 +332,7 @@ function purgeFeature(e) {
     var msg = 'Permanently delete ' + feature.properties.name + '?<br><b>WARNING: This cannot be undone!<b>'
     bootbox.confirm(msg, function(confirm) {
         if (confirm) {
+            map.spin(true);
             var purged_json = JSON.stringify(feature);
             $.getJSON($SCRIPT_ROOT+'/_purge_replace_feature', {purged: purged_json}, function(resp) {
                 
@@ -339,6 +347,7 @@ function purgeFeature(e) {
                 // add new node
                 currentItems.addData(resp.new_gj)
                 refreshCurrentItems()
+                map.spin(false);
                 notify('success','Success!', 'Network updated.');
             });
         }
