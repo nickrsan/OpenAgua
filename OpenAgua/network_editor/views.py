@@ -55,13 +55,10 @@ def add_node():
         
     # create the new node
     else:
-        node_new = conn.make_node_from_geojson(gj)
-        node = conn.call('add_node', {'network_id': session['network_id'],
-                                      'node': node_new})
-        new_gj = [conn.make_geojson_from_node(node)]
+        new_node = conn.add_node_from_geojson(gj)
+        new_gj = [conn.make_geojson_from_node(new_node)]
         status_code = 1
-    result = dict(new_gj=new_gj, status_code=status_code)
-    return jsonify(result=result)
+    return jsonify(new_gj=new_gj, status_code=status_code)
 
 @net_editor.route('/_add_link')
 @login_required
@@ -112,19 +109,26 @@ def delete_feature():
         status_code = 1
     return jsonify(result=dict(status_code=status_code))
 
-@net_editor.route('/_purge_feature')
+@net_editor.route('/_purge_replace_feature')
 @login_required
-def purge_feature():
+def purge_replace_feature():
     conn = make_connection()
+    conn.load_active_study()
     
     purged_feature = request.args.get('purged')
     gj = json.loads(purged_feature)
 
     status_code = -1
     if gj['geometry']['type'] == 'Point':
-        conn.call('purge_node',{'node_id': gj['properties']['id'], 'purge_data':'Y'})
-        status_code = 1
+        new_node = conn.purge_replace_node(gj)
+        if new_node:
+            new_gj = [conn.make_geojson_from_node(new_node)]
+            status_code = 1
+        else:
+            new_gj = None
+            status_code = 0
     else:
         conn.call('purge_link',{'link_id': gj['properties']['id'], 'purge_data':'Y'})
-        status_code = 1
-    return jsonify(result=dict(status_code=status_code))
+        new_gj = None
+        status_code = 0
+    return jsonify(new_gj=new_gj, status_code=status_code)

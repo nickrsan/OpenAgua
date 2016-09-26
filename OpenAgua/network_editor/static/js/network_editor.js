@@ -4,6 +4,12 @@ $('.modal').on('shown.bs.modal', function() {
 
 // VARIABLES
 
+var deleted_layer;
+var deleted_feature;
+
+var purged_layer;
+var purged_feature;
+
 // main context menu
 var mapContextmenuOptions = {
     zoomControl: false,
@@ -112,35 +118,6 @@ var nodeIcon = L.Icon.extend({
     }
 });
 
-refreshCurrentItems = function() {
-    currentItems.eachLayer(function(layer) {
-        var prop = layer.feature.properties;
-        //layer.bindPopup(prop.name); // add popup
-        layer.bindLabel(prop.name, {
-            noHide: false,
-            offset: [20,-15]
-        });
-        layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu
-        if (layer.feature.geometry.type == 'Point') {
-            var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/" + prop.image;
-            var icon = new nodeIcon({
-                iconUrl: iconUrl
-            });
-            layer.setIcon(icon); // add icon
-
-        } else {
-            layer.setStyle({
-                color: prop.color,
-                weight: prop.weight,
-                dashArray: prop.dashArray,
-                lineJoin: prop.lineJoin,
-                opacity: prop.opacity,
-            });      
-        }
-        
-    });
-};
-
 // create features
 var gj;
 var newItems = new L.FeatureGroup();
@@ -163,12 +140,12 @@ $('button#add_node_confirm').bind('click', function() {
     gj.properties.template_type_id = $("#node_type option:selected").val();
     gj.properties.template_type_name = $("#node_type option:selected").text();    
     
-    $.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(data) {
-        status_code = data.result.status_code;
+    $.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(resp) {
+        status_code = resp.status_code;
         if ( status_code == -1 ) {
             $("#add_node_error").text('Name already in use. Please try again.');
         } else {
-            var new_gj = data.result.new_gj;
+            var new_gj = resp.new_gj;
             newItems.clearLayers();
             currentItems.addData(new_gj);
             refreshCurrentItems();
@@ -226,10 +203,84 @@ map.on('draw:edited', function (e) {
     });
 });
 
+$('button#delete_feature_confirm').bind('click', function() {
+    deleted_json = JSON.stringify(deleted_feature);
+    $.getJSON($SCRIPT_ROOT+'/_delete_feature', {deleted: deleted_json}, function(data) {
+        status_code = data.result.status_code;
+        if ( status_code == 1 ) { // there should be only success
+            currentItems.removeLayer(deleted_layer);
+            $("#delete_feature_name").text(""); // probably not necessary...
+            $("#modal_delete_feature").modal("hide");
+        };
+    });
+});
+
+
 // FUNCTIONS
 
+// delete a feature
+function deleteFeature(e) {
+    deleted_layer = e.relatedTarget;
+    deleted_feature = e.relatedTarget.feature;
+    var name = deleted_feature.properties.name;
+    $("#delete_feature_name").text("Delete \"" + name + "\"");
+    $('#modal_delete_feature').modal('show');
+}
+
+// purge a feature
+function purgeFeature(e) {
+    //e.preventDefault();
+    var msg = 'Permanently delete previously removed features?<br><b>WARNING: This cannot be undone!<b>'
+    bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+            var purged_json = JSON.stringify(e.relatedTarget.feature);
+            $.getJSON($SCRIPT_ROOT+'/_purge_replace_feature', {purged: purged_json}, function(resp) {
+                status_code = resp.status_code;
+                if ( status_code == 0 ) { // there should be only success
+                    currentItems.removeLayer(e.relatedTarget);
+                } else if ( status_code == 1 ) {
+                    currentItems.removeLayer(e.relatedTarget);
+                    currentItems.addData(resp.new_gj)
+                    refreshCurrentItems()
+                    notify('success','Success!', 'Feature deleted and network updated.');
+                }
+            });
+        }
+    });
+}
+
+function refreshCurrentItems() {
+    currentItems.eachLayer(function(layer) {
+        var prop = layer.feature.properties;
+        //layer.bindPopup(prop.name); // add popup
+        layer.bindLabel(prop.name, {
+            noHide: false,
+            offset: [20,-15]
+        });
+        layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu
+        if (layer.feature.geometry.type == 'Point') {
+            var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/template/" + prop.image;
+            var icon = new nodeIcon({
+                iconUrl: iconUrl
+            });
+            layer.setIcon(icon); // add icon
+
+        } else {
+            layer.setStyle({
+                color: prop.color,
+                weight: prop.weight,
+                dashArray: prop.dashArray,
+                lineJoin: prop.lineJoin,
+                opacity: prop.opacity,
+            });      
+        }
+        
+    });
+};
+
+
 // get shapes to add
-var getJson = function(items) {
+function getJson(items) {
     var shapes = [];
     var layerJson;
     
@@ -244,7 +295,7 @@ var getJson = function(items) {
 };
 
 // feature context menu
-getContextmenuOptions = function(featureName) {
+function getContextmenuOptions(featureName) {
     var contextmenuOptions = {
         contextmenu: true,
         contextmenuItems: [{
@@ -278,58 +329,13 @@ getContextmenuOptions = function(featureName) {
 };
 
 // center the map on the selected point
-function centerMap (e) {
+function centerMap(e) {
     map.panTo(e.latlng);
 }
 
 // show the coordinates of the selected point
-function showCoordinates (e) {
+function showCoordinates(e) {
     $("p#coords").text(e.latlng);
     $("#modal_coords").modal("show");
 }
 
-// delete a feature
-var deleted_layer;
-var deleted_feature;
-function deleteFeature(e) {
-    deleted_layer = e.relatedTarget;
-    deleted_feature = e.relatedTarget.feature;
-    var name = deleted_feature.properties.name;
-    $("#delete_feature_name").text("Delete \"" + name + "\"");
-    $('#modal_delete_feature').modal('show');
-}
-
-// purge a feature
-var purged_layer;
-var purged_feature;
-function purgeFeature(e) {
-    purged_layer = e.relatedTarget;
-    purged_feature = e.relatedTarget.feature;
-    var name = purged_feature.properties.name;
-    $("#purge_feature_name").text("Purge \"" + name + "\"");
-    $('#modal_purge_feature').modal('show');
-}
-
-$('button#delete_feature_confirm').bind('click', function() {
-    deleted_json = JSON.stringify(deleted_feature);
-    $.getJSON($SCRIPT_ROOT+'/_delete_feature', {deleted: deleted_json}, function(data) {
-        status_code = data.result.status_code;
-        if ( status_code == 1 ) { // there should be only success
-            currentItems.removeLayer(deleted_layer);
-            $("#delete_feature_name").text(""); // probably not necessary...
-            $("#modal_delete_feature").modal("hide");
-        };
-    });
-});
-
-$('button#purge_feature_confirm').bind('click', function() {
-    purged_json = JSON.stringify(purged_feature);
-    $.getJSON($SCRIPT_ROOT+'/_purge_feature', {purged: purged_json}, function(data) {
-        status_code = data.result.status_code;
-        if ( status_code == 1 ) { // there should be only success
-            currentItems.removeLayer(purged_layer);
-            $("#purge_feature_name").text(""); // probably not necessary...
-            $("#modal_purge_feature").modal("hide");
-        };
-    });
-});

@@ -3,6 +3,7 @@ from webcolors import name_to_hex
 import sys
 import requests
 import json
+from copy import deepcopy
 from flask import session
 from flask_security import current_user
 import zipfile
@@ -114,7 +115,50 @@ class connection(object):
         return self.call('get_template', {'template_id':template_id})
     
     def get_node(self, node_id=None):
-        return self.call('get_node',{'node_id':node_id})    
+        return self.call('get_node',{'node_id':node_id})
+    
+    def purge_replace_node(self, gj=None):
+        
+        node_id = gj['properties']['id']
+        
+        # update existing attached links
+        links = [l for l in self.network.links if node_id in [l.node_1_id, l.node_2_id]]
+        if links:
+            if len(links) > 1:
+                replacement_node = 'Junction'
+                lname = ' + '.join([l.name for l in links])
+                node_name = '{} {}'.format(lname, replacement_node)
+            elif links[0].node_1_id == node_id:
+                replacement_node = 'Inflow'
+                lname = links[0].name
+                node_name = '{} {}'.format(lname, replacement_node)
+            else:
+                replacement_node = 'Outflow'
+                lname = links[0].name
+                node_name = '{} {}'.format(lname, replacement_node)
+            xy = [float(i) for i in gj['geometry']['coordinates']]
+            new_node = self.make_generic_node(replacement_node, xy, node_name)
+            if 'faultcode' in new_node and 'already in network' in new_node.faultstring:
+                new_node = [n for n in self.network.nodes if n.name==node_name][0]
+            self.update_links(node_id, new_node.id)
+        else:
+            new_node = None
+            
+        # purge node
+        self.call('purge_node', {'node_id': node_id, 'purge_data': 'Y'})        
+        
+        return new_node
+        
+    def update_links(self, old_node_id, new_node_id):
+        for link in self.network.links:
+            if old_node_id in [link.node_1_id, link.node_2_id]:
+                new_link = link.__dict__
+                if link.node_1_id == old_node_id:
+                    new_link['node_1_id'] = new_node_id
+                elif link.node_2_id == old_node_id:
+                    new_link['node_2_id'] = new_node_id
+                updated_link = self.call('update_link', {'link': new_link})
+        return
     
     def make_geojson_from_node(self, node=None):
         type_id = [t.id for t in node.types \
@@ -185,7 +229,7 @@ class connection(object):
         return features
     
     # convert geoJson node to Hydra node
-    def make_node_from_geojson(self, gj=None):
+    def add_node_from_geojson(self, gj=None, existing_node_id=None):
         x, y = gj['geometry']['coordinates']
         ttype_name = gj['properties']['template_type_name']
         ttype_id = int(gj['properties']['template_type_id'])
@@ -204,9 +248,27 @@ class connection(object):
             y = str(y),
             types = [typesummary]
         )
-        return node
+        
+        # delete old node
+        # will be faster to get this client side from Leaflet Snap
+        old_node_id = None
+        for n in self.network.nodes:
+            if (x,y) == (float(n.x), float(n.y)):
+                old_node_id = n.id
+                break
+        
+        # add new node
+        new_node = self.call('add_node', {'network_id': session['network_id'], 'node': node})
+        
+        # update existing adjacent links, if any, with new node id
+        # it would be best if we could get the attached links clientside
+        if old_node_id:
+            self.update_links(old_node_id, new_node.id)
+            self.call('purge_node', {'node_id': old_node_id})
+        
+        return new_node
     
-    def make_generic_node(self, ttype_name, xy, lname, i):
+    def make_generic_node(self, ttype_name, xy, node_name):
         typesummary = dict(
             name = ttype_name,
             id = self.ttype_dict[ttype_name],
@@ -215,25 +277,19 @@ class connection(object):
         )
         node = dict(
             id = -1,
-            name = '{} {}'.format(lname, ttype_name),
+            name = node_name,
             description = '%s added automatically' % ttype_name,
             x = str(xy[0]),
             y = str(xy[1]),
             types = [typesummary]
         )
-        if ttype_name == 'Junction':
-            node['name'] += ' ({},{})'.format(xy[0], xy[1])
             
         hydra_node = self.call('add_node',
                                {'network_id': self.network.id,
                                 'node': node})          
         return hydra_node
     
-    def make_links_from_geojson(self, gj=None):
-        
-        self.ttype_dict = {}
-        for ttype in self.template.types:
-            self.ttype_dict[ttype.name] = ttype.id         
+    def make_links_from_geojson(self, gj=None):        
         
         coords = get_coords(self.network.nodes)
         
@@ -269,11 +325,13 @@ class connection(object):
                     node_id = nlookup[xy]
                 else:
                     if i==segments[0] and n==1:
-                        hnode = self.make_generic_node('Inflow', xy, lname, i)
+                        node_type = 'Inflow'
                     elif i==segments[-1] and n==2:
-                        hnode = self.make_generic_node('Outflow', xy, lname, i)
+                        node_type = 'Outflow'
                     else:
-                        hnode = self.make_generic_node('Junction', xy, lname, i) 
+                        node_type = 'Junction'
+                    node_name = '{} ({},{})'.format(lname, xy[0], xy[1])
+                    hnode = self.make_generic_node(node_type, xy, node_name) 
                     hnodes.append(hnode)
                     node_id = hnode.id
                     nlookup[xy] = node_id
@@ -344,10 +402,13 @@ class connection(object):
                 self.invalid_study = True
             else:
                 session['template_id'] = study.template_id
-                ttypes = {}
-                for tt in self.template.types:
-                    ttypes[tt.id] = tt
-                self.ttypes = ttypes
+                
+                self.ttypes = {}
+                self.ttype_dict = {}
+                for ttype in self.template.types:
+                    self.ttypes[ttype.id] = ttype
+                    self.ttype_dict[ttype.name] = ttype.id 
+                                
         else:
             self.invalid_study = True
     
