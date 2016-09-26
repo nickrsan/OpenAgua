@@ -123,30 +123,32 @@ class connection(object):
         
         ttype = gj['properties']['template_type_name']
         
-        links = adjacent_links = \
-            [l for l in self.network.links \
-             if node_id in [l.node_1_id, l.node_2_id]]
+        adj_links = [l for l in self.network.links \
+                 if node_id in [l.node_1_id, l.node_2_id]]
         
         if ttype == 'Junction':
             new_node = None
+            del_link_ids = [l.id for l in adj_links]
         elif ttype == 'Inflow':
             new_node = None
+            del_link_ids = [l.id for l in adj_links]
         elif ttype == 'Outflow':
-            new_node = None           
+            new_node = None
+            del_link_ids = [l.id for l in adj_links]
         else:
-            # update existing attached links
-            if links:
-                if len(links) > 1:
+            # update existing adjacent links
+            if adj_links:
+                if len(adj_links) > 1:
                     replacement_node = 'Junction'
-                    lname = ' + '.join([l.name for l in links])
+                    lname = ' + '.join([l.name for l in adj_links])
                     node_name = '{} {}'.format(lname, replacement_node)
-                elif links[0].node_1_id == node_id:
+                elif adj_links[0].node_1_id == node_id:
                     replacement_node = 'Inflow'
-                    lname = links[0].name
+                    lname = adj_links[0].name
                     node_name = '{} {}'.format(lname, replacement_node)
                 else:
                     replacement_node = 'Outflow'
-                    lname = links[0].name
+                    lname = adj_links[0].name
                     node_name = '{} {}'.format(lname, replacement_node)
                 xy = [float(i) for i in gj['geometry']['coordinates']]
                 new_node = self.make_generic_node(replacement_node, xy, node_name)
@@ -155,11 +157,12 @@ class connection(object):
                 self.update_links(node_id, new_node.id)
             else:
                 new_node = None
+            del_link_ids = [] # don't delete adjacent links
             
-        # purge node
+        # purge node (adjacent links are deleted if not updated)
         self.call('purge_node', {'node_id': node_id, 'purge_data': 'Y'})        
         
-        return new_node, adjacent_links
+        return new_node, del_link_ids
         
     def update_links(self, old_node_id, new_node_id):
         for link in self.network.links:

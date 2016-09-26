@@ -10,6 +10,8 @@ var deleted_feature;
 var purged_layer;
 var purged_feature;
 
+var pointLeafletId = {}, linkLeafletId = {}; // id-to-id dictionaries
+
 // main context menu
 var mapContextmenuOptions = {
     zoomControl: false,
@@ -76,7 +78,6 @@ var drawControl = new L.Control.Draw({
 
 // snapping
 var guideLayers = new Array();
-//guideLayers.push(currentItems);
 
 drawControl.setDrawingOptions({
     marker: { guideLayers: guideLayers, snapDistance: 25 },
@@ -217,35 +218,6 @@ $('button#delete_feature_confirm').bind('click', function() {
 
 // FUNCTIONS
 
-// delete a feature
-function deleteFeature(e) {
-    deleted_layer = e.relatedTarget;
-    deleted_feature = e.relatedTarget.feature;
-    var name = deleted_feature.properties.name;
-    $("#delete_feature_name").text("Delete \"" + name + "\"");
-    $('#modal_delete_feature').modal('show');
-}
-
-// purge a feature
-function purgeFeature(e) {
-    //e.preventDefault();
-    var msg = 'Permanently delete previously removed features?<br><b>WARNING: This cannot be undone!<b>'
-    bootbox.confirm(msg, function(confirm) {
-        if (confirm) {
-            var purged_json = JSON.stringify(e.relatedTarget.feature);
-            $.getJSON($SCRIPT_ROOT+'/_purge_replace_feature', {purged: purged_json}, function(resp) {
-                
-                $.each(resp.old_gj, function( gj ) {
-                    currentItems.removeLayer(gj);
-                });
-                currentItems.addData(resp.new_gj)
-                refreshCurrentItems()
-                notify('success','Success!', 'Network updated.');
-            });
-        }
-    });
-}
-
 function refreshCurrentItems() {
     currentItems.eachLayer(function(layer) {
         var prop = layer.feature.properties;
@@ -261,6 +233,7 @@ function refreshCurrentItems() {
                 iconUrl: iconUrl
             });
             layer.setIcon(icon); // add icon
+            pointLeafletId[prop.id] = layer._leaflet_id
 
         } else {
             layer.setStyle({
@@ -269,7 +242,8 @@ function refreshCurrentItems() {
                 dashArray: prop.dashArray,
                 lineJoin: prop.lineJoin,
                 opacity: prop.opacity,
-            });      
+            });
+            linkLeafletId[prop.id] = layer._leaflet_id
         }
         
     });
@@ -336,3 +310,37 @@ function showCoordinates(e) {
     $("#modal_coords").modal("show");
 }
 
+// delete a feature (need to rename to 'deactivate')
+function deleteFeature(e) {
+    deleted_layer = e.relatedTarget;
+    deleted_feature = e.relatedTarget.feature;
+    var name = deleted_feature.properties.name;
+    $("#delete_feature_name").text("Delete \"" + name + "\"");
+    $('#modal_delete_feature').modal('show');
+}
+
+// purge a feature
+function purgeFeature(e) {
+    var feature = e.relatedTarget.feature
+    var msg = 'Permanently delete ' + feature.properties.name + '?<br><b>WARNING: This cannot be undone!<b>'
+    bootbox.confirm(msg, function(confirm) {
+        if (confirm) {
+            var purged_json = JSON.stringify(feature);
+            $.getJSON($SCRIPT_ROOT+'/_purge_replace_feature', {purged: purged_json}, function(resp) {
+                
+                // remove deleted node
+                currentItems.removeLayer(pointLeafletId[feature.properties.id])
+                
+                // remove adjacent links?
+                $.each(resp.del_links, function( i, link_id ) {
+                    currentItems.removeLayer(linkLeafletId[link_id]);
+                });
+                
+                // add new node
+                currentItems.addData(resp.new_gj)
+                refreshCurrentItems()
+                notify('success','Success!', 'Network updated.');
+            });
+        }
+    });
+}

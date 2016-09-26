@@ -117,24 +117,17 @@ def purge_replace_feature():
     gj = json.loads(purged_feature)
 
     status_code = -1
+    new_gj = []
     if gj['geometry']['type'] == 'Point':
-        new_node, adj_links = conn.purge_replace_node(gj)
+        new_node, del_links = conn.purge_replace_node(gj)
         if new_node:
-            old_gj = [gj]
-            new_gj = [conn.make_geojson_from_node(new_node)]
+            new_gj.append(conn.make_geojson_from_node(new_node))
             status_code = 1
-        elif adj_links:
-            old_gj = [gj]
-            old_gj += [conn.make_geojson_from_link(l) for l in adj_links]
-            new_gj = []
-            status_code = 0
         else:
-            old_gj = [gj]
-            new_gj = []
             status_code = 0
     else:
-        conn.call('purge_link',{'link_id': gj['properties']['id'], 'purge_data':'Y'})
-        old_gj = [gj]
-        new_gj = []
-        status_code = 0
-    return jsonify(old_gj=old_gj, new_gj=new_gj, status_code=status_code)
+        link_id = gj['properties']['id']
+        conn.call('purge_link',{'link_id': link_id, 'purge_data':'Y'})
+        del_links = [link_id]
+        status_code = 1
+    return jsonify(new_gj=new_gj, del_links=del_links, status_code=status_code)
