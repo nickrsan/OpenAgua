@@ -2,6 +2,7 @@ from os.path import join
 from datetime import datetime
 import json
 from collections import OrderedDict
+from attrdict import AttrDict
 
 from pyomo.environ import ConcreteModel, Set, Objective, Var, Param, \
      Constraint, NonNegativeReals, maximize, summation
@@ -23,25 +24,47 @@ def create_model(network, template_id, timestep_dict):
     
     timesteps = [ot for (ht, ot) in timestep_dict.values()]
     
-    res_attr_node = dict()
+    p = attrdict({ft: {} for ft in ['node', 'link', 'net']}) # dictionary of parameters
+    
+    ra_node = {} # res_attr to node lookup
     for node in network.nodes:
         for res_attr in node.attributes:
-            res_attr_node[res_attr.id] = node.id
+            ra_node[res_attr.id] = node.id
     
-    p = dict() # dictionary of parameters
+    ra_link = {} # res_attr to link lookup
+    for link in network.links:
+        for res_attr in link.attributes:
+            ra_link[res_attr.id] = link.id
+            
+    #ra_net = dict() # res_attr to network lookup
+    #for link in network.links:
+        #for res_attr in link.attributes:
+            #ra_link[res_attr.id] = link.id
     
     for rs in network.scenarios[0].resourcescenarios:
-        param = rs.value.name.replace(' ','_')
-        if param not in p.keys():
-            p[param] = dict()
-        node_id = res_attr_node[rs.resource_attr_id]
+        
+        ra_id = rs.resource_attr_id
+        
+        # node parameters
+        if ra_id in ra_node.keys():
+            ftype = 'node'
+        elif ra_id in ra_link.keys():
+            ftype = 'link'
+        elif ra_id in ra_net.keys():
+            ftype = 'net'
+        ra_dict = eval('ra_{}'.format(ftype))
+            
+        param = rs.value.name
+        if param not in p[ftype].keys():
+            p[ftype][param] = {}
+        fid = ra_dict[rs.resource_attr_id]
         value = rs.value.value
         typ = rs.value.type
         metadata = json.loads(rs.value.metadata)
         if typ == 'scalar':
-            exec('p["{}"][{}] = {}'.format(param, node_id, value))
+            exec('p[ftype]["{}"][{}] = {}'.format(param, fid, value))
         elif typ == 'descriptor':
-            exec('p["{}"][{}] = {}'.format(param, node_id, value))
+            exec('p[ftype]["{}"][{}] = {}'.format(param, node_id, value))
         elif typ == 'timeseries':
             values = json.loads(value)
             is_function = 'function' in metadata.keys() \

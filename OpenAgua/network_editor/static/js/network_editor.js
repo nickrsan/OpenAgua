@@ -53,15 +53,6 @@ var locateControl = new L.control.locate(options={
 });
 map.addControl(locateControl);
 
-// full screen button - NB: function deleted since modal doesn't show in
-// full screen mode. Let's add this back for the visualization though. Or,
-// figure out how to disable editing in full screen mode.
-//var fullScreenButton = new L.Control.Fullscreen({position: 'topright'});
-//map.addControl(fullScreenButton);
-
-// feature creation & editing toolbar
-// need to revise this for multiple feature types
-// see https://github.com/Leaflet/Leaflet.draw/issues/265 and http://jsfiddle.net/jacobtoye/xgdV4/2/
 var drawControl = new L.Control.Draw({
     draw: {
         position: 'topleft',
@@ -141,8 +132,6 @@ $('button#add_node_confirm').bind('click', function() {
     gj.properties.template_type_id = $("#node_type option:selected").val();
     gj.properties.template_type_name = $("#node_type option:selected").text();    
     
-    //$.getJSON($SCRIPT_ROOT + '/_add_node', {new_node: JSON.stringify(gj)}, function(resp) {
-    
     $.ajax({
         type : "POST",
         url : $SCRIPT_ROOT + '/_add_node',
@@ -201,7 +190,6 @@ $('button#add_node_cancel').bind('click', function() {
     newItems.clearLayers();
     $('#node_name').val('');
     $('#node_description').val('');
-    //$("#save_status").text('Action cancelled.');
 });
 
 $('button#add_link_cancel').bind('click', function() {
@@ -209,7 +197,6 @@ $('button#add_link_cancel').bind('click', function() {
     newItems.clearLayers();
     $('#link_name').val('');
     $('#link_description').val('');
-    //$("#save_status").text('Action cancelled.');    
 });
 
 map.on('draw:edited', function (e) {
@@ -238,7 +225,6 @@ $('button#delete_feature_confirm').bind('click', function() {
 function refreshCurrentItems() {
     currentItems.eachLayer(function(layer) {
         var prop = layer.feature.properties;
-        //layer.bindPopup(prop.name); // add popup
         layer.bindLabel(prop.name, {
             noHide: false,
             offset: [20,-15]
@@ -265,7 +251,6 @@ function refreshCurrentItems() {
         
     });
 };
-
 
 // get shapes to add
 function getJson(items) {

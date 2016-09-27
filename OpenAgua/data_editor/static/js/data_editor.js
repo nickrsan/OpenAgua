@@ -434,7 +434,6 @@ function saveData(data) {
 
 // editor functions
 function updateEditor(data_type, unit, dimension) {
-  //$('#editor').hide();
   $('.editor').hide();
   $('#'+data_type).show();
   $('#editor_status').hide();
