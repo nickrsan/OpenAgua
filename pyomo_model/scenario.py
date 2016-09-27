@@ -17,14 +17,53 @@ import wingdbstub
 
 def create_model(network, template_id, timestep_dict):
     
-    # prepare data
+    # prepare data - we could move some of this to elsewhere
     
-    nodes = [n.id for n in network.nodes]
-    links = [(l.node_1_id, l.node_2_id) for l in network.links]
+    # extract info about nodes
+    
+    nodes = []
+    type_nodes = {}
+    for n in network.nodes:
+        
+        # a list of all nodes
+        nodes.append(n.id)
+        
+        # a dictionary of template_type to node_id
+        for t in n.types:
+            if t.template_id == template_id:
+                type_name = t.name.replace(' ', '_')
+                if type_name not in type_nodes.keys():
+                    type_nodes[type_name] = []
+                type_nodes[type_name].append(n.id)
+                
+    # extract info about links
+    
+    links = []
+    link_nodes = {}
+    type_links = {}
+    for l in network.links:
+        node_ids = [l.node_1_id, l.node_2_id]
+        
+        # a list of all links
+        links.append(tuple(node_ids))
+        
+        # a dictionary of link_id to [node_1_id, node_2_id]
+        link_nodes[l.id] = node_ids
+        
+        # a dictionary of template type to [node_1_id, node_2_id]
+        for t in l.types:
+            if t.template_id == template_id:
+                type_name = t.name.replace(' ', '_')
+                if type_name not in type_links.keys():
+                    type_links[type_name] = []
+                type_links[type_name].append(tuple(node_ids))        
+    
+    # extract info about time steps
     
     timesteps = [ot for (ht, ot) in timestep_dict.values()]
     
-    p = attrdict({ft: {} for ft in ['node', 'link', 'net']}) # dictionary of parameters
+    # initialize dictionary of parameters
+    p = AttrDict({ft: AttrDict({}) for ft in ['node', 'link', 'net']})
     
     ra_node = {} # res_attr to node lookup
     for node in network.nodes:
@@ -45,27 +84,44 @@ def create_model(network, template_id, timestep_dict):
         
         ra_id = rs.resource_attr_id
         
-        # node parameters
+        # get identifiers
         if ra_id in ra_node.keys():
             ftype = 'node'
+            ID = ra_node[rs.resource_attr_id]
         elif ra_id in ra_link.keys():
             ftype = 'link'
-        elif ra_id in ra_net.keys():
-            ftype = 'net'
-        ra_dict = eval('ra_{}'.format(ftype))
-            
-        param = rs.value.name
+            ID = link_nodes[ra_link[rs.resource_attr_id]]
+        #elif ra_id in ra_net.keys():
+            #ftype = 'net'
+            #fid = ra_net[rs.resource_attr_id]        
+        
+        # initialize parameter dictionary
+        param = rs.value.name.replace(' ', '_')
         if param not in p[ftype].keys():
             p[ftype][param] = {}
-        fid = ra_dict[rs.resource_attr_id]
+            
+        # value
         value = rs.value.value
+        
+        # specify the feature type
         typ = rs.value.type
+        
         metadata = json.loads(rs.value.metadata)
+        
+        idx = ID
         if typ == 'scalar':
-            exec('p[ftype]["{}"][{}] = {}'.format(param, fid, value))
-        elif typ == 'descriptor':
-            exec('p[ftype]["{}"][{}] = {}'.format(param, node_id, value))
+            if type(idx) is list:
+                idx = tuple(idx)
+            p[ftype][param][idx] = value
+            
+        elif typ == 'descriptor': # this could change later
+            if type(idx) is list:
+                idx = tuple(idx)
+            p[ftype][param][idx] = value
+            
         elif typ == 'timeseries':
+            if type(ID) is not list:
+                ID = [ID]
             values = json.loads(value)
             is_function = 'function' in metadata.keys() \
                 and len(metadata['function']) > 0
@@ -74,7 +130,8 @@ def create_model(network, template_id, timestep_dict):
                     value = eval_function(metadata['function'], d)
                 else:
                     value = values['0'][ht]
-                exec('p["{}"][({},"{}")] = value'.format(param, node_id, ot))
+                idx = tuple(ID + [ot])
+                p[ftype][param][idx] = value
 
     # prepare model
     
@@ -102,20 +159,12 @@ def create_model(network, template_id, timestep_dict):
                 retval.append(k)
         return retval
     model.NodesOut = Set(model.Nodes, initialize=NodesOut_init)    
-    
-    # get a list of all nodes of a given type
-    type_nodes = dict()
-    for n in network.nodes:
-        for t in n.types:
-            if t.template_id == template_id:
-                type_name = t.name.replace(' ', '_')
-                if type_name not in type_nodes.keys():
-                    type_nodes[type_name] = []
-                type_nodes[type_name].append(n.id)
                 
-    # create sets for each template type
+    # create sets (nodes or links) for each template type
     for k, v in type_nodes.items():
         exec('model.{} = Set(within=model.Nodes, initialize={})'.format(k, v))
+    for k, v in type_links.items():
+        exec('model.{} = Set(within=model.Links, initialize={})'.format(k, v))
     
     # create set for non-storage nodes
     model.Non_reservoir = model.Nodes - model.Reservoir
@@ -131,17 +180,22 @@ def create_model(network, template_id, timestep_dict):
     
     # paramters 
     
-    def Priority_rule(model, j, t):
+    def NodePriority_rule(model, j, t):
         priority = -1 # default 
-        if 'Priority' in p.keys() and (j, t) in p['Priority'].keys():
-            priority = p['Priority'][(j, t)]
+        if 'Priority' in p.node.keys() and (j, t) in p.node.Priority.keys():
+            priority = p.node.Priority[(j, t)]
         elif j in model.Outflow:
             priority = 0
         return priority
-    model.Demand_Priority = Param(model.Non_reservoir, model.TS,
-                                  rule=Priority_rule)
-    model.Storage_Priority = Param(model.Reservoir, model.TS,
-                                   rule=Priority_rule)    
+    model.Node_Demand_Priority = Param(model.Non_reservoir, model.TS, rule=NodePriority_rule)
+    model.Storage_Priority = Param(model.Reservoir, model.TS, rule=NodePriority_rule)
+    
+    def LinkPriority_rule(model, i, j, t):
+        priority = 0
+        if 'Priority' in p.link.keys() and (i, j, t) in p.link.Priority.keys():
+            priority = p.link.Priority[(i, j, t)]
+        return priority    
+    model.Flow_Priority = Param(model.Links, model.TS, rule=LinkPriority_rule)
     
     # constraints
     
@@ -161,7 +215,7 @@ def create_model(network, template_id, timestep_dict):
     
     def IntialStorage_rule(model, j, t):
         if t == model.TS.first():
-            expr = model.Si[j, t] == p['Initial_Storage'][j]
+            expr = model.Si[j, t] == p.node['Initial_Storage'][j]
         else:
             expr = model.Si[j, t] == model.S[j, model.TS.prev(t)]
         return expr
@@ -172,28 +226,28 @@ def create_model(network, template_id, timestep_dict):
     model.Delivery = Constraint(model.Non_reservoir, model.TS, rule=Delivery_rule)
     
     def ChannelCap_rule(model, i, j, t):
-        if 'Flow_Capacity' in p.keys() and (i,j) in p['Flow_Capacity'].keys():
-            return (0, model.Q[i,j,t], p['Flow_Capacity'][(i,j,t)])
+        if 'Flow_Capacity' in p.link.keys() and (i,j,t) in p.link['Flow_Capacity'].keys():
+            return (0, model.Q[i,j,t], p.link['Flow_Capacity'][(i,j,t)])
         else:
             return Constraint.Skip
     model.ChannelCapacity = Constraint(model.Links, model.TS, rule=ChannelCap_rule)
 
     def DeliveryCap_rule(model, j, t):
-        if 'Demand' in p.keys() and (j,t) in p['Demand'].keys():
-            return (0, model.D[j,t], p['Demand'][(j,t)])
+        if 'Demand' in p.node.keys() and (j,t) in p.node['Demand'].keys():
+            return (0, model.D[j,t], p.node['Demand'][(j,t)])
         else:
             return Constraint.Skip
     model.DeliveryCap = Constraint(model.Non_reservoir, model.TS, rule=DeliveryCap_rule)
     
     def StorageBounds_rule(model, j, t):
-        return (p['Inactive_Pool'][(j,t)], model.S[j,t], p['Storage_Capacity'][(j,t)])
+        return (p.node['Inactive_Pool'][(j,t)], model.S[j,t], p.node['Storage_Capacity'][(j,t)])
     model.StorageBounds = Constraint(model.Reservoir, model.TS, rule=StorageBounds_rule)
 
     # boundary conditions
     
     def Inflow_rule(model, j, t):
-        if 'Runoff' in p.keys() and (j,t) in p['Runoff'].keys():
-            inflow = p['Runoff'][(j,t)]
+        if 'Runoff' in p.node.keys() and (j,t) in p.node['Runoff'].keys():
+            inflow = p.node['Runoff'][(j,t)]
         else:
             inflow = 0        
         return model.I[j,t] == inflow
@@ -202,9 +256,9 @@ def create_model(network, template_id, timestep_dict):
     def Loss_rule(model, j, t):
         if j in model.Outflow:
             expr = Constraint.Skip
-        elif 'Consumptive_Loss' in p.keys() and (j,t) in p['Consumptive_Loss']:
+        elif 'Consumptive_Loss' in p.node.keys() and (j,t) in p.node['Consumptive_Loss']:
             expr = model.L[j,t] \
-                == model.D[j,t] * p['Consumptive_Loss'][(j,t)] / 100
+                == model.D[j,t] * p.node['Consumptive_Loss'][(j,t)] / 100
         else:
             expr = model.L[j,t] == 0
         return expr
@@ -214,7 +268,8 @@ def create_model(network, template_id, timestep_dict):
 
     def Objective_fn(model):
         expr = summation(model.Demand_Priority, model.D) \
-            + summation(model.Storage_Priority, model.S)
+            + summation(model.Storage_Priority, model.S) \
+            + summation(model.Link_Priority, model.Q)
         return expr
     model.Ojective = Objective(rule=Objective_fn, sense=maximize)
 
