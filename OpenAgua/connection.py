@@ -3,7 +3,6 @@ from webcolors import name_to_hex
 import sys
 import requests
 import json
-from copy import deepcopy
 from flask import session
 from flask_security import current_user
 import zipfile
@@ -411,7 +410,12 @@ class connection(object):
                 session['network_id'] = None
                 self.invalid_study = True
             else:
-                session['network_id'] = study.network_id                
+                session['network_id'] = study.network_id
+                
+                # get scenarios
+                #scenarios = self.network.scenarios
+                session['ti'] = '01/2000'
+                session['tf'] = '12/2015'
             
             # get template
             self.template = self.get_template(study.template_id)
@@ -428,7 +432,7 @@ class connection(object):
                 for ttype in self.template.types:
                     self.ttypes[ttype.id] = ttype
                     self.ttype_dict[ttype.name] = ttype.id 
-                                
+        
         else:
             self.invalid_study = True
     

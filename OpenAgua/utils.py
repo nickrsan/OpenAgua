@@ -134,7 +134,7 @@ def eval_function(s):
         try:
             result = [{'date': date.strftime(session['date_format']),
                        'value': str(f(date))} \
-                      for date in get_dates(formatted=False)] 
+                      for date in dates] 
         except Exception as err: # other error
             err_class = err.__class__.__name__
             detail = err.args[0]

@@ -1,0 +1,184 @@
+{% extends "master.html" %}
+{% block title %} - Results Explorer{% endblock %}
+{% block head_main %}
+
+<style type="text/css" media="screen">
+    <!--#viewer {display: none}-->
+	.tab-pane {margin-top: 10px}
+    .output_viewer {border-style:solid; border-width:2px; border-color:#C0C0C0; display: none}
+    .input_viewer {border-style:solid; border-width:2px; border-color:#C0C0C0; display: none}
+    .view_status {
+      color:#999999;
+      font-size:large;
+      margin-bottom: 15px;
+    }
+    #viewer_footer {height:30px; margin-top:10px; margin-bottom:10px}
+    #viewer_metadata {margin-top: 5px}
+    #preview {
+      border-style:solid;
+      border-color:#C0C0C0;
+      border-width:0px;
+      height:400px;
+      width=100%;
+      display:none;
+    }
+  .function {height: 300px}
+  .seasonalts {height: 300px}
+  .scalar {border-width: 0px; margin-top: 10px; height:35px}
+  .array {height: 300px}
+  .timeseries {height: 300px}
+  .descriptor {height: 250px}
+</style>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="container-fluid" style="margin-left:0px;margin-right:0px">
+
+  <div class="row" style="margin-top:15px;margin-bottom:15px">
+  
+    <!--select a feature-->
+    <div class="col-sm-6 col-md-3">    
+      <div class="form-group">
+        <label for="features">Feature</label>
+        <select id="features" class="selectpicker" data-live-search="true" data-width="100%" title="Select a feature">  
+        {% for (type_id, type_name, feature_type), feats in features.items() %}
+          <optgroup label="{{ type_name }}">
+          {% for f in feats %}
+            <option data-tokens='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
+          {% endfor %}
+          </optgroup>
+        {% endfor %}
+        </select>
+      </div>
+    </div>
+    
+    <!--select a variable-->
+    <div class="col-sm-6 col-md-3">
+      <div class="form-group">
+        <label for="variables">Variable</label>
+        <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature first">
+        </select>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+      <!--select a scenario-->
+      <div class="form-group">
+        <label for="scenarios">Scenario</label>
+        <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
+        {% for scenario in scenarios %}
+          <option data-tokens='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
+        {% endfor %}
+        </select>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="row" style="margin-bottom:20px">
+    <div class="col-md-12 col-sm-12">
+      
+
+      <ul class="nav nav-tabs">
+        <li class="active"><a href="#chart" data-toggle="tab">Chart</a></li>
+        <li><a href="#table" data-toggle="tab">Table</a></li>
+        <li><a href="#input" data-toggle="tab">Input</a></li>
+      </ul>
+      
+	  <div class="tab-content">
+      
+        <!--tab: chart-->
+      
+		<div class="tab-pane active" id="chart">
+		  <div id="preview_status" class='viewer_status'>No data loaded</div>
+		  <div id="preview" class="viewer_contents"></div>
+		</div>
+      
+        <!--tab: table-->
+   
+		<div class="tab-pane" id="table">
+		  <div id="results_table_status" class='viewer_status'>No data loaded</div>
+		  <div id="results_table" class='viewer_contents'>
+		  
+			<!--scalar viewer-->
+			<div id="scalar_output" class="output_viewer scalar">
+			  <label class="control-label sr-only sr-only-focusable" for="scalar_input">Number:</label>
+			  <input id="scalar_input_field" type="text" class="form-control" placeholder="No data entered">
+			</div>
+		  
+			<!--function viewer-->
+			<div id="function_output" class="output_viewer function"></div>
+			
+			<!--timeseries viewer-->
+			<div id="timeseries_output" class="output_viewer timeseries"></div>
+			
+			<!--array viewer-->
+			<div id="array_output" class="output_viewer array"></div>
+			
+			<!--text viewer-->
+			<div id="descriptor_output" class="output_viewer descriptor">
+			  <label class="control-label sr-only sr-only-focusable" for="text_input">Text:</label>
+			  <textarea id="text_input_field" class="form-control" rows="3" placeholder="Enter some text..."></textarea>
+			</div>
+			
+			<div id='input_viewer_metadata' style='width:100%'>
+			  <div id='unit' class='pull-left'></div>
+			</div>
+		  
+		  </div>
+		</div>
+   
+        <!--tab: input-->
+   
+		<div class="tab-pane" id="input">   
+   
+		  <div id="input_viewer_status" class='viewer_status'>No data loaded</div>
+		  <div id="input_viewer" class="viewer_contents">
+	  
+			<!--scalar viewer-->
+			<div id="scalar_input" class="input_viewer scalar">
+			  <label class="control-label sr-only sr-only-focusable" for="scalar_input">Number:</label>
+			  <input id="scalar_input_field" type="text" class="form-control" placeholder="No data entered">
+			</div>
+		  
+			<!--function viewer-->
+			<div id="function_input" class="input_viewer function"></div>
+			
+			<!--timeseries viewer-->
+			<div id="timeseries_input" class="input_viewer timeseries"></div>
+			
+			<!--array viewer-->
+			<div id="array_input" class="input_viewer array"></div>
+			
+			<!--text viewer-->
+			<div id="descriptor_input" class="input_viewer descriptor">
+			  <label class="control-label sr-only sr-only-focusable" for="text_input">Text:</label>
+			  <textarea id="text_input_field" class="form-control" rows="3" placeholder="Enter some text..."></textarea>
+			</div>
+			
+			<div id='input_viewer_metadata' style='width:100%'>
+			  <div id='unit' class='pull-left'></div>
+			</div>
+			
+		  </div>
+		</div>
+	  </div>		
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block endscript %}
+
+<script>
+var template_id = {{session['template_id']}}
+</script>
+
+<script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/results_explorer.js') }}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}
