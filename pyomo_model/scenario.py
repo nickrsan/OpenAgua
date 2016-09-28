@@ -277,6 +277,8 @@ def create_model(network, template, timestep_dict):
 
 # run the the main scenario-specific routine
 def run_scenario(scenario_id, args=None):
+
+    scenario_id = 5 # get from args
     
     logfile = join(args.scenario_log_dir, 'scenario_{}.log'.format(scenario_id))
     log = create_logger(args.app_name, logfile)
@@ -291,10 +293,12 @@ def run_scenario(scenario_id, args=None):
     dates = [date for date in rrule.rrule(rrule.MONTHLY, dtstart=ti, until=tf)]
     
     timestep_dict = OrderedDict()
+    OAtHPt = {}
     for date in dates:
         oat = date.strftime(args.timestep_format)
         hpt = date.strftime(args.hydra_timestep_format)
-        timestep_dict[date] = [hpt, oat]   
+        timestep_dict[date] = [hpt, oat]
+        OAtHPt[oat] = hpt
     
     # create the model
     instance = create_model(conn.network, conn.template, timestep_dict)
@@ -306,22 +310,31 @@ def run_scenario(scenario_id, args=None):
     # save results
 
     # create resource scenarios
-    # need: 'resource_attr_id', 'attr_id', 'value', 'dataset_id', 'cr_date'
+    # need: 'resource_attr_id', 'attr_id', 'value', 'dataset_id'
     resource_scenarios = []
-    #for v in instance.component_objects(Var, active=True):
-        #varobject = getattr(instance, str(v))
-        #for index in varobject:
-            #val = varobject[index].value
-    for r in instance.Reservoir:
+    for i, r in enumerate(instance.Reservoir):
         ra_id = conn.res_attrs.node[(r, 'storage')]
+        attr_id = conn.attr_ids[ra_id]
+        attr = conn.attrs.node[attr_id]
         indices = [(r, ts) for ts in instance.TS]
         timeseries = {}
         for index in indices:
-            timeseries[index[1]] = instance.S[index].value
-            
-        # add the data here...
+            timeseries[OAtHPt[index[1]]] = instance.S[index].value          
+        
+        resource_scenarios.append({
+            'id': -i,
+            'resource_attr_id': ra_id,
+            'dataset': {
+                'type': attr.dtype,
+                'name': 'Storage for {}'.format(attr.name),
+                'unit': attr.unit,
+                'dimension': attr.dim,
+                'value': timeseries
+            }
+        })
     
-    conn.call('update_resourcedata', {'scenario_id': scenario_id, 'resource_scenarios': resource_scenarios})
+    conn.call('update_resourcedata',
+              {'scenario_id': scenario_id, 'resource_scenarios': resource_scenarios})
     #def update_resourcedata(scenario_id, resource_scenarios,**kwargs):
         #"""
             #Update the data associated with a scenario.

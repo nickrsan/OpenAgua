@@ -23,6 +23,7 @@ class connection(object):
         self.url = args.hydra_url
         self.app_name = args.app_name
         self.session_id = args.session_id
+        self.user_id = args.user_id
         self.log = log
         
         get_network_params = dict(
@@ -37,8 +38,9 @@ class connection(object):
         if 'faultcode' in response:
             if response['faultcode'] == 'No Session':
                 self.session_id = self.login(username=args.hydra_username,
-                                             password=args.hydra_password)
+                                                           password=args.hydra_password)
             response = self.call('get_network', get_network_params)
+            
         self.network = response
         
         self.template = self.call('get_template', {'template_id': template_id})
@@ -48,27 +50,44 @@ class connection(object):
         # pyomo variable names to resource attributes to be able to save data back to the database.
         # the res_attrs dictionary lets us do that by relating pyomo indices and variable names to
         # the resource attribute id.
-        attrs = AttrDict()
+
+        # dictionary to store resource attribute dataset types
+        self.attr_meta = {}  
+        
+        # dictionary for looking up attribute ids
+
+        self.attrs = AttrDict()
         for tt in self.template.types:
             res_type = tt.resource_type.lower()
-            if res_type not in attrs.keys():
-                attrs[res_type] = AttrDict()
+            if res_type not in self.attrs.keys():
+                self.attrs[res_type] = AttrDict()
             for ta in tt.typeattrs:
-                attrs[res_type][ta.attr_id] = ta.attr_name.replace(' ', '_')
+                self.attrs[res_type][ta.attr_id] = AttrDict({
+                    'name': ta.attr_name,
+                    'name_': ta.attr_name.replace(' ', '_'),
+                    'dtype': ta.data_type,
+                    'unit': ta.unit,
+                    'dim': ta.dimension
+                })            
+        
+        # dictionary to store resource attribute ids
         self.res_attrs = AttrDict({'node': {}, 'link': {}})
+        self.attr_ids = {}
         
         for n in self.network.nodes:
             for ra in n.attributes:
-                self.res_attrs['node'][(n.id, attrs.node[ra.attr_id])] = ra.id
+                self.res_attrs['node'][(n.id, self.attrs.node[ra.attr_id]['name_'])] = ra.id
+                self.attr_ids[ra.id] = ra.attr_id
         
         for l in self.network.links:
             for ra in l.attributes:
-                self.res_attrs['link'][(l.node_1_id, l.node_2_id, attrs.link[ra.attr_id])] = ra.id    
+                self.res_attrs['link'][(l.node_1_id, l.node_2_id, self.attrs.link[ra.attr_id]['name_'])] = ra.id    
+                self.attr_ids[ra.id] = ra.attr_id
 
     def call(self, func, args):
         self.log.info("Calling: %s" % (func))
         headers = {'Content-Type': 'application/json',
-                   'sessionid': self.session_id, # this lets us keep the session ID associated with the connection
+                   'sessionid': self.session_id,
                    'appname': self.app_name}
         data = json.dumps({func: args})
 

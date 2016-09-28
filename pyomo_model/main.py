@@ -69,6 +69,8 @@ def commandline_parser():
     parser.add_argument('-sid', '--session-id',
                         help='''The Hydra Server session ID. Will be created from
                         the config info if not provided.''')
+    parser.add_argument('-uid', '--user-id',
+                        help='''The Hydra Server user_id.''')
     parser.add_argument('-nid', '--network-id',
                         help='''The network ID of the model to be run.''')
     parser.add_argument('-tid', '--template-id',

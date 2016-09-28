@@ -64,6 +64,7 @@ def run_model():
         sid = session['hydra_sessionid'],
         nid = session['network_id'],
         tid = session['template_id'],
+        uid = session['hydra_userid'],
         scids = '"%s"' % scids,
         ti = ti,
         tf = tf,
