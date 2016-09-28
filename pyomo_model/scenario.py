@@ -307,11 +307,14 @@ def run_scenario(scenario_id, args=None):
     results = opt.solve(instance)
     log.info('model solved')
     
-    # save results
+    # save results by updating the scenario
+    res_scens = {}
+    updated_res_scens = []
+    for rs in conn.network.scenarios[0].resourcescenarios:
+        res_scens[rs.resource_attr_id] = rs
+        
+    update_scenario = False
 
-    # create resource scenarios
-    # need: 'resource_attr_id', 'attr_id', 'value', 'dataset_id'
-    resource_scenarios = []
     for i, r in enumerate(instance.Reservoir):
         ra_id = conn.res_attrs.node[(r, 'storage')]
         attr_id = conn.attr_ids[ra_id]
@@ -319,39 +322,34 @@ def run_scenario(scenario_id, args=None):
         indices = [(r, ts) for ts in instance.TS]
         timeseries = {}
         for index in indices:
-            timeseries[OAtHPt[index[1]]] = instance.S[index].value          
-        
-        resource_scenarios.append({
-            'id': -i,
-            'resource_attr_id': ra_id,
-            'dataset': {
+            timeseries[OAtHPt[index[1]]] = instance.S[index].value
+        timeseries = json.dumps({'0': timeseries})
+            
+        if ra_id not in res_scens.keys():
+            # create a new dataset
+            dataset = {
                 'type': attr.dtype,
                 'name': 'Storage for {}'.format(attr.name),
                 'unit': attr.unit,
                 'dimension': attr.dim,
                 'value': timeseries
+            }            
+            conn.call('add_data_to_attribute',
+                      {'scenario_id': scenario_id, 'resource_attr_id': ra_id, 'dataset': dataset})
+        else:
+            # just update the existing resourcedata
+            dataset = res_scens[ra_id].value
+            dataset.value = timeseries
+            updated_res_scen = {
+                'resource_attr_id': ra_id,
+                'attr_id': attr_id,
+                'value': dataset
             }
-        })
-    
-    conn.call('update_resourcedata',
-              {'scenario_id': scenario_id, 'resource_scenarios': resource_scenarios})
-    #def update_resourcedata(scenario_id, resource_scenarios,**kwargs):
-        #"""
-            #Update the data associated with a scenario.
-            #Data missing from the resource scenario will not be removed
-            #from the scenario. Use the remove_resourcedata for this task.
-    
-            #If the resource scenario does not exist, it will be created.
-            #If the value of the resource scenario is specified as being None, the
-            #resource scenario will be deleted.
-            #If the value of the resource scenario does not exist, it will be created.
-            #If the both the resource scenario and value already exist, the resource scenario
-            #will be updated with the ID of the dataset.
-    
-            #If the dataset being set is being changed, already exists,
-            #and is only used by a single resource scenario,
-            #then the dataset itself is updated, rather than a new one being created.
-        #"""    
+            updated_res_scens.append(json.dumps(updated_res_scen))
+            
+    if updated_res_scens:
+        update = conn.call('update_resourcedata',
+                           {'scenario_id': scenario_id, 'resource_scenarios': updated_res_scens})
     
     log.info('model results saved')
     

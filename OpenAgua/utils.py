@@ -35,7 +35,6 @@ def hydra_timeseries(data):
     for row in data:
         date = datetime.strptime(row['date'], session['date_format']) \
             .strftime(session['hydra_time_format'])
-        #timeseries[date] = str(row['value'])
         timeseries[date] = row['value']
     timeseries = {'0':timeseries}
     return timeseries

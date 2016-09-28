@@ -30,7 +30,7 @@ class connection(object):
             network_id = args.network_id,
             include_data = 'Y',
             template_id = args.template_id,
-            #scenario_ids = [scenario_id],
+            scenario_ids = [scenario_id],
             summary = 'N'
         )        
         
