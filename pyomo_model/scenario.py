@@ -315,37 +315,54 @@ def run_scenario(scenario_id, args=None):
         
     update_scenario = False
 
-    for i, r in enumerate(instance.Reservoir):
-        ra_id = conn.res_attrs.node[(r, 'storage')]
-        attr_id = conn.attr_ids[ra_id]
-        attr = conn.attrs.node[attr_id]
-        indices = [(r, ts) for ts in instance.TS]
+    #for i, r in enumerate(instance.Reservoir):
+        #ra_id = conn.res_attrs.node[(r, 'storage')]
+    outputnames = {'S': 'storage', 'I': 'inflow'}
+    
+    for i, v in enumerate(instance.component_objects(Var, active=True)):
+        varname = str(v)
+        if varname not in outputnames.keys():
+            continue
+        varobject = getattr(instance, varname)
         timeseries = {}
-        for index in indices:
-            timeseries[OAtHPt[index[1]]] = instance.S[index].value
-        timeseries = json.dumps({'0': timeseries})
+        for index in varobject:
+            if len(index) == 2:
+                idx = (index[0], outputnames[varname])
+            else:
+                idx = (index[0], index[1], outputnames[varname])
+            if idx not in timeseries.keys():
+                timeseries[idx] = {}
+            timeseries[idx][OAtHPt[index[1]]] = varobject[index].value
+    
+        for idx in timeseries.keys():
             
-        if ra_id not in res_scens.keys():
-            # create a new dataset
-            dataset = {
-                'type': attr.dtype,
-                'name': 'Storage for {}'.format(attr.name),
-                'unit': attr.unit,
-                'dimension': attr.dim,
-                'value': timeseries
-            }            
-            conn.call('add_data_to_attribute',
-                      {'scenario_id': scenario_id, 'resource_attr_id': ra_id, 'dataset': dataset})
-        else:
-            # just update the existing resourcedata
-            dataset = res_scens[ra_id].value
-            dataset.value = timeseries
-            updated_res_scen = {
-                'resource_attr_id': ra_id,
-                'attr_id': attr_id,
-                'value': dataset
-            }
-            updated_res_scens.append(json.dumps(updated_res_scen))
+            ra_id = conn.res_attrs.node[idx]
+            attr_id = conn.attr_ids[ra_id]
+            attr = conn.attrs.node[attr_id]                
+            
+            value = json.dumps({'0': timeseries[idx]})
+            
+            if ra_id not in res_scens.keys():
+                # create a new dataset
+                dataset = {
+                    'type': attr.dtype,
+                    'name': '{} for {}'.format(varname, attr.name),
+                    'unit': attr.unit,
+                    'dimension': attr.dim,
+                    'value': value
+                }            
+                conn.call('add_data_to_attribute',
+                          {'scenario_id': scenario_id, 'resource_attr_id': ra_id, 'dataset': dataset})
+            else:
+                # just update the existing resourcedata
+                dataset = res_scens[ra_id].value
+                dataset.value = timeseries
+                updated_res_scen = {
+                    'resource_attr_id': ra_id,
+                    'attr_id': attr_id,
+                    'value': dataset
+                }
+                updated_res_scens.append(json.dumps(updated_res_scen))
             
     if updated_res_scens:
         update = conn.call('update_resourcedata',
