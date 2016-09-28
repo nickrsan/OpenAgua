@@ -25,12 +25,8 @@ def get_coords(nodes):
 
 class connection(object):
 
-    def __init__(self, url=None, session_id=None,
-                 user_id=None, app_name=None,
-                 project_id=None, project_name=None,
-                 network_id=None, network_name=None,
-                 template_id=None, template_name=None,
-                 ttypes=None):
+    def __init__(self, url=None, session_id=None, user_id=None, app_name=None, project_id=None, project_name=None,
+                 network_id=None, network_name=None, template_id=None, template_name=None, ttypes=None):
         self.url = url
         self.app_name = app_name
         self.session_id = session_id

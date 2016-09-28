@@ -1,3 +1,4 @@
+attrdict
 flask
 flask_user
 flask_admin

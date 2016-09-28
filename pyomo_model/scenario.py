@@ -4,8 +4,7 @@ import json
 from collections import OrderedDict
 from attrdict import AttrDict
 
-from pyomo.environ import ConcreteModel, Set, Objective, Var, Param, \
-     Constraint, NonNegativeReals, maximize, summation
+from pyomo.environ import ConcreteModel, Set, Objective, Var, Param, Constraint, NonNegativeReals, maximize, summation
 from pyomo.opt import SolverFactory
 from dateutil import rrule
 from dateutil.parser import parse
@@ -15,9 +14,11 @@ from utils import connection, create_logger, eval_function
 
 import wingdbstub
 
-def create_model(network, template_id, timestep_dict):
+def create_model(network, template, timestep_dict):
     
     # prepare data - we could move some of this to elsewhere
+
+    template_id = template.id      
     
     # extract info about nodes
     
@@ -34,7 +35,7 @@ def create_model(network, template_id, timestep_dict):
                 type_name = t.name.replace(' ', '_')
                 if type_name not in type_nodes.keys():
                     type_nodes[type_name] = []
-                type_nodes[type_name].append(n.id)
+                type_nodes[type_name].append(n.id)     
                 
     # extract info about links
     
@@ -56,7 +57,7 @@ def create_model(network, template_id, timestep_dict):
                 type_name = t.name.replace(' ', '_')
                 if type_name not in type_links.keys():
                     type_links[type_name] = []
-                type_links[type_name].append(tuple(node_ids))        
+                type_links[type_name].append(tuple(node_ids))
     
     # extract info about time steps
     
@@ -100,7 +101,7 @@ def create_model(network, template_id, timestep_dict):
         if param not in p[ftype].keys():
             p[ftype][param] = {}
             
-        # value
+        # specify the dataset value
         value = rs.value.value
         
         # specify the feature type
@@ -108,11 +109,12 @@ def create_model(network, template_id, timestep_dict):
         
         metadata = json.loads(rs.value.metadata)
         
+        # process the different data types
         idx = ID
         if typ == 'scalar':
             if type(idx) is list:
                 idx = tuple(idx)
-            p[ftype][param][idx] = value
+            p[ftype][param][idx] = float(value) # note: hydra stores scalars as strings
             
         elif typ == 'descriptor': # this could change later
             if type(idx) is list:
@@ -123,8 +125,7 @@ def create_model(network, template_id, timestep_dict):
             if type(ID) is not list:
                 ID = [ID]
             values = json.loads(value)
-            is_function = 'function' in metadata.keys() \
-                and len(metadata['function']) > 0
+            is_function = 'function' in metadata.keys() and len(metadata['function']) > 0
             for d, (ht, ot) in timestep_dict.items():
                 if is_function:
                     value = eval_function(metadata['function'], d)
@@ -182,18 +183,18 @@ def create_model(network, template_id, timestep_dict):
     
     def NodePriority_rule(model, j, t):
         priority = -1 # default 
-        if 'Priority' in p.node.keys() and (j, t) in p.node.Priority.keys():
-            priority = p.node.Priority[(j, t)]
+        if 'Priority' in p.node.keys() and (j, t) in p.node['Priority'].keys():
+            priority = p.node['Priority'][(j, t)]
         elif j in model.Outflow:
             priority = 0
         return priority
-    model.Node_Demand_Priority = Param(model.Non_reservoir, model.TS, rule=NodePriority_rule)
+    model.Demand_Priority = Param(model.Non_reservoir, model.TS, rule=NodePriority_rule)
     model.Storage_Priority = Param(model.Reservoir, model.TS, rule=NodePriority_rule)
     
     def LinkPriority_rule(model, i, j, t):
         priority = 0
-        if 'Priority' in p.link.keys() and (i, j, t) in p.link.Priority.keys():
-            priority = p.link.Priority[(i, j, t)]
+        if 'Priority' in p.link.keys() and (i, j, t) in p.link['Priority'].keys():
+            priority = p.link['Priority'][(i, j, t)]
         return priority    
     model.Flow_Priority = Param(model.Links, model.TS, rule=LinkPriority_rule)
     
@@ -257,8 +258,7 @@ def create_model(network, template_id, timestep_dict):
         if j in model.Outflow:
             expr = Constraint.Skip
         elif 'Consumptive_Loss' in p.node.keys() and (j,t) in p.node['Consumptive_Loss']:
-            expr = model.L[j,t] \
-                == model.D[j,t] * p.node['Consumptive_Loss'][(j,t)] / 100
+            expr = model.L[j,t] == model.D[j,t] * p.node['Consumptive_Loss'][(j,t)] / 100
         else:
             expr = model.L[j,t] == 0
         return expr
@@ -269,7 +269,7 @@ def create_model(network, template_id, timestep_dict):
     def Objective_fn(model):
         expr = summation(model.Demand_Priority, model.D) \
             + summation(model.Storage_Priority, model.S) \
-            + summation(model.Link_Priority, model.Q)
+            + summation(model.Flow_Priority, model.Q)
         return expr
     model.Ojective = Objective(rule=Objective_fn, sense=maximize)
 
@@ -282,8 +282,8 @@ def run_scenario(scenario_id, args=None):
     log = create_logger(args.app_name, logfile)
     log.info('starting scenario {}'.format(scenario_id))
     
-    # get connection
-    conn = connection(args, scenario_id, log)    
+    # get connection, along with useful tools attached
+    conn = connection(args, scenario_id, args.template_id, log)
     
     # time steps
     ti = datetime.strptime(args.initial_timestep, args.timestep_format)
@@ -294,22 +294,51 @@ def run_scenario(scenario_id, args=None):
     for date in dates:
         oat = date.strftime(args.timestep_format)
         hpt = date.strftime(args.hydra_timestep_format)
-        timestep_dict[date] = [hpt, oat]
+        timestep_dict[date] = [hpt, oat]   
     
     # create the model
-    instance = create_model(conn.network, args.template_id, timestep_dict)
+    instance = create_model(conn.network, conn.template, timestep_dict)
     log.info('model created')
     opt = SolverFactory(args.solver)
     results = opt.solve(instance)
     log.info('model solved')
     
-    x = dict()
-    for n in instance.Reservoir:
-        x[n] = []
-        for t in instance.TS:
-            x[n].append(instance.S[n, t].value)
-        plt.plot(x[n], '-o')
-    plt.show()
+    # save results
+
+    # create resource scenarios
+    # need: 'resource_attr_id', 'attr_id', 'value', 'dataset_id', 'cr_date'
+    resource_scenarios = []
+    #for v in instance.component_objects(Var, active=True):
+        #varobject = getattr(instance, str(v))
+        #for index in varobject:
+            #val = varobject[index].value
+    for r in instance.Reservoir:
+        ra_id = conn.res_attrs.node[(r, 'storage')]
+        indices = [(r, ts) for ts in instance.TS]
+        timeseries = {}
+        for index in indices:
+            timeseries[index[1]] = instance.S[index].value
+            
+        # add the data here...
+    
+    conn.call('update_resourcedata', {'scenario_id': scenario_id, 'resource_scenarios': resource_scenarios})
+    #def update_resourcedata(scenario_id, resource_scenarios,**kwargs):
+        #"""
+            #Update the data associated with a scenario.
+            #Data missing from the resource scenario will not be removed
+            #from the scenario. Use the remove_resourcedata for this task.
+    
+            #If the resource scenario does not exist, it will be created.
+            #If the value of the resource scenario is specified as being None, the
+            #resource scenario will be deleted.
+            #If the value of the resource scenario does not exist, it will be created.
+            #If the both the resource scenario and value already exist, the resource scenario
+            #will be updated with the ID of the dataset.
+    
+            #If the dataset being set is being changed, already exists,
+            #and is only used by a single resource scenario,
+            #then the dataset itself is updated, rather than a new one being created.
+        #"""    
     
     log.info('model results saved')
     

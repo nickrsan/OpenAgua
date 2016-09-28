@@ -3,6 +3,7 @@ import sys
 from requests import post
 import json
 import logging
+from attrdict import AttrDict
 
 import wingdbstub
 
@@ -18,7 +19,7 @@ def create_logger(appname, logfile):
 
 class connection(object):
 
-    def __init__(self, args=None, scenario_id=None, log=None):
+    def __init__(self, args=None, scenario_id=None, template_id=None, log=None):
         self.url = args.hydra_url
         self.app_name = args.app_name
         self.session_id = args.session_id
@@ -33,13 +34,36 @@ class connection(object):
         )        
         
         response = self.call('get_network', get_network_params)
-        
         if 'faultcode' in response:
             if response['faultcode'] == 'No Session':
                 self.session_id = self.login(username=args.hydra_username,
                                              password=args.hydra_password)
             response = self.call('get_network', get_network_params)
         self.network = response
+        
+        self.template = self.call('get_template', {'template_id': template_id})
+        
+        # create some useful dictionaries
+        # Since pyomo doesn't know about attribute ids, etc., we need to be able to relate
+        # pyomo variable names to resource attributes to be able to save data back to the database.
+        # the res_attrs dictionary lets us do that by relating pyomo indices and variable names to
+        # the resource attribute id.
+        attrs = AttrDict()
+        for tt in self.template.types:
+            res_type = tt.resource_type.lower()
+            if res_type not in attrs.keys():
+                attrs[res_type] = AttrDict()
+            for ta in tt.typeattrs:
+                attrs[res_type][ta.attr_id] = ta.attr_name.replace(' ', '_')
+        self.res_attrs = AttrDict({'node': {}, 'link': {}})
+        
+        for n in self.network.nodes:
+            for ra in n.attributes:
+                self.res_attrs['node'][(n.id, attrs.node[ra.attr_id])] = ra.id
+        
+        for l in self.network.links:
+            for ra in l.attributes:
+                self.res_attrs['link'][(l.node_1_id, l.node_2_id, attrs.link[ra.attr_id])] = ra.id    
 
     def call(self, func, args):
         self.log.info("Calling: %s" % (func))

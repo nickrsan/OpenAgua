@@ -195,6 +195,13 @@ $('#check, #save').click(function() {
   
 });
 
+// clear changes
+$('#revert').click(function() {
+  loadData();
+  saveStatus(1);
+  errmsg('');
+});
+
 // FUNCTIONS
 
 // error message
@@ -342,13 +349,6 @@ function loadDataActions(data_type, res_attr_data) {
         break;
     }
 }
-
-// clear changes
-$('#revert').click(function() {
-  loadData();
-  saveStatus(1);
-  errmsg('');
-});
 
 // data functions
 function checkOrSaveData(new_data, action) {

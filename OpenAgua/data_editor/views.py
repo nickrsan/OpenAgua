@@ -148,6 +148,6 @@ def check_or_save_data():
             status = 0 # no save attempt - just report error
         return jsonify(status = status, errcode = errcode, errmsg = errmsg,
                        timeseries = timeseries)
-    else:
-        return redirect(url_for('data_editor.data_editor_main'))
+    
+    return redirect(url_for('data_editor.data_editor_main'))
 

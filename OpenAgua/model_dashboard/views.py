@@ -40,13 +40,14 @@ def model_dashboard_main():
 @model_dashboard.route('/_run_model', methods=['GET', 'POST'])
 @login_required
 def run_model():
+    
+    if request.method == 'GET':
+        return redirect(url_for('model_dashboard.model_dashboard_main'))
 
     # 1. get user input
-    user_args = request.args.get('user_args')
-    user_args = json.loads(user_args)
-    scids = request.args.get('scenario_ids')
-    ti = user_args['ti']
-    tf = user_args['tf']
+    ti = request.json['ti']
+    tf = request.json['tf']
+    #scids = request.json['scids']
     scids = [3] # need to get these from scenario
     session['scenarios_count'] = len(scids)
     
@@ -80,7 +81,7 @@ def run_model():
     returncode = Popen(command)
     
     status = 1
-    return jsonify(result={'status':status})
+    return jsonify(status=status)
 
 @model_dashboard.route('/_model_progress')
 def model_progress():

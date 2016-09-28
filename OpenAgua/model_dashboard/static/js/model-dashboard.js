@@ -7,23 +7,58 @@ $('button#run_model').bind('click', function() {
     update_progress_bar(0);
 
     // 1. get run data and store it as json
-    args = {
+    commandData = {
         ti: $('#initial_timestep').data().date,
         tf: $('#final_timestep').data().date,
         sol: 'glpk'
-    };
+    }
     
-    // 2. call run app route, sending json data with scenario information
-    $.getJSON(
-        $SCRIPT_ROOT+'/_run_model',
-        {'user_args': JSON.stringify(args)},
-        function(resp) {
-            status = resp.result.status;
-            model_progress(status);
-    });
+    $.ajax({
+      type: "POST",
+      contentType: "application/json; charset=utf-8",
+      url: $SCRIPT_ROOT+'/_run_model',
+      data: JSON.stringify(commandData),
+      success: function (resp) {
+        model_progress(resp.status);
+      },
+      dataType: "json"
+    });    
+    
 });
 
 //$( document ).ready(update_model_progress());
+
+// stop the model
+$('button#stop_model').bind('click', function() {
+    $('#modal_stop_model').show();
+});
+
+$('button#stop_model_cancel').bind('click', function() {
+    $('#modal_stop_model').hide();
+});
+
+$('button#stop_model_confirm').bind('click', function() {
+    // 1. get run data and store it as json
+    args = {
+        app_name: 'openaguamodel'
+    };
+    
+    // 2. call run app route, sending json data with scenario information
+    //$.getJSON(
+        //$SCRIPT_ROOT+'/_stop_model',
+        //{'user_args': JSON.stringify(args)},
+        //function(resp) {
+            //status = resp.result.status;
+            clearInterval(myInterval);
+            update_progress_bar(0);
+            $("#modal_stop_model").hide();
+            $("button#run_model").button('reset');
+            $("button#stop_model").hide();
+            $("#status_message").text("Model stopped!");
+    //});
+});
+
+// FUNCTIONS
 
 function model_progress(status) {
     if (status == -1) {
@@ -61,33 +96,3 @@ function update_progress_bar(progress) {
     $('#model_run_progress').attr('style',width);
     $("#model_run_progress").text(progress+"%");
 };
-
-// stop the model
-$('button#stop_model').bind('click', function() {
-    $('#modal_stop_model').show();
-});
-
-$('button#stop_model_cancel').bind('click', function() {
-    $('#modal_stop_model').hide();
-});
-
-$('button#stop_model_confirm').bind('click', function() {
-    // 1. get run data and store it as json
-    args = {
-        app_name: 'openaguamodel'
-    };
-    
-    // 2. call run app route, sending json data with scenario information
-    //$.getJSON(
-        //$SCRIPT_ROOT+'/_stop_model',
-        //{'user_args': JSON.stringify(args)},
-        //function(resp) {
-            //status = resp.result.status;
-            clearInterval(myInterval);
-            update_progress_bar(0);
-            $("#modal_stop_model").hide();
-            $("button#run_model").button('reset');
-            $("button#stop_model").hide();
-            $("#status_message").text("Model stopped!");
-    //});
-});
