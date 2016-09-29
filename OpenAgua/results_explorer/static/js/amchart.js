@@ -9,10 +9,9 @@ function amchart(title, timeseries, dateFormat, divname, log) {
   var chart = AmCharts.makeChart(divname, {
       "type": "serial",
       "theme": "light",
-      "marginRight": 40,
-      "marginLeft": 50,
-      "autoMarginOffset": 30,
-      "mouseWheelZoomEnabled":false,
+      "marginRight": 60,
+      "autoMarginOffset": 50,
+      "mouseWheelZoomEnabled":true,
       "dataDateFormat": dateFormat,
       "valueAxes": [{
           "id": "v1",
@@ -24,7 +23,6 @@ function amchart(title, timeseries, dateFormat, divname, log) {
           "cornerRadius": 5,
           "horizontalPadding": 5,
           "verticalPadding": 5,
-          //"drop": true
       },
       "graphs": [{
           "id": "g1",
@@ -75,9 +73,9 @@ function amchart(title, timeseries, dateFormat, divname, log) {
       "valueAxes":[{
         logarithmic: log,
       }],
-      "valueScrollbar":{
-        "oppositeAxis":false,
-        "offset":40,
+      "valueScrollbar": {
+        "oppositeAxis": false,
+        "offset": 50,
         "scrollbarHeight":5
       },
       "categoryField": "date",
@@ -93,12 +91,12 @@ function amchart(title, timeseries, dateFormat, divname, log) {
       "precision": 2
   });
 
-  chart.addListener("rendered", zoomChart);
+  //chart.addListener("rendered", zoomChart);
   
-  zoomChart();
+  //zoomChart();
   
-  function zoomChart() {
-      chart.zoomToIndexes(0, 11);
-  }
+  //function zoomChart() {
+      //chart.zoomToIndexes(0, 11);
+  //}
 
 }
