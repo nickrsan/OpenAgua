@@ -73,16 +73,19 @@ class connection(object):
         # dictionary to store resource attribute ids
         self.res_attrs = AttrDict({'node': {}, 'link': {}})
         self.attr_ids = {}
+        self.res_names = {}
         
         for n in self.network.nodes:
             for ra in n.attributes:
                 self.res_attrs['node'][(n.id, self.attrs.node[ra.attr_id]['name_'])] = ra.id
                 self.attr_ids[ra.id] = ra.attr_id
+                self.res_names[ra.id] = n.name
         
         for l in self.network.links:
             for ra in l.attributes:
                 self.res_attrs['link'][(l.node_1_id, l.node_2_id, self.attrs.link[ra.attr_id]['name_'])] = ra.id    
                 self.attr_ids[ra.id] = ra.attr_id
+                self.res_names[ra.id] = l.name
 
     def call(self, func, args):
         self.log.info("Calling: %s" % (func))

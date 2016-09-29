@@ -333,6 +333,8 @@ def run_scenario(scenario_id, args=None):
         if varname not in outputnames.keys():
             continue
         
+        fullname = outputnames[varname]
+        
         # the variable object
         varobject = getattr(instance, varname)
         timeseries = {}
@@ -340,9 +342,9 @@ def run_scenario(scenario_id, args=None):
         # loop through all indices - including all nodes/links and timesteps
         for index in varobject:
             if len(index) == 2:
-                idx = (index[0], outputnames[varname])
+                idx = (index[0], fullname)
             else:
-                idx = (index[0], index[1], outputnames[varname])
+                idx = (index[0], index[1], fullname)
             if idx not in timeseries.keys():
                 timeseries[idx] = {}
             timeseries[idx][OAtHPt[index[1]]] = varobject[index].value
@@ -353,31 +355,35 @@ def run_scenario(scenario_id, args=None):
             ra_id = conn.res_attrs.node[idx]
             attr_id = conn.attr_ids[ra_id]
             attr = conn.attrs.node[attr_id]
+            res_name = conn.res_names[ra_id]
+            dataset_name = '{} for {}'.format(fullname, res_name)
             
-            new_value = json.dumps({'0': timeseries[idx]})
+            dataset_value = json.dumps({'0': timeseries[idx]})
+            #dataset_value = {'0': timeseries[idx]}
             
             if ra_id not in res_scens.keys():
                 # create a new dataset
                 dataset = {
                     'type': attr.dtype,
-                    'name': '{} for {}'.format(varname, attr.name),
+                    'name': dataset_name,
                     'unit': attr.unit,
                     'dimension': attr.dim,
-                    'value': new_value
-                }            
+                    'value': dataset_value
+                }
                 conn.call('add_data_to_attribute',
                           {'scenario_id': scenario_id, 'resource_attr_id': ra_id, 'dataset': dataset})
             else:
                 # just update the existing resourcedata
                 dataset = res_scens[ra_id].value
-                dataset.value = new_value
+                dataset.name = dataset_name
+                dataset.value = dataset_value
                 updated_res_scen = {
                     'resource_attr_id': ra_id,
                     'attr_id': attr_id,
                     'value': dataset
                 }
                 updated_res_scens.append(updated_res_scen)
-            
+
     if updated_res_scens:
         update = conn.call('update_resourcedata',
                            {'scenario_id': scenario_id, 'resource_scenarios': updated_res_scens})
