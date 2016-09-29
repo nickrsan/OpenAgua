@@ -7,12 +7,12 @@ from attrdict import AttrDict
 
 import wingdbstub
 
-def create_logger(appname, logfile):
+def create_logger(appname, logfile, msg_format):
     logger = logging.getLogger(appname)
     logger.setLevel(logging.INFO)
     fh = logging.FileHandler(logfile)
     fh.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    formatter = logging.Formatter(msg_format)
     fh.setFormatter(formatter)
     logger.addHandler(fh)
     return logger

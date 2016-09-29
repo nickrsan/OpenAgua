@@ -19,7 +19,7 @@ $('button#run_model').bind('click', function() {
       url: $SCRIPT_ROOT+'/_run_model',
       data: JSON.stringify(commandData),
       success: function (resp) {
-        model_progress(resp.status);
+        update_status(1, 0);
       },
       dataType: "json"
     });    
@@ -38,61 +38,74 @@ $('button#stop_model_cancel').bind('click', function() {
 });
 
 $('button#stop_model_confirm').bind('click', function() {
-    // 1. get run data and store it as json
-    args = {
-        app_name: 'openaguamodel'
-    };
+    // this doesn't really stop the model, but it stops the javascript
+    clearInterval(myInterval);
+    $("#status_message").text("Model stopped.");
+    $("button#run_model").button('reset');
+    $("button#stop_model").hide();
+    $("modal_stop_model").hide();
     
-    // 2. call run app route, sending json data with scenario information
-    //$.getJSON(
-        //$SCRIPT_ROOT+'/_stop_model',
-        //{'user_args': JSON.stringify(args)},
-        //function(resp) {
-            //status = resp.result.status;
-            clearInterval(myInterval);
-            update_progress_bar(0);
-            $("#modal_stop_model").hide();
-            $("button#run_model").button('reset');
-            $("button#stop_model").hide();
-            $("#status_message").text("Model stopped!");
-    //});
 });
 
 // FUNCTIONS
 
-function model_progress(status) {
-    if (status == -1) {
-        $("button#run_model").button('reset');
-        $("#status_message").text("There's something wrong.");
-    } else if (status == 0) {
-        $("button#run_model").button('reset');
-        $("#status_message").text("No model running.");
-    } else if (status == 1) {
-        $("#status_message").text("Model running...");
-        //myInterval = setInterval(update_model_progress, 1000);
-    } else if (status == 2) {
-        $("button#run_model").button('reset');
-        $("#status_message").text("Model complete!");  
-    };
-};
+function check_progress() {
+    $.getJSON($SCRIPT_ROOT+'/_model_progress', function(resp) {
+        update_status(resp.status, resp.progress);
+    });
+}
 
-function update_model_progress() {
-    var width;
-    $.getJSON(
-        $SCRIPT_ROOT+'/_model_progress',
-        function(resp) {
-            progress = resp.result.progress;
-        });
-    update_progress_bar(progress);
-    if (progress == 100) {
-        clearInterval(myInterval)
-        $("#status_message").text("Model complete!");
-        $("button#run_model").button('reset')
-    };
-};
+function update_status(status, progress) {
+    var msg = '';
+    switch (status) {
+        case -2: // something wrong during checking
+            msg = "Checking model failed.";
+            $("button#run_model").button('reset');
+            $("button#stop_model").hide();
+            update_progress_bar(0);
+            clearInterval(myInterval);
+            break;
+        case -1:
+            msg = "Model initialization failed.";
+            $("button#run_model").button('reset');
+            $("button#stop_model").hide();
+            update_progress_bar(0);
+            clearInterval(myInterval);
+            break;
+        case 1: // just started
+            msg = "Model started...";
+            $("button#stop_model").show();
+            update_progress_bar(0);
+            myInterval = setInterval(check_progress, 2000);
+            break;
+        case 2: // running or still starting
+            update_progress_bar(progress);
+            if (progress == 0) {
+                msg = 'Still starting up...'            
+            } else {
+                msg = 'Model running...'            
+            }
+            break;
+        case 3: // complete
+            msg = "Model complete!";
+            $("button#run_model").button('reset');
+            $("button#stop_model").hide();
+            update_progress_bar(progress);
+            clearInterval(myInterval);
+            break;
+        default:
+            msg = "Something has gone terribly wrong!";
+            $("button#run_model").button('reset');
+            $("button#stop_model").hide();
+            update_progress_bar(0);
+            clearInterval(myInterval);
+            break;
+    }
+    $("#status_message").text(msg);
+}
 
 function update_progress_bar(progress) {
     width = "width:"+progress+"%";
     $('#model_run_progress').attr('style',width);
     $("#model_run_progress").text(progress+"%");
-};
+}

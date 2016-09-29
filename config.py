@@ -11,12 +11,15 @@ SECRET_ENCRYPT_KEY = b'3SmE-pwbieJubimO2BM15nzAqxD6TTijeFrSAgwOZVU='
 SQLALCHEMY_DATABASE_URI = 'sqlite:///{}/instance/users.sqlite'.format(APP_ROOT)
 
 PYOMO_APP_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
-PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'utils.py')
+PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'checker.py')
 PYOMO_APP_NAME = 'OpenAguaModel'
+TIMESTEP_FORMAT = '%m/%Y' # to depend on time step length
+HYDRA_TIMESTEP_FORMAT = '%Y-%m-%dT%H:%M:%S.%f000Z'
 DEFAULT_HYDRA_TEMPLATE = 'OpenAgua'
 DEFAULT_SCENARIO_NAME = 'Baseline'
 UPLOADED_TEMPLATES_DEST = os.path.join(APP_ROOT, 'OpenAgua/static/hydra/templates')
 SOLVER = "glpk"
+FORESIGHT = 'perfect' # to be set by user
 
 # Flask-Security settings
 SECURITY_FLASH_MESSAGES = True

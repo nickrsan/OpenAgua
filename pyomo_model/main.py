@@ -1,6 +1,7 @@
 import argparse
 import os
 from os.path import join
+import shutil
 import multiprocessing
 from functools import partial
 from pyomo.core import *
@@ -89,12 +90,12 @@ def commandline_parser():
                         help='''The format of the timestep (e.g., as found on http://strftime.org).''')
     parser.add_argument('-htsf', '--hydra-timestep-format',
                         help='''The format of a time step in Hydra Platform (found in hydra.ini).''')
-    parser.add_argument('-log', '--log-dir',
+    parser.add_argument('-ldir', '--log-dir',
                         help='''The main log file directory.''')
-    parser.add_argument('-slog', '--scenario-log-dir',
-                        help='''The log file directory for the scenarios.''')
     parser.add_argument('-sol', '--solver',
                         help='''The solver to use (e.g., glpk, gurobi, etc.).''')
+    parser.add_argument('-fs', '--foresight',
+                        help='''Foresight: 'perfect' or 'imperfect' ''')
     return parser
     
 if __name__=='__main__':
@@ -102,28 +103,27 @@ if __name__=='__main__':
     parser = commandline_parser()
     args = parser.parse_args()
     
-    here = os.path.abspath(os.path.dirname(__file__))    
+    here = os.path.abspath(os.path.dirname(__file__))
+    
+    # log file location - based on user
     
     # specify local top-level log dir
     if args.log_dir is None:
-        args.log_dir = '.'
-    args.log_dir = join(here, args.log_dir)
+        args.log_dir = ''
+    args.log_dir = join(here, 'logs', args.log_dir)
 
-    # top-level log
-    logfile = join(args.log_dir, 'log.txt')
-    log = create_logger(args.app_name, logfile)
-    
     # specify scenarios log dir
-    if args.scenario_log_dir is None:
-        args.scenario_log_dir = 'logs'
-    args.scenario_log_dir = join(here, args.scenario_log_dir)
+    args.scenario_log_dir = 'scenario_logs'
+    args.scenario_log_dir = join(args.log_dir, args.scenario_log_dir)
+
+    # make the log dirs - log names should be unique
+    if os.path.exists(args.log_dir):
+        shutil.rmtree(args.log_dir)
+    os.makedirs(args.scenario_log_dir)
     
-    # delete old scenario log files
-    if os.path.exists(args.scenario_log_dir):
-        for fname in os.listdir(args.scenario_log_dir):
-            os.remove(join(args.scenario_log_dir, fname))
-    else:
-        os.mkdir(args.scenario_log_dir)
+    # create top-level log file
+    logfile = join(args.log_dir, 'log.txt')
+    log = create_logger(args.app_name, logfile, '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
         
     # pre-processing
     for arg in ['network_id', 'scenario_ids', 'template_id']:

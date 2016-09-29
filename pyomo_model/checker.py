@@ -4,21 +4,29 @@ from json import dumps
 
 from utils import create_logger
 
-def get_completed(logsdir):
-    timesteps_completed = 0
-    timesteps_count = 0
-    for lf in os.listdir(logsdir):
-        lfpath = os.path.join(logsdir, lf)
-        with open(lfpath, 'rb') as f:
-            lastline = f.readlines()[-1]
-        parts = lastline.split('|')
-        if len(parts) > 1:
-            completed, count = parts[-1].split('/')
-            timesteps_completed += int(completed)
-            timesteps_count = int(count)
+#import wingdbstub
+
+def get_completed(scen_log_dir):
+    completed = 0
+    count = 0
+    
+    if os.path.exists(scen_log_dir):
+        
+        logfiles = [lf for lf in os.listdir(scen_log_dir) if 'progress' in lf]
+        
+        for lf in logfiles:
+            lfpath = os.path.join(scen_log_dir, lf)
+            with open(lfpath, 'r') as f:
+                lines = f.readlines()
+                if lines:
+                    parts = lines[-1].split('|')
+                    if len(parts) > 1:
+                        compl, cnt = parts[-1].split('/')
+                        completed += int(compl)
+                        count = int(cnt)
             
-    result = dumps({'timesteps_completed': timesteps_completed,
-                    'timesteps_count': timesteps_count})
+    result = dumps({'completed': completed,
+                    'count': count})
     print(result)
 
 def commandline_parser():
@@ -26,15 +34,15 @@ def commandline_parser():
         Parse the arguments passed in from the command line.
     """
     parser = argparse.ArgumentParser(
-        description="""Run the OpenAgua pyomo optimization model.
-                    Written by David Rheinheimer <david.rheinheimer@gmail.com>
+        description="""Check results from the OpenAgua optimization model.
+                    Written by David Rheinheimer <david.rheinheimer@itesm.mx>
                     (c) Copyright 2016, Tecnologico de Monterrey.
         """, epilog="For more information visit www.openagua.org",
        formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument('-dir', '--log-dir',
+    parser.add_argument('-ldir', '--log-dir',
                         help='''Location of the log files to check.''')
-    
+
     return parser
     
 if __name__=='__main__':
@@ -44,6 +52,6 @@ if __name__=='__main__':
     
     here = os.path.abspath(os.path.dirname(__file__))
     
-    log_dir = os.path.join(here, args.log_dir)
+    scen_log_dir = os.path.join(here, 'logs', args.log_dir, 'scenario_logs')
     
-    completed = get_completed(log_dir)
+    completed = get_completed(scen_log_dir)

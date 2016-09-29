@@ -288,12 +288,17 @@ def run_scenario(scenario_id, args=None):
 
     scenario_id = 5 # get from args
     
-    logfile = join(args.scenario_log_dir, 'scenario_{}.log'.format(scenario_id))
-    log = create_logger(args.app_name, logfile)
-    log.info('starting scenario {}'.format(scenario_id))
+    logd = create_logger(appname='{} - {} - details'.format(args.app_name, scenario_id),
+                         logfile=join(args.scenario_log_dir,'scenario_{}_details.txt'.format(scenario_id)),
+                         msg_format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logp = create_logger(appname='{} - {} - progress'.format(args.app_name, scenario_id),
+                         logfile=join(args.scenario_log_dir, 'scenario_{}_progress.txt'.format(scenario_id)),
+                         msg_format='%(asctime)s - %(message)s')
+    
+    logd.info('starting scenario {}'.format(scenario_id))
     
     # get connection, along with useful tools attached
-    conn = connection(args, scenario_id, args.template_id, log)
+    conn = connection(args, scenario_id, args.template_id, logd)
     
     # time steps
     ti = datetime.strptime(args.initial_timestep, args.timestep_format)
@@ -310,10 +315,10 @@ def run_scenario(scenario_id, args=None):
     
     # create the model
     instance = create_model(conn.network, conn.template, timestep_dict)
-    log.info('model created')
+    logd.info('model created')
     opt = SolverFactory(args.solver)
     results = opt.solve(instance)
-    log.info('model solved')
+    logd.info('model solved')
     
     # save results by updating the scenario
     res_scens = {}
@@ -388,7 +393,10 @@ def run_scenario(scenario_id, args=None):
         update = conn.call('update_resourcedata',
                            {'scenario_id': scenario_id, 'resource_scenarios': updated_res_scens})
     
-    log.info('model results saved')
+    logd.info('model results saved')
+    
+    if args.foresight == 'perfect':
+        logp.info('completed timesteps {} - {} | 1/1'.format(ti, tf))
     
     # ===========================
     # start the per timestep loop
@@ -435,7 +443,7 @@ def run_scenario(scenario_id, args=None):
         # ===========================
         
         
-        #log.info('completed timestep {} | {}/{}'.format(dt.date.strftime(date, args.timestep_format), t+1, T))
+        #logd.info('completed timestep {} | {}/{}'.format(dt.date.strftime(date, args.timestep_format), t+1, T))
     
     # ===========================
     # save results to Hydra Server
