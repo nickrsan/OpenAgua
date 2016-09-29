@@ -160,7 +160,7 @@ def create_model(network, template, timestep_dict):
                 retval.append(k)
         return retval
     model.NodesOut = Set(model.Nodes, initialize=NodesOut_init)    
-                
+    
     # create sets (nodes or links) for each template type
     for k, v in type_nodes.items():
         exec('model.{} = Set(within=model.Nodes, initialize={})'.format(k, v))
@@ -173,13 +173,19 @@ def create_model(network, template, timestep_dict):
     # variables
     
     model.S = Var(model.Reservoir * model.TS, domain=NonNegativeReals) # storage
-    model.Si = Var(model.Reservoir * model.TS, domain=NonNegativeReals) # initial storage
     model.D = Var(model.Non_reservoir * model.TS, domain=NonNegativeReals) # delivery
-    model.I = Var(model.Nodes * model.TS, domain=NonNegativeReals) # inflow
-    model.L = Var(model.Nodes * model.TS, domain=NonNegativeReals) # loss (outflow)
+    model.G = Var(model.Nodes * model.TS, domain=NonNegativeReals) # gain (local inflow)
+    model.L = Var(model.Nodes * model.TS, domain=NonNegativeReals) # loss (local outflow)
     model.Q = Var(model.Links * model.TS, domain=NonNegativeReals) # flow in links
     
-    # paramters 
+    model.I = Var(model.Nodes * model.TS, domain=NonNegativeReals) # total inflow to a node
+    model.O = Var(model.Nodes * model.TS, domain=NonNegativeReals) # total outflow from a node
+
+    # parameters 
+    
+    def InitialStorage(model, j):
+        return p.node['Initial_Storage'][j]
+    model.Si = Param(model.Reservoir, rule=InitialStorage)
     
     def NodePriority_rule(model, j, t):
         priority = -1 # default 
@@ -195,44 +201,48 @@ def create_model(network, template, timestep_dict):
         priority = 0
         if 'Priority' in p.link.keys() and (i, j, t) in p.link['Priority'].keys():
             priority = p.link['Priority'][(i, j, t)]
-        return priority    
+        return priority
     model.Flow_Priority = Param(model.Links, model.TS, rule=LinkPriority_rule)
     
     # constraints
+
+    def Inflow_rule(model, j, t):
+        return model.I[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
+    model.Inflow_definition = Constraint(model.Nodes, model.TS, rule=Inflow_rule)
     
-    def MassBalance_rule(model, j, t):
-        if j in model.Reservoir:
-            expr = model.Si[j, t] - model.S[j, t] + model.I[j, t] \
-                + sum(model.Q[i,j,t] for i in model.NodesIn[j]) \
-                - sum(model.Q[j,k,t] for k in model.NodesOut[j]) \
-                - model.L[j, t] == 0
-        else:
-            expr = model.I[j, t] \
-                + sum(model.Q[i,j,t] for i in model.NodesIn[j]) \
-                - sum(model.Q[j,k,t] for k in model.NodesOut[j]) \
-                - model.L[j, t] == 0
-        return expr
-    model.MassBalance = Constraint(model.Nodes, model.TS, rule=MassBalance_rule)
+    def Outflow_rule(model, j, t):
+        return model.O[j,t] == sum(model.Q[j,k,t] for k in model.NodesOut[j])
+    model.Outflow_definition = Constraint(model.Nodes, model.TS, rule=Outflow_rule)
     
-    def IntialStorage_rule(model, j, t):
+    def StorageMassBalance_rule(model, j, t):
         if t == model.TS.first():
-            expr = model.Si[j, t] == p.node['Initial_Storage'][j]
+            return model.Si[j] - model.S[j, t] \
+                   + model.G[j, t] + model.I[j,t] \
+                   - model.L[j, t] - model.O[j,t] == 0
         else:
-            expr = model.Si[j, t] == model.S[j, model.TS.prev(t)]
-        return expr
-    model.IntialStorage = Constraint(model.Reservoir, model.TS, rule=IntialStorage_rule)
-    
-    def Delivery_rule(model, j, t):
+            return model.S[j, model.TS.prev(t)] - model.S[j, t] \
+                   + model.G[j, t] + model.I[j,t] \
+                   - model.L[j, t] - model.O[j,t] == 0
+    def NonStorageMassBalance_rule(model, j, t):
+        return model.G[j, t] + model.I[j,t] \
+               - model.L[j, t] - model.O[j,t] == 0
+    model.StorageMassBalance = Constraint(model.Reservoir, model.TS, rule=StorageMassBalance_rule)
+    model.NoneStorageMassBalance = Constraint(model.Non_reservoir, model.TS, rule=NonStorageMassBalance_rule)
+        
+    def Delivery_rule(model, j, t): # this is redundant with inflow, but more explicit
         return model.D[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
     model.Delivery = Constraint(model.Non_reservoir, model.TS, rule=Delivery_rule)
     
     def ChannelCap_rule(model, i, j, t):
-        if 'Flow_Capacity' in p.link.keys() and (i,j,t) in p.link['Flow_Capacity'].keys():
+        if (i,j) in model.River:
+            return Constraint.Skip
+        elif 'Flow_Capacity' in p.link.keys() and (i,j,t) in p.link['Flow_Capacity'].keys():
             return (0, model.Q[i,j,t], p.link['Flow_Capacity'][(i,j,t)])
         else:
-            return Constraint.Skip
+            return (0, model.Q[i,j,t], 0)
     model.ChannelCapacity = Constraint(model.Links, model.TS, rule=ChannelCap_rule)
 
+    # need to delete this later...
     def DeliveryCap_rule(model, j, t):
         if 'Demand' in p.node.keys() and (j,t) in p.node['Demand'].keys():
             return (0, model.D[j,t], p.node['Demand'][(j,t)])
@@ -246,15 +256,14 @@ def create_model(network, template, timestep_dict):
 
     # boundary conditions
     
-    def Inflow_rule(model, j, t):
+    def LocalGain_rule(model, j, t):
         if 'Runoff' in p.node.keys() and (j,t) in p.node['Runoff'].keys():
-            inflow = p.node['Runoff'][(j,t)]
+            return model.G[j,t] == p.node['Runoff'][(j,t)]
         else:
-            inflow = 0        
-        return model.I[j,t] == inflow
-    model.Inflow = Constraint(model.Nodes, model.TS, rule=Inflow_rule)
+            return model.G[j,t] == 0
+    model.Local_Gain = Constraint(model.Nodes, model.TS, rule=LocalGain_rule)
     
-    def Loss_rule(model, j, t):
+    def LocalLoss_rule(model, j, t):
         if j in model.Outflow:
             expr = Constraint.Skip
         elif 'Consumptive_Loss' in p.node.keys() and (j,t) in p.node['Consumptive_Loss']:
@@ -262,15 +271,14 @@ def create_model(network, template, timestep_dict):
         else:
             expr = model.L[j,t] == 0
         return expr
-    model.Loss = Constraint(model.Nodes, model.TS, rule=Loss_rule)
+    model.Local_Loss = Constraint(model.Nodes, model.TS, rule=LocalLoss_rule)
 
     # objective function
 
     def Objective_fn(model):
-        expr = summation(model.Demand_Priority, model.D) \
+        return summation(model.Demand_Priority, model.D) \
             + summation(model.Storage_Priority, model.S) \
             + summation(model.Flow_Priority, model.Q)
-        return expr
     model.Ojective = Objective(rule=Objective_fn, sense=maximize)
 
     return model
@@ -314,7 +322,8 @@ def run_scenario(scenario_id, args=None):
         res_scens[rs.resource_attr_id] = rs
         
     update_scenario = False
-    outputnames = {'S': 'storage', 'I': 'inflow'}
+    
+    outputnames = {'S': 'storage', 'I': 'inflow', 'O': 'outflow'}
     
     # loop through all the model variables
     for i, v in enumerate(instance.component_objects(Var, active=True)):
