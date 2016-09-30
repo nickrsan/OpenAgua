@@ -43,7 +43,7 @@ $('button#stop_model_confirm').bind('click', function() {
     $("#status_message").text("Model stopped.");
     $("button#run_model").button('reset');
     $("button#stop_model").hide();
-    $("modal_stop_model").hide();
+    $("#modal_stop_model").hide();
     
 });
 
