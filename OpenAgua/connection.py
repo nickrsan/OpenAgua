@@ -384,57 +384,62 @@ class connection(object):
         
         return hlinks, hnodes
     
-    def load_active_study(self):
+    def load_active_study(self, load_from_hydra=True):
+        
         study = HydraStudy.query \
             .filter(HydraStudy.user_id == current_user.id) \
             .filter(HydraStudy.active == 1) \
             .first()
-        
+
         self.invalid_study = False
+        
         if study:
+            session['project_id'] = study.project_id
+            session['network_id'] = study.network_id
+            session['template_id'] = study.template_id
+        
+            if load_from_hydra:
             
-            # get project
-            
-            self.project = self.get_project(study.project_id)
-            if 'faultcode' in self.project:
-                self.project = None
-                session['project_id'] = None
-                self.invalid_study = True
-            else:
-                session['project_id'] = study.project_id
-            
-            # get network
-            self.network = self.get_network(study.network_id)
-            if 'faultcode' in self.network:
-                self.network = None
-                session['network_id'] = None
-                self.invalid_study = True
-            else:
-                session['network_id'] = study.network_id
+                # get project
                 
-                # get scenarios
-                #scenarios = self.network.scenarios
-                session['ti'] = '01/2000'
-                session['tf'] = '12/2015'
-            
-            # get template
-            self.template = self.get_template(study.template_id)
-            if 'faultstring' in self.template:
-                self.template = None
-                self.ttypes = None
-                session['template_id'] = None
-                self.invalid_study = True
-            else:
-                session['template_id'] = study.template_id
+                self.project = self.get_project(study.project_id)
+                if 'faultcode' in self.project:
+                    self.project = None
+                    session['project_id'] = None
+                    self.invalid_study = True
+                    
+                # get network
+                self.network = self.get_network(study.network_id)
+                if 'faultcode' in self.network:
+                    self.network = None
+                    session['network_id'] = None
+                    self.invalid_study = True
+                    
+                    # get scenarios
+                    #scenarios = self.network.scenarios
+                    session['ti'] = '01/2000'
+                    session['tf'] = '12/2015'
                 
-                self.ttypes = {}
-                self.ttype_dict = {}
-                for ttype in self.template.types:
-                    self.ttypes[ttype.id] = ttype
-                    self.ttype_dict[ttype.name] = ttype.id 
+                # get template
+                self.template = self.get_template(study.template_id)
+                if 'faultstring' in self.template:
+                    self.template = None
+                    self.ttypes = None
+                    session['template_id'] = None
+                    self.invalid_study = True
+                
+                else:
+                    self.ttypes = {}
+                    self.ttype_dict = {}
+                    for ttype in self.template.types:
+                        self.ttypes[ttype.id] = ttype
+                        self.ttype_dict[ttype.name] = ttype.id 
         
         else:
             self.invalid_study = True
+            session['project_id'] = None
+            session['network_id'] = None
+            session['template_id'] = None            
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

@@ -22,7 +22,7 @@ configure_uploads(app, templates)
 def manage():
     load_hydrauser() # do this at the top of every page
     conn = make_connection(login=True)
-    conn.load_active_study()
+    conn.load_active_study(load_from_hydra=False)
     
     # get the list of project names, and network names for the test project
     projects = conn.call('get_projects', {'user_id': session['hydra_userid']})

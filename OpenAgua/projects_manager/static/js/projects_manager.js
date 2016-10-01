@@ -1,6 +1,26 @@
+$( document ).ready(function() {
+    update_projects(active_project_id);
+    update_networks(active_project_id, active_network_id);
+    
+    $("#network_list").on("mouseenter", ".network_item", 
+        function () {
+            $(this).css("background-color", "grey");
+            $(this).find('img').hide();
+        }
+    );
+    $("#network_list").on("mouseleave", ".network_item", 
+        function () {
+            $(this).css("background-color", "white");
+            $(this).find('img').show();
+        }
+    );
+    
+});
+
 $("button#add_project").bind('click', function() {
   $('#modal_add_project').modal('show');
 });
+
 $("button#add_project_confirm").bind('click', function() {
       var proj = {
         name: $('#project_name').val(),
@@ -21,6 +41,7 @@ $("button#add_project_confirm").bind('click', function() {
 $("button#add_network").bind('click', function() {
   $('#modal_add_network').modal('show');
 });
+
 $("button#add_network_confirm").bind('click', function() {
       var net = {
         name: $('#network_name').val(),
@@ -111,39 +132,57 @@ function update_networks(active_project_id, active_network_id) {
     var args = {'project_id':active_project_id, 'include_data':'N'}
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
         var networks = resp.result;
-        
-        var network_list = $('#network_list')
-        network_list.empty();
-        if (networks.length) {
-            var ul = $('<ul>').addClass('list-group');
-            $.each(networks, function(index, network){
-            
-                var dropdown = network_dropdown.clone()
-                    .find('a')
-                    .attr('data-name', network.name)
-                    .attr('data-id', network.id)
-                    .end();
-            
-                var li = $('<li>')
-                    .text(network.name)
-                    .addClass("list-group-item clearfix")
-                    .addClass("network_item")
-                    .append(dropdown);
-                if (network.id == active_network_id) {
-                    li.addClass('active')
-                    $("#template_list")
-                        .attr("data-id", network.id)
-                        .attr("data-name", network.name)
-                    $("#template_list_description").html('Templates for '+network.name)
-                }
-                ul.append(li);
-            });
-            network_list.append(ul)
-            
-        } else {
-            network_list.text('No networks yet.')       
-        }
+        populate_networks(networks);
     });
+}
+
+function populate_networks(networks) {
+
+    var N = networks.length
+    var netlist = $('#network_list')
+    netlist.empty();
+    if (N) {
+        
+        $.each(networks, function(index, network){
+        
+            var cell = $('<div>').addClass('network_cell col col-sm-6 col-md-4 col-lg-3');
+            
+            var network_item = $('<div>').addClass('network_item');
+        
+            var dropdown = network_dropdown.clone()
+                .find('a')
+                .attr('data-name', network.name)
+                .attr('data-id', network.id)
+                .end();
+            var menu = $('<div>').addClass('network_actions').append(dropdown);
+                
+            var img = $('<img>').attr('src', network_img).css('width', '90%');
+        
+            var preview = $('<div>')
+                .append(img)
+                .after($('<a>').attr('href','/overview').text('Network overview'));
+                
+            var name = $('<div>')
+                .addClass("network_name")
+                .text(network.name)
+            
+            network_item
+                .append(menu)
+                .append(preview)
+                .append(name);
+            
+            if (network.id == active_network_id) {
+                network_item.addClass('active')
+            }
+            
+            cell.append(network_item)
+            netlist.append(cell)
+            
+        });
+        
+    } else {
+        netlist.text('No networks yet.')       
+    }
 }
 
 // purge project
@@ -263,9 +302,4 @@ $(document).on('click', '.upgrade_template', function(e) {
             });
         };
     });
-});
-
-$( document ).ready(function() {
-    update_projects(active_project_id);
-    update_networks(active_project_id, active_network_id);
 });

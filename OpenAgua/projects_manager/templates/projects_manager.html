@@ -3,11 +3,46 @@
 {% block title %} - Manage{% endblock %}
 
 {% block head_master %}
-{% include 'navbar.html' %}
+
+<style>
+#networks {
+      border-left-width: 3px;
+      boder-style: solid;
+      border-color: #6699cc;
+}
+#network_list {
+      border-left-width: 3px;
+      border-left-style: solid;
+      border-left-color: #e6e6e6;
+}
+.network_cell {
+      padding: 15px;
+}
+.network_item {
+      border-width: 1px;
+      border-style: solid;
+      border-color: #6699cc;
+      padding: 0px;}
+.network_actions {
+      height: 120px;
+      padding: 5px;
+}
+.network_name {
+      height: 30px;
+      padding: 5px;
+      background-color: #efeff5;
+      text-align:center;
+      font-weight: bold;
+      width: 100%;
+}
+      
+</style>
 
 {% endblock %}    
     
 {% block main %}
+
+{% include 'navbar.html' %}
 
 <script>
 var active_project_id = {{ session['project_id'] }};
@@ -16,6 +51,9 @@ var active_network_id = {{ session['network_id'] }};
 {% else %}
 var active_network_id = null;
 {% endif %}
+
+var network_img = "{{ url_for('projects_manager.static', filename='images/default_network_image.png') }}";
+
 </script>
 
 <div class="container-fluid">
@@ -23,7 +61,7 @@ var active_network_id = null;
       <div class="row"><br>
       
         <!--select/add project-->
-        <div class="col sm-4 col-md-4">
+        <div class="col col-sm-4 col-md-4 col-lg-3">
               <h4 style="margin:7px">Projects</h4>
               <div id="project_list">
                   <ul class="list-group"></ul>
@@ -32,10 +70,13 @@ var active_network_id = null;
         </div> <!--end projects pane-->
           
         <!--select/add network-->
-        <div class="col sm-4 col-md-4">
+        <div id="networks" class="col col-sm-8 col-md-8 col-lg-9">
 
               <h4 id="network_list_description" style="margin:7px">Networks</h4>
-              <div id="network_list"></div>
+              
+                  <!--<div class="container-fluid">-->
+                        <div id="network_list" class="row"></div>
+                  <!--</div>-->
               <button id="add_network" class="btn btn-default btn-sm pull-right">Add network</button>
 
         </div> <!--end networks pane-->

@@ -141,6 +141,7 @@ def parse_function(s):
     if 'return ' not in lines[-1]:
         lines[-1] = 'return ' + lines[-1]
     fs = 'def f(date):\n    %s' % '\n    '.join(lines)
+    
     return fs
 
 def eval_function(s, date, **kwargs):
