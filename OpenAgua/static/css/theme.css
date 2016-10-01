@@ -21,6 +21,16 @@ body {
  * Top navigation
  * Hide default border to remove 1px line.
  */
+ 
+#study_name {
+  color: #999999;
+  font-weight: bold;
+  font-size: large;
+  position: relative;
+  display: block;
+  padding: 12px 5px 0px 5px;
+}
+ 
 .navbar {
   /*border: 0;*/
   background-color: #FFFFFF;

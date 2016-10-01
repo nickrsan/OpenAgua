@@ -50,6 +50,7 @@ class HydraUser(db.Model):
 class HydraStudy(db.Model):
     __tablename__ = 'hydrastudy'
     id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(255), nullable=False, server_default='')
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
     hydrauser_id = db.Column(db.Integer(), db.ForeignKey('hydrauser.id', ondelete='CASCADE'))
     project_id = db.Column(db.Integer(), nullable=False)

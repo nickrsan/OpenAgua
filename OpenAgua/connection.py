@@ -397,6 +397,7 @@ class connection(object):
             session['project_id'] = study.project_id
             session['network_id'] = study.network_id
             session['template_id'] = study.template_id
+            session['study_name'] = study.name
         
             if load_from_hydra:
             
@@ -440,6 +441,7 @@ class connection(object):
             session['project_id'] = None
             session['network_id'] = None
             session['template_id'] = None            
+            session['study_name'] = None            
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

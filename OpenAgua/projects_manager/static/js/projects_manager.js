@@ -2,12 +2,6 @@ $( document ).ready(function() {
     update_projects(active_project_id);
     update_networks(active_project_id, active_network_id);
     
-    //$("#network_list").on("mouseenter", ".network_item", 
-        //function () {
-            //$(this).find('.network_menu').show();
-            ////$(this).find('a').show();
-        //}
-    //);
     $("#network_list").on("mouseleave", ".network", 
         function () {
             $(this).find('.network_menu .btn-group').removeClass('open');
@@ -16,9 +10,6 @@ $( document ).ready(function() {
     
 });
 
-$("button#add_project").bind('click', function() {
-  $('#modal_add_project').modal('show');
-});
 
 $("button#add_project_confirm").bind('click', function() {
       var proj = {
@@ -37,9 +28,6 @@ $("button#add_project_confirm").bind('click', function() {
     });
 });
 
-$("button#add_network").bind('click', function() {
-  $('#modal_add_network').modal('show');
-});
 
 $("button#add_network_confirm").bind('click', function() {
       var net = {
@@ -93,36 +81,106 @@ function update_projects(active_project_id) {
     var args = {}
             
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
+    
         var projects = resp.result;
-        
-        if (projects.length) {
-            var ul = $('#project_list ul');
-            ul.empty();
-            $.each(projects, function(index, project){
-            
-                var dropdown = project_dropdown.clone()
-                    //.find('button').attr('id', project.id).end()
-                    .find('a')
-                        .attr('data-name', project.name)
-                        .attr('data-id', project.id)
-                    .end();
-            
-                var li = $('<li>')
-                    .text(project.name)
-                    .addClass("project")
-                    .addClass("list-group-item clearfix")
-                    .append(dropdown);
-                    
-                if (project.id == active_project_id) {
-                    li.addClass('active');
-                    $("#network_list_description").html('Networks for '+project.name)
-                }
-                ul.append(li);
-            });
-        } else {
-            $('#project_list').html('<p>No projects. Please create a project.</p>')            
-        }
+        populate_projects(projects);
     });
+}
+
+function populate_projects(projects) {
+        
+        //var ul = $('#project_list ul');
+        //ul.empty();
+
+    var projlist = $('#project_list'),
+    cell, project_item, dropdown, menu, preview, footer;
+
+    projlist.empty();
+        
+    $.each(projects, function(index, project){
+
+        cell = $('<div>').addClass('row').append(
+            $('<div>').addClass('project-col col col-sm-12 col-md-12 col-lg-12'));
+        
+        project_item = $('<div>').addClass('project');
+    
+        dropdown = project_dropdown.clone()
+            .find('a')
+            .attr('data-name', project.name)
+            .attr('data-id', project.id)
+            .end();
+        menu = $('<div>').addClass('project_menu')
+            .append(dropdown);
+    
+        preview = $('<div>')
+            .addClass('project_preview')
+            .text(project.name)
+            .append($('<a>')
+                .addClass('main_action')
+                    .attr('href','/overview')
+                        .text('View networks'));
+            
+        footer = $('<div>')
+            .addClass("project_footer")
+            .addClass("pull-right")
+            
+        
+        project_item
+            .append(menu)
+            .append(preview)
+            .append(footer);
+        
+        if (project.id == active_project_id) {
+            project_item.addClass('active')
+        }
+        
+        cell.append(project_item)
+        projlist.append(cell)
+        
+    });
+    
+        // add a button to create a new network
+        //cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
+        
+        //network_item = $('<div>').addClass('network').addClass('add_network_cell');
+        //network_item.html('<button id="add_network" class="btn btn-default btn-lg">Add network</button>')
+        
+        //cell.append(network_item).addClass('new_network_cell')
+        //netlist.append(cell)
+
+        // OLD SECTION:
+
+        //$.each(projects, function(index, project){
+        
+            //var dropdown = project_dropdown.clone()
+                ////.find('button').attr('id', project.id).end()
+                //.find('a')
+                    //.attr('data-name', project.name)
+                    //.attr('data-id', project.id)
+                //.end();
+        
+            //var hr = $('<div>')
+                //.addClass('connector')
+                ////.addClass('pull-right')
+                //.html('<span class="glyphicon glyphicon-arrow-right"></span')
+            //var div = $('<div>')
+                //.addClass("project")
+                //.text(project.name);
+            //var li = $('<li>').addClass("list-group-item").append(div);
+                
+            //if (project.id == active_project_id) {
+                //li.addClass('active').append(hr);
+                //$("#network_list_description").html('Networks for '+project.name);
+            //}
+            //ul.append(li);
+        //});            
+        
+    //});
+
+    $("button#add_project").bind('click', function() {
+      $('#modal_add_project').modal('show');
+    });
+    
 }
 
 // update network list
@@ -137,57 +195,69 @@ function update_networks(active_project_id, active_network_id) {
 
 function populate_networks(networks) {
 
-    var N = networks.length
-    var netlist = $('#network_list')
-    netlist.empty();
-    if (N) {
-        
-        $.each(networks, function(index, network){
-        
-            var cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
-            
-            var network_item = $('<div>').addClass('network');
-        
-            var dropdown = network_dropdown.clone()
-                .find('a')
-                .attr('data-name', network.name)
-                .attr('data-id', network.id)
-                .end();
-            var menu = $('<div>').addClass('network_menu')
-                .append(dropdown);
+    var netlist = $('#network_list'),
+        cell, network_item, dropdown, menu, img, preview, footer;
 
-            //var img = $('<img>').attr('src', network_img).css('width', '100%');
-            var img = $('<i>').addClass('fa fa-map-o');
+    netlist.empty();
+    
+    // add existing networks, if any    
+    $.each(networks, function(index, network){
+    
+        cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
         
-            var preview = $('<div>')
-                .addClass('network_preview')
-                .append(img)
-                .append($('<a>')
-                    .addClass('main_action')
-                        .attr('href','/overview')
-                            .text('Overview'));
-                
-            var footer = $('<div>')
-                .addClass("network_footer")
-                .text(network.name)
+        network_item = $('<div>').addClass('network');
+    
+        dropdown = network_dropdown.clone()
+            .find('a')
+            .attr('data-name', network.name)
+            .attr('data-id', network.id)
+            .end();
+        menu = $('<div>').addClass('network_menu')
+            .append(dropdown);
+
+        //var img = $('<img>').attr('src', network_img).css('width', '100%');
+        img = $('<i>').addClass('fa fa-map-o');
+    
+        preview = $('<div>')
+            .addClass('network_preview')
+            .append(img)
+            .append($('<a>')
+                .addClass('main_action')
+                    .attr('href','/overview')
+                        .text('Overview'));
             
-            network_item
-                .append(menu)
-                .append(preview)
-                .append(footer);
-            
-            if (network.id == active_network_id) {
-                network_item.addClass('active')
-            }
-            
-            cell.append(network_item)
-            netlist.append(cell)
-            
-        });
+        footer = $('<div>')
+            .addClass("network_footer")
+            .text(network.name)
         
-    } else {
-        netlist.text('No networks yet.')       
-    }
+        network_item
+            .append(menu)
+            .append(preview)
+            .append(footer);
+        
+        if (network.id == active_network_id) {
+            network_item.addClass('active')
+        }
+        
+        cell.append(network_item)
+        netlist.append(cell)
+        
+    });
+    
+    // add a button to create a new network
+    cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
+    
+    network_item = $('<div>').addClass('network').addClass('add_network_cell');
+    network_item.html('<button id="add_network" class="btn btn-default btn-lg">Add network</button>')
+    
+    cell.append(network_item).addClass('new_network_cell')
+    netlist.append(cell)
+    
+    // add the binding after networks are shown
+    $("button#add_network").click(function() {
+      $('#modal_add_network').modal('show');
+    });
+
 }
 
 // purge project

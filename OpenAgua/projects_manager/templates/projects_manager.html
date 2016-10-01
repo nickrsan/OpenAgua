@@ -28,28 +28,29 @@ var network_img = "{{ url_for('projects_manager.static', filename='images/defaul
 
       <div class="row"><br>
       
-        <!--select/add project-->
-        <div class="col col-sm-4 col-md-4 col-lg-3">
-              <h4 style="margin:7px">Projects</h4>
-              <div id="project_list">
-                  <ul class="list-group"></ul>
-              </div>
-              <button id="add_project" class="btn btn-default btn-sm pull-right">Add project</button>
-        </div> <!--end projects pane-->
+        <!--projects-->
+        <div id="project" class="col col-sm-4 col-md-4 col-lg-3">
+            <button id="add_project" class="btn btn-default btn-sm">Add project</button>
+            <div id="projects" class="container-fluid">                
+                <div id="project_list" class="row"></div>
+            </div>
+        </div>
           
-        <!--select/add network-->
-        <div id="networks" class="col col-sm-8 col-md-8 col-lg-9">
+        <!--networks-->
+        <div class="col col-sm-8 col-md-8 col-lg-9">
+            
+            <div class="container-fluid" id="networks">
+                <div>
+                    <span id="network_list_description" style="margin:7px"></span>
+                    <!--<button id="add_network" class="btn btn-default btn-small">Add network</button>-->
+                </div>
+                
+                <div id="network_list" class="row"></div>
+            </div>
 
-              <h4 id="network_list_description" style="margin:7px">Networks</h4>
-              
-                  <!--<div class="container-fluid">-->
-                        <div id="network_list" class="row"></div>
-                  <!--</div>-->
-              <button id="add_network" class="btn btn-default btn-sm pull-right">Add network</button>
+        </div>
 
-        </div> <!--end networks pane-->
-
-      </div>   
+    </div>   
 </div>
   
 {% include "modals.html" %}

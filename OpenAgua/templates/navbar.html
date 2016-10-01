@@ -9,11 +9,22 @@
       </button>
       <a class="navbar-brand" href="/">OpenAgua</a>
     </div>
+    
+
     <div id="navbar" class="navbar-collapse collapse">
-      <ul class="nav navbar-nav navbar-left">
-        <li class="nav-item"><a class="nav-link" href="/home">Home</a></li>
+
+      <ul class="nav navbar-nav">
+        {% if 'study_name' in session and session['study_name'] %}
+          <li class="nav-item" id="study_name">{{ session['study_name'] }}</li>
+        {% else %}
+          <li class="nav-item" id="study_name">[No study loaded]</li>
+        {% endif %}
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li class="nav-item"><a class="nav-link" href="/home"><span class="glyphicon glyphicon-home"></span> Home</a></li>
+        
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Manage <span class="caret"></span></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class="glyphicon glyphicon-th-list"></span> Manage <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="/manage">Projects/networks</a></li>
             {% if current_user.has_role('admin') or current_user.has_role('superuser') %}
@@ -21,15 +32,15 @@
             {% endif %}
           </ul>
         </li>
-        <li class="nav-item"><a class="nav-link" href="#">Help</a></li>
-      </ul>
-      <ul class="nav navbar-nav navbar-right">
+        
+        <li class="nav-item"><a class="nav-link" href="#"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
+
         {% if current_user.has_role('admin') or current_user.has_role('superuser') %}
           <li class="nav-item"><a class="nav-link" href="/admin"><span class="glyphicon glyphicon-wrench"></span> Admin</a></li>
         {% endif %}
       
         <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class="glyphicon glyphicon-cog"></span> {{ current_user.email }} <span class="caret"></span></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class="glyphicon glyphicon-user"></span> {{ current_user.email }} <span class="caret"></span></a>
           <ul class="dropdown-menu">
             <li><a href="#">Preferences</a></li>
             <li><a href="#">Profile</a></li>
