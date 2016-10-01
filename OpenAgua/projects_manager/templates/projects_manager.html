@@ -4,39 +4,7 @@
 
 {% block head_master %}
 
-<style>
-#networks {
-      border-left-width: 3px;
-      boder-style: solid;
-      border-color: #6699cc;
-}
-#network_list {
-      border-left-width: 3px;
-      border-left-style: solid;
-      border-left-color: #e6e6e6;
-}
-.network_cell {
-      padding: 15px;
-}
-.network_item {
-      border-width: 1px;
-      border-style: solid;
-      border-color: #6699cc;
-      padding: 0px;}
-.network_actions {
-      height: 120px;
-      padding: 5px;
-}
-.network_name {
-      height: 30px;
-      padding: 5px;
-      background-color: #efeff5;
-      text-align:center;
-      font-weight: bold;
-      width: 100%;
-}
-      
-</style>
+<link href="{{ url_for('.static', filename='css/projects_manager.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 {% endblock %}    
     

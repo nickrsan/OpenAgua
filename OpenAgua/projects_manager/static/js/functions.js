@@ -26,15 +26,15 @@ function menu_item(action, text, tooltip) {
 
 function make_button_div(class_type, actions) {
     var btn_div = $('<div>')
-    .addClass("btn-group pull-right")
+    .addClass("btn-group")
     .append(
         $('<button>')
             //.addClass(class_type+"_dropdown")
             .addClass("btn btn-default btn-sm dropdown-toggle")
             .attr("type", "button")
             .attr("data-toggle", "dropdown")
-            .text("Action")
-            .append($('<span>').addClass("caret"))
+            //.text("Action")
+            .append($('<i>').addClass("fa fa-bars"))
     )
     .append(actions);
     return btn_div;

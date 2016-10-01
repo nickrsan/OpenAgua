@@ -2,16 +2,15 @@ $( document ).ready(function() {
     update_projects(active_project_id);
     update_networks(active_project_id, active_network_id);
     
-    $("#network_list").on("mouseenter", ".network_item", 
+    //$("#network_list").on("mouseenter", ".network_item", 
+        //function () {
+            //$(this).find('.network_menu').show();
+            ////$(this).find('a').show();
+        //}
+    //);
+    $("#network_list").on("mouseleave", ".network", 
         function () {
-            $(this).css("background-color", "grey");
-            $(this).find('img').hide();
-        }
-    );
-    $("#network_list").on("mouseleave", ".network_item", 
-        function () {
-            $(this).css("background-color", "white");
-            $(this).find('img').show();
+            $(this).find('.network_menu .btn-group').removeClass('open');
         }
     );
     
@@ -145,31 +144,37 @@ function populate_networks(networks) {
         
         $.each(networks, function(index, network){
         
-            var cell = $('<div>').addClass('network_cell col col-sm-6 col-md-4 col-lg-3');
+            var cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
             
-            var network_item = $('<div>').addClass('network_item');
+            var network_item = $('<div>').addClass('network');
         
             var dropdown = network_dropdown.clone()
                 .find('a')
                 .attr('data-name', network.name)
                 .attr('data-id', network.id)
                 .end();
-            var menu = $('<div>').addClass('network_actions').append(dropdown);
-                
-            var img = $('<img>').attr('src', network_img).css('width', '90%');
+            var menu = $('<div>').addClass('network_menu')
+                .append(dropdown);
+
+            //var img = $('<img>').attr('src', network_img).css('width', '100%');
+            var img = $('<i>').addClass('fa fa-map-o');
         
             var preview = $('<div>')
+                .addClass('network_preview')
                 .append(img)
-                .after($('<a>').attr('href','/overview').text('Network overview'));
+                .append($('<a>')
+                    .addClass('main_action')
+                        .attr('href','/overview')
+                            .text('Overview'));
                 
-            var name = $('<div>')
-                .addClass("network_name")
+            var footer = $('<div>')
+                .addClass("network_footer")
                 .text(network.name)
             
             network_item
                 .append(menu)
                 .append(preview)
-                .append(name);
+                .append(footer);
             
             if (network.id == active_network_id) {
                 network_item.addClass('active')
