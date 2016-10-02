@@ -11,11 +11,13 @@
       padding-top: 15px;
 }
 #projects .project {
+      position: relative;
       border-width: 0px;
       margin-top: 5px;
       margin-bottom: 5px;
+      vertical-align: middle;
 }
-#projects .project button {
+#projects .project button.project-btn {
       border-width: 1px;
       border-style: solid;
       border-color: #999999;
@@ -26,13 +28,30 @@
       height: 50px;
       line-height: 40px;
       width: 100%;
+      z-index: 11;
 }
-#projects .active button {
+#projects .active button.project-btn {
       border-width: 2px;
       border-style: solid;
       border-color: #336699;
       color: #336699;
       /*background-color: #efeff5;*/
+}
+#projects .project .project-menu {
+      position: absolute;
+      top: 0px;
+      right: 0px;
+      margin-top: 10px;
+      margin-right: 10px;
+      text-align: right;
+      z-index: 12;
+      display: none;
+}
+#projects .project-menu btn-group, #projects .project-menu button {
+      z-index: 13;
+}
+#projects .project-menu ul {
+      z-index: 14;
 }
 
 #projects .add_project {
@@ -49,6 +68,10 @@
       height: 50px;
       line-height: 40px;
       width: 100%;
+}
+
+.project-name {
+      font-weight: bold;
 }
 
 /*NETWORKS*/
@@ -80,9 +103,9 @@
       display: none;
       position: absolute;
       margin-top: 10px;
-      margin-left: 10px;
+      margin-right: 10px;
       top: 10px;
-      left: 10px;
+      right: 10px;
       z-index: 12;
 }
 .network:hover .network_menu, .network.hover .network_menu {

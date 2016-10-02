@@ -8,6 +8,18 @@ $( document ).ready(function() {
         }
     );
     
+    $("#project_list").on("mouseenter", ".project", 
+        function () {
+            $(this).find('.project-menu').show();
+        }
+    );
+    $("#project_list").on("mouseleave", ".project", 
+        function () {
+            $(this).find('.project-menu').hide();
+            $(this).find('.project-menu .btn-group').removeClass('open');
+        }
+    );
+    
 });
 
 
@@ -72,8 +84,8 @@ var network_actions =
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append(menu_item('purge_network', 'Delete', 'Permanently delete this network'));
 
-project_dropdown = make_button_div('project', project_actions);
-network_dropdown = make_button_div('network', network_actions);
+var project_dropdown = make_button_div('project', project_actions);
+var network_dropdown = make_button_div('network', network_actions);
 
 // update project list
 function update_projects(active_project_id) {
@@ -90,24 +102,37 @@ function update_projects(active_project_id) {
 function populate_projects(projects) {
 
     var projlist = $('#project_list'),
-    cell, project_item, dropdown, menu, preview, footer;
+    cell, project_item, proj_btn, dropdown, menu, preview, footer;
 
     projlist.empty();
         
     $.each(projects, function(index, project){  
     
         cell = $('<div>').addClass('project-col col col-sm-12 col-md-12 col-lg-12');
+
+        proj_btn = $('<button>')
+            .addClass("project-btn btn btn-default")
+            .attr('data-id', project.id)
+            .attr('data-name', project.name)
+            .text(project.name);    
         
         project_item = $('<div>').addClass('project');
-        project_item.html(
-            '<button class="btn btn-default">'
-            + project.name
-            + '</button>'
-        );
+        project_item.append(proj_btn);
+
+        // add the menu
+        dropdown = project_dropdown.clone()
+            .addClass('dropdown-menu-right')
+            .find('a')
+            .attr('data-name', project.name)
+            .attr('data-id', project.id)
+            .end();
+        menu = $('<div>').addClass('project-menu')
+            .append(dropdown);
+        project_item.append(menu);
         
         if (project.id == active_project_id) {
             project_item.addClass('active')
-            $('#network_list_description').text('Networks for ' + project.name)
+            $('#network_list_description').html('Networks for <span class="project-name">' + project.name + '</span>')
         }
 
         cell.append(project_item)
@@ -120,7 +145,6 @@ function populate_projects(projects) {
     project_item = $('<div>').addClass('project').addClass('add_project');
     project_item.html('<button id="add_project" class="btn btn-default">Add project</button>')
     
-    
     cell.append(project_item)
     projlist.append(cell)
 
@@ -129,6 +153,13 @@ function populate_projects(projects) {
     });
     
 }
+
+$(document).on('click', '.project-btn', function() {
+    active_project_id = Number($(this).attr('data-id'));
+    active_network_id = null;
+    update_projects(active_project_id)
+    update_networks(active_project_id, active_network_id);
+});
 
 // update network list
 function update_networks(active_project_id, active_network_id) {
