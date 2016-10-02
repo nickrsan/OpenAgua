@@ -74,7 +74,7 @@ def edit_schematic():
 def add_project():
     conn = make_connection()
     
-    projects = conn.call('get_projects', {'user_id':session['hydra_user_id']})
+    projects = conn.call('get_projects', {'user_id':session['hydra_userid']})
     project_names = [project.name for project in projects]
     activate = request.args.get('activate')
     proj = request.args.get('proj')

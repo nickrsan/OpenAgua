@@ -88,94 +88,41 @@ function update_projects(active_project_id) {
 }
 
 function populate_projects(projects) {
-        
-        //var ul = $('#project_list ul');
-        //ul.empty();
 
     var projlist = $('#project_list'),
     cell, project_item, dropdown, menu, preview, footer;
 
     projlist.empty();
         
-    $.each(projects, function(index, project){
-
-        cell = $('<div>').addClass('row').append(
-            $('<div>').addClass('project-col col col-sm-12 col-md-12 col-lg-12'));
+    $.each(projects, function(index, project){  
+    
+        cell = $('<div>').addClass('project-col col col-sm-12 col-md-12 col-lg-12');
         
         project_item = $('<div>').addClass('project');
-    
-        dropdown = project_dropdown.clone()
-            .find('a')
-            .attr('data-name', project.name)
-            .attr('data-id', project.id)
-            .end();
-        menu = $('<div>').addClass('project_menu')
-            .append(dropdown);
-    
-        preview = $('<div>')
-            .addClass('project_preview')
-            .text(project.name)
-            .append($('<a>')
-                .addClass('main_action')
-                    .attr('href','/overview')
-                        .text('View networks'));
-            
-        footer = $('<div>')
-            .addClass("project_footer")
-            .addClass("pull-right")
-            
-        
-        project_item
-            .append(menu)
-            .append(preview)
-            .append(footer);
+        project_item.html(
+            '<button class="btn btn-default">'
+            + project.name
+            + '</button>'
+        );
         
         if (project.id == active_project_id) {
             project_item.addClass('active')
+            $('#network_list_description').text('Networks for ' + project.name)
         }
-        
+
         cell.append(project_item)
         projlist.append(cell)
-        
+    
     });
     
-        // add a button to create a new network
-        //cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
-        
-        //network_item = $('<div>').addClass('network').addClass('add_network_cell');
-        //network_item.html('<button id="add_network" class="btn btn-default btn-lg">Add network</button>')
-        
-        //cell.append(network_item).addClass('new_network_cell')
-        //netlist.append(cell)
-
-        // OLD SECTION:
-
-        //$.each(projects, function(index, project){
-        
-            //var dropdown = project_dropdown.clone()
-                ////.find('button').attr('id', project.id).end()
-                //.find('a')
-                    //.attr('data-name', project.name)
-                    //.attr('data-id', project.id)
-                //.end();
-        
-            //var hr = $('<div>')
-                //.addClass('connector')
-                ////.addClass('pull-right')
-                //.html('<span class="glyphicon glyphicon-arrow-right"></span')
-            //var div = $('<div>')
-                //.addClass("project")
-                //.text(project.name);
-            //var li = $('<li>').addClass("list-group-item").append(div);
-                
-            //if (project.id == active_project_id) {
-                //li.addClass('active').append(hr);
-                //$("#network_list_description").html('Networks for '+project.name);
-            //}
-            //ul.append(li);
-        //});            
-        
-    //});
+    cell = $('<div>').addClass('project-col col col-sm-12 col-md-12 col-lg-12');
+    
+    project_item = $('<div>').addClass('project').addClass('add_project');
+    project_item.html('<button id="add_project" class="btn btn-default">Add project</button>')
+    
+    
+    cell.append(project_item)
+    projlist.append(cell)
 
     $("button#add_project").bind('click', function() {
       $('#modal_add_project').modal('show');
@@ -247,10 +194,10 @@ function populate_networks(networks) {
     // add a button to create a new network
     cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
     
-    network_item = $('<div>').addClass('network').addClass('add_network_cell');
+    network_item = $('<div>').addClass('network').addClass('add_network');
     network_item.html('<button id="add_network" class="btn btn-default btn-lg">Add network</button>')
     
-    cell.append(network_item).addClass('new_network_cell')
+    cell.append(network_item)
     netlist.append(cell)
     
     // add the binding after networks are shown
