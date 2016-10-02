@@ -101,11 +101,10 @@ def add_network():
     # add network
     new_net = request.args.get('net')
     new_net = json.loads(new_net)
-    tpl_id = session['template_id']
+    tpl_id = int(request.args.get('tpl_id'))
     if new_net['name'] in network_names:
-        return jsonify(result={'status_code': -1})
+        return jsonify(status_code -1)
     
-    new_net['project_id'] = session['project_id']
     network = conn.call('add_network', {'net':new_net})
 
     # add the template
@@ -133,7 +132,7 @@ def add_network():
     
     conn.load_active_study()
         
-    return jsonify(result={'status_code': 1})
+    return jsonify(status_code=1)
 
 
 @projects_manager.route('/_purge_project')

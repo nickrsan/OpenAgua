@@ -19,6 +19,11 @@ var active_network_id = {{ session['network_id'] }};
 {% else %}
 var active_network_id = null;
 {% endif %}
+{% if session['template_id'] %}
+var active_template_id = {{ session['template_id'] }};
+{% else %}
+var active_template_id = null;
+{% endif %}
 
 var network_img = "{{ url_for('projects_manager.static', filename='images/default_network_image.png') }}";
 

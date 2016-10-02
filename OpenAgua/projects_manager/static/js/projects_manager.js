@@ -42,17 +42,18 @@ $("button#add_project_confirm").bind('click', function() {
 
 
 $("button#add_network_confirm").bind('click', function() {
-      var net = {
+    var net = {
         name: $('#network_name').val(),
-        description: $('#network_description').val()
-      }
-      var tpl_id = $('#net_template').val();
-      var data = {net: JSON.stringify(net), tpl_id: tpl_id};
+        description: $('#network_description').val(),
+        project_id: active_project_id
+    }
+    var data = {net: JSON.stringify(net),
+        tpl_id: active_template_id
+        }
       $.getJSON($SCRIPT_ROOT + '/_add_network', data, function(resp) {
-        status_code = resp.result.status_code;
-        if ( status_code == -1 ) {
+        if ( resp.status_code == -1 ) {
             $("#add_network_error").text('Name already in use. Please try again.');
-        } else if ( status_code == 1 ){
+        } else if ( resp.status_code == 1 ){
             $('#modal_add_network').modal('hide');
             update_networks(active_project_id, active_network_id);
             notify('success', 'Success!', 'Network "'+name+'" added.');
