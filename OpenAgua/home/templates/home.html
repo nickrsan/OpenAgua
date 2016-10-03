@@ -4,7 +4,7 @@
 
 {% block head_master %}
 
-<link href="{{ url_for('.static', filename='css/projects_manager.css') }}" media="all" rel="stylesheet" type="text/css" />
+<link href="{{ url_for('.static', filename='css/home.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 {% endblock %}    
     
@@ -25,7 +25,7 @@ var active_template_id = {{ session['template_id'] }};
 var active_template_id = null;
 {% endif %}
 
-var network_img = "{{ url_for('projects_manager.static', filename='images/default_network_image.png') }}";
+var network_img = "{{ url_for('home.static', filename='images/default_network_image.png') }}";
 
 </script>
 
@@ -38,7 +38,7 @@ var network_img = "{{ url_for('projects_manager.static', filename='images/defaul
             <!--<button id="add_project" class="btn btn-default btn-sm">Add project</button>-->
             <div id="projects" class="container-fluid">
                 <div>
-                    <span id="project_list_description">Your projects</span>
+                    <span id="project_list_description">Your projects</span> <a href="#"><span class="glyphicon glyphicon-question-sign"></span></a>
                 </div>
                 <div id="project_list" class="row"></div>
             </div>
@@ -63,7 +63,7 @@ var network_img = "{{ url_for('projects_manager.static', filename='images/defaul
   
 {% include "modals.html" %}
   
-<script src="{{ url_for('projects_manager.static', filename='js/functions.js') }}"></script>
-<script src="{{ url_for('projects_manager.static', filename='js/projects_manager.js') }}"></script>
+<script src="{{ url_for('home.static', filename='js/functions.js') }}"></script>
+<script src="{{ url_for('home.static', filename='js/home.js') }}"></script>
 
 {% endblock %}

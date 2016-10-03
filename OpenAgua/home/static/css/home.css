@@ -121,7 +121,7 @@
       text-align: center;
       padding: 30px 0 30px 0;
 }
-.network_preview a, .network_preview button {
+#network_list .network_preview a, .network_preview button {
       position: absolute;
       top: 50%;
       margin-top: -20px;
@@ -131,43 +131,23 @@
       z-index: 11;
       opacity: 0.75;
       color: white;
+      background-color: transparent;
       text-transform: uppercase;
       text-decoration: none;
       border-color: white;
       border-style: solid;
       border-width: 1px;
       height: 40px;
-      line-height: 40px;
+      line-height: 30px;
       width: 100px;
       display: none;
 }
-
-.network_preview button {
-      position: absolute;
-      top: 50%;
-      margin-top: -20px;
-      left: 50%;
-      margin-left: -50px;
-      font-size: 12px;
-      z-index: 11;
-      opacity: 0.75;
-      color: white;
-      text-transform: uppercase;
-      text-decoration: none;
-      border-color: white;
-      border-style: solid;
-      border-width: 1px;
-      height: 100px;
-      line-height: 100px;
-      width: 100px;
-      display: none;
-}
-
-.network_preview a:hover, .network_preview button:hover {
+#network_list .network_preview a:hover, .network_preview button:hover {
+      color: #ffffff;
       opacity: 1;
 }
-.network:hover .network_preview a, .network.hover .network_preview a,
-.network:hover .network_preview button, .network.hover .network_preview button{
+#network_list .network:hover .network_preview a, #network_list .network.hover .network_preview a,
+#network_list .network:hover .network_preview button, #network_list .network.hover .network_preview button{
     display: inline;
 }
 .network:hover .network_preview:after, .network.hover .network_preview:after {

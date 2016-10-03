@@ -18,7 +18,7 @@ def index():
     session['hydra_season_format'] = '9999-%m-01 00:00:00.000+0000'
     
     if current_user.is_authenticated:
-        return redirect(url_for('user_home.home'))
+        return redirect(url_for('home.home_main'))
     else:
         return render_template('index.html')
 

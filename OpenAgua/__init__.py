@@ -41,8 +41,8 @@ security = Security(app, user_datastore,
 import OpenAgua.views
 
 # import blueprints
-from .projects_manager import projects_manager
-from .home import user_home
+from .manager import manager
+from .home import home
 from .data_editor import data_editor
 from .network_editor import net_editor
 from .main_overview import main_overview
@@ -51,8 +51,8 @@ from .results_explorer import results_explorer
 from .chart_maker import chart_maker
 
 # register blueprints
-app.register_blueprint(user_home, url_prefix='')
-app.register_blueprint(projects_manager, url_prefix='')
+app.register_blueprint(home, url_prefix='')
+app.register_blueprint(manager, url_prefix='')
 app.register_blueprint(main_overview, url_prefix='')
 app.register_blueprint(data_editor, url_prefix='')
 app.register_blueprint(net_editor, url_prefix='')

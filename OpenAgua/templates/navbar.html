@@ -26,17 +26,22 @@
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class="glyphicon glyphicon-th-list"></span> Manage <span class="caret"></span></a>
           <ul class="dropdown-menu">
-            <li><a href="/manage">Projects/networks</a></li>
-            {% if current_user.has_role('admin') or current_user.has_role('superuser') %}
-              <li><a href="/manage/templates">Templates</a></li>
-            {% endif %}
+            <li><a href="#">Networks</a></li>
+            <li><a href="#">Scenarios</a></li>
+            <li><a href="#">Data</a></li>
           </ul>
         </li>
         
         <li class="nav-item"><a class="nav-link" href="#"><span class="glyphicon glyphicon-question-sign"></span> Help</a></li>
 
         {% if current_user.has_role('admin') or current_user.has_role('superuser') %}
-          <li class="nav-item"><a class="nav-link" href="/admin"><span class="glyphicon glyphicon-wrench"></span> Admin</a></li>
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><span class="glyphicon glyphicon-wrench"></span> Admin <span class="caret"></span></a>
+          <ul class="dropdown-menu">
+            <li><a href="/admin">Users</a></li>
+            <li><a href="/manage/templates">Templates</a></li>
+          </ul>
+        </li>
         {% endif %}
       
         <li class="dropdown">

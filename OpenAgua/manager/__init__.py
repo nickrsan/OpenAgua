@@ -1,9 +1,9 @@
 from flask import Blueprint
 
-home = Blueprint('home',
+manager = Blueprint('manager',
                  __name__,
                  template_folder='templates',
                  static_folder='static',
-                 static_url_path='/home/static')
+                 static_url_path='/manager/static')
 
-from . import views
+from . import manager

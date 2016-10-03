@@ -435,7 +435,10 @@ class connection(object):
                     for ttype in self.template.types:
                         self.ttypes[ttype.id] = ttype
                         self.ttype_dict[ttype.name] = ttype.id 
-        
+                        
+                # delete this once concept of studies is fully developed
+                if not self.invalid_study:
+                    session['study_name'] = '{}'.format(self.network.name)
         else:
             self.invalid_study = True
             session['project_id'] = None

@@ -20,45 +20,44 @@ $( document ).ready(function() {
         }
     );
     
-});
-
-
-$("button#add_project_confirm").bind('click', function() {
-      var proj = {
-        name: $('#project_name').val(),
-        description: $('#project_description').val()};
-        activate: $('#activate_project').is(':checked');
-      $.getJSON($SCRIPT_ROOT + '/_add_project', {proj: JSON.stringify(proj)}, function(resp) {
-        status_code = resp.result.status_code;
-        if ( status_code == -1 ) {
-            $("#add_project_error").text('Name already in use. Please try again.');
-        } else if ( status_code == 1 ){
-            $('#modal_add_project').modal('hide');
-            update_projects(active_project_id);
-            notify('success', 'Success!', 'Project "'+name+'" added.');
+    $("button#add_project_confirm").bind('click', function() {
+        var project_name = $('#project_name').val();
+        var proj = {
+            name: project_name,
+            description: $('#project_description').val()
         }
+        $.getJSON($SCRIPT_ROOT + '/_add_project', {proj: JSON.stringify(proj)}, function(resp) {
+            status_code = resp.status_code;
+            if ( status_code == -1 ) {
+                $("#add_project_error").text('Name already in use. Please try again.');
+            } else if ( status_code == 1 ) {
+                $('#modal_add_project').modal('hide');
+                update_projects(active_project_id);
+                notify('success', 'Success!', 'Project "'+project_name+'" added.');
+            }
+        });
     });
-});
-
-
-$("button#add_network_confirm").bind('click', function() {
+    
+    $("button#add_network_confirm").bind('click', function() {
+    var network_name = $('#network_name').val();
     var net = {
-        name: $('#network_name').val(),
+        name: network_name,
         description: $('#network_description').val(),
         project_id: active_project_id
-    }
-    var data = {net: JSON.stringify(net),
-        tpl_id: active_template_id
         }
-      $.getJSON($SCRIPT_ROOT + '/_add_network', data, function(resp) {
-        if ( resp.status_code == -1 ) {
-            $("#add_network_error").text('Name already in use. Please try again.');
-        } else if ( resp.status_code == 1 ){
-            $('#modal_add_network').modal('hide');
-            update_networks(active_project_id, active_network_id);
-            notify('success', 'Success!', 'Network "'+name+'" added.');
-        }
+    var data = {net: JSON.stringify(net), tpl_id: active_template_id}
+        $.getJSON($SCRIPT_ROOT + '/_add_network', data, function(resp) {
+            if ( resp.status_code == -1 ) {
+                $("#add_network_error").text('Name already in use. Please try again.');
+            } else if ( resp.status_code == 1 ){
+                $('#modal_add_network').modal('hide');
+                update_networks(active_project_id, active_network_id);
+                $('#network_name').val('');
+                notify('success', 'Success!', 'Network "'+network_name+'" added.');
+            }
+        });
     });
+    
 });
 
 // project actions
@@ -175,7 +174,7 @@ function update_networks(active_project_id, active_network_id) {
 function populate_networks(networks) {
 
     var netlist = $('#network_list'),
-        cell, network_item, dropdown, menu, img, preview, footer;
+        cell, network_item, dropdown, menu, img, preview, footer, main_action;
 
     netlist.empty();
     
@@ -184,8 +183,8 @@ function populate_networks(networks) {
     
         cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
         
-        network_item = $('<div>').addClass('network');
-    
+        network_item = $('<div>').addClass('network');  
+
         dropdown = network_dropdown.clone()
             .find('a')
             .attr('data-name', network.name)
@@ -196,14 +195,23 @@ function populate_networks(networks) {
 
         //var img = $('<img>').attr('src', network_img).css('width', '100%');
         img = $('<i>').addClass('fa fa-map-o');
+        
+        main_action = $('<button>')
+            .addClass("btn")
+            .addClass('study_overview')
+            .attr('data-id', network.id)
+            .attr('data-name', network.name)
+            .text('Overview');
+        
+        // keep the following here, in case we switch back to a link
+        //main_action = $('<a>')
+            //.attr('href','/overview')
+            //.text('Overview')
     
         preview = $('<div>')
             .addClass('network_preview')
             .append(img)
-            .append($('<a>')
-                .addClass('main_action')
-                    .attr('href','/overview')
-                        .text('Overview'));
+            .append(main_action);
             
         footer = $('<div>')
             .addClass("network_footer")
@@ -231,12 +239,27 @@ function populate_networks(networks) {
     
     cell.append(network_item)
     netlist.append(cell)
+
+    // go to network overview
+    $('.study_overview').click(function(e) {
+        var network_id = Number($(this).attr('data-id'));
+        $.get('/_load_study', { network_id: network_id }, function() {
+            window.location.href = "/overview";    
+        });
+    });
+    
+    // edit schematic
+    $('.edit_schematic').click(function(e) {
+        var network_id = Number($(this).attr('data-id'));
+        $.get('/_load_study', { network_id: network_id }, function() {
+            window.location.href = "/network_editor";    
+        });
+    });
     
     // add the binding after networks are shown
     $("button#add_network").click(function() {
       $('#modal_add_network').modal('show');
     });
-
 }
 
 // purge project
@@ -325,14 +348,6 @@ $(document).on('click', '.clean_up_network', function(e) {
             result = hydra_call('clean_up_network', {network_id: id});
             notify('success','Success!', 'Network has been cleaned up.');
         };
-    });
-});
-
-// upgrade template
-$(document).on('click', '.edit_schematic', function(e) {
-    var network_id = Number($(this).attr('data-id'));
-    $.get('/_edit_schematic', { network_id: network_id }, function() {
-        window.location.href = "/network_editor";    
     });
 });
 
