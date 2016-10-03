@@ -1,5 +1,5 @@
 $(document).ready(function() {
-    if (is_pro_user == true) {
+    if (user_level == "pro") {
         update_projects(active_project_id);
         
         $("#project_list").on("mouseenter", ".project", 
@@ -63,7 +63,7 @@ $(document).ready(function() {
 });
 
 // project actions
-if (is_pro_user) {
+if (user_level == "pro") {
     var project_actions =
         $('<ul>').addClass("dropdown-menu")
             .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share project with another OpenAgua user.">Share</a>'))

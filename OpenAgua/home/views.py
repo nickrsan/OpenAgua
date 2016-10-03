@@ -24,13 +24,12 @@ def home_main():
     conn = make_connection(login=True)
     conn.load_active_study(load_from_hydra=False)
     
-    # get the list of project names, and network names for the test project
-    #projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-    networks = conn.call('get_networks', {'project_id': session['project_id']})
+    if current_user.has_role('pro_user') or current_user.has_role('superuser'):
+        user_level = "pro"
+    else:
+        user_level = "basic"
     
-    return render_template('home.html',
-                           #projects=projects,
-                           networks=networks)
+    return render_template('home.html', user_level=user_level)
 
 @home.route('/manage/templates')
 @login_required
