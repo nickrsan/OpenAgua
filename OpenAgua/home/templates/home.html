@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %} - Manage{% endblock %}
+{% block title %} - Home{% endblock %}
 
 {% block head_master %}
 
@@ -13,25 +13,30 @@
 {% include 'navbar.html' %}
 
 <script>
-var active_project_id = {{ session['project_id'] }};
-{% if session['network_id'] %}
-var active_network_id = {{ session['network_id'] }};
-{% else %}
-var active_network_id = null;
-{% endif %}
-{% if session['template_id'] %}
-var active_template_id = {{ session['template_id'] }};
-{% else %}
-var active_template_id = null;
-{% endif %}
-
-var network_img = "{{ url_for('home.static', filename='images/default_network_image.png') }}";
+    var active_project_id = {{ session['project_id'] }};
+    
+    {% if session['network_id'] %}
+    var active_network_id = {{ session['network_id'] }};
+    {% else %}
+    var active_network_id = null;
+    {% endif %}
+    
+    {% if session['template_id'] %}
+    var active_template_id = {{ session['template_id'] }};
+    {% else %}
+    var active_template_id = null;
+    {% endif %}
+    
+    var network_img = "{{ url_for('home.static', filename='images/default_network_image.png') }}";
+    var is_pro_user = "{{ current_user.has_role('pro_user') }}";
 
 </script>
 
 <div class="container-fluid">
 
       <div class="row"><br>
+      
+        {% if current_user.has_role('pro_user') %}
       
         <!--projects-->
         <div class="col col-sm-4 col-md-4 col-lg-3">
@@ -46,10 +51,17 @@ var network_img = "{{ url_for('home.static', filename='images/default_network_im
           
         <!--networks-->
         <div class="col col-sm-8 col-md-8 col-lg-9">
+
+        {% else %}
+        
+        <!--networks-->
+        <div class="col col-sm-12 col-md-12 col-lg-12">
+        
+        {% endif %}
             
             <div class="container-fluid" id="networks">
                 <div>
-                    <span id="network_list_description"></span>
+                    <span id="network_list_description">Your networks</span> <a href="#"><span class="glyphicon glyphicon-question-sign"></span></a>
                     <!--<button id="add_network" class="btn btn-default btn-small">Add network</button>-->
                 </div>
                 

@@ -25,11 +25,11 @@ def home_main():
     conn.load_active_study(load_from_hydra=False)
     
     # get the list of project names, and network names for the test project
-    projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
+    #projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
     networks = conn.call('get_networks', {'project_id': session['project_id']})
     
     return render_template('home.html',
-                           projects=projects,
+                           #projects=projects,
                            networks=networks)
 
 @home.route('/manage/templates')
