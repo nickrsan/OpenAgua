@@ -24,7 +24,7 @@
         {% for (type_id, type_name, feature_type), feats in features.items() %}
           <optgroup label="{{ type_name }}">
           {% for f in feats %}
-            <option data-tokens='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
+            <option data-tags='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
           {% endfor %}
           </optgroup>
         {% endfor %}
@@ -47,7 +47,7 @@
         <label for="scenarios">Scenario</label>
         <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
         {% for scenario in scenarios %}
-          <option data-tokens='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
+          <option data-tags='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
         {% endfor %}
         </select>
       </div>
@@ -91,8 +91,8 @@
         <div id="editor_footer">
           <div id="datatypes_wrapper" class="pull-left">
             <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%" disabled>
-              <option value="function" data-tokens='{"data_type": "function"}'>Function/code</option>
-              <option value="timeseries" data-tokens='{"data_type": "timeseries"}'>Time series</option>
+              <option value="function" data-tags='{"data_type": "function"}'>Function/code</option>
+              <option value="timeseries" data-tags='{"data_type": "timeseries"}'>Time series</option>
             </select>
           </div>
 

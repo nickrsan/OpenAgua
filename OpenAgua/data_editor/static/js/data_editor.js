@@ -49,10 +49,10 @@ $(document).ready(function(){
     $('#scenarios').attr('disabled', true).selectpicker('refresh');
     var selected = $('#features option:selected');
     if (selected.length) {
-      var data_tokens = $.parseJSON(selected.attr("data-tokens"));
-      type_id = data_tokens.type_id;
-      feature_id = data_tokens.feature_id;
-      feature_type = data_tokens.feature_type;
+      var tags = $.parseJSON(selected.attr("data-tags"));
+      type_id = tags.type_id;
+      feature_id = tags.feature_id;
+      feature_type = tags.feature_type;
       loadVariables(type_id);
     }
   });
@@ -61,7 +61,7 @@ $(document).ready(function(){
   $('#variables').on('changed.bs.select', function (e) {
     var selected = $('#variables option:selected');
     if (selected.length) {
-      res_attr = JSON.parse(selected.attr("data-tokens"));
+      res_attr = JSON.parse(selected.attr("data-tags"));
       unit = res_attr.unit;
       dimension = res_attr.dimension;
       orig_data_type = res_attr.data_type;
@@ -83,8 +83,8 @@ $(document).ready(function(){
   $('#datatypes').on('changed.bs.select', function (e) {
     var selected = $('#datatypes option:selected');
     
-    var data_tokens = JSON.parse(selected.attr("data-tokens"));
-    var temp_data_type = data_tokens.data_type;
+    var tags = JSON.parse(selected.attr("data-tags"));
+    var temp_data_type = tags.data_type;
       var msg = 'Are you sure you want to change the data type? This change will become permanent if the new data is saved.'
       bootbox.confirm(msg, function(confirm) {
         if (confirm) {          
@@ -103,9 +103,9 @@ $(document).ready(function(){
   $('#scenarios').on('hide.bs.select', function (e) {
     var selected = $('#scenarios option:selected');
     if (selected.length) {
-      var data_tokens = JSON.parse(selected.attr("data-tokens"));
-      scen_id = data_tokens.scen_id;
-      scen_name = data_tokens.scen_name;
+      var tags = JSON.parse(selected.attr("data-tags"));
+      scen_id = tags.scen_id;
+      scen_name = tags.scen_name;
       loadVariableData();
     } else {
       scen_id = null;
@@ -223,7 +223,7 @@ function loadVariables(type_id) {
       var res_attrs = _.sortBy(resp.res_attrs, 'name');
       $.each(res_attrs, function(index, res_attr) {
         if (res_attr.attr_is_var == 'N') {
-          var data_tokens = {
+          var tags = {
             attr_id: res_attr.attr_id,
             type_id: type_id,
             res_attr_id: res_attr.id,
@@ -234,7 +234,7 @@ function loadVariables(type_id) {
           }
           vpicker
             .append($('<option>')
-              .attr('data-tokens',JSON.stringify(data_tokens))
+              .attr('data-tags',JSON.stringify(tags))
               .val(res_attr.tpl_type_attr.name)
               .text(res_attr.tpl_type_attr.name)
             );
@@ -383,7 +383,7 @@ function checkData(data) {
           notify('success','Looks good!', 'Remember to save your edits.');
           errmsg('');
         }
-        updateChart(scen_name, resp.timeseries);
+        updateChart(scen_name, resp.eval_value);
         unsaved();
     }
   });
@@ -417,7 +417,8 @@ function saveData(data) {
           data_type = cur_data_type;
           res_attr.data_type = data_type; // update local record
           var selected = $('#variables option:selected');
-          selected.data_tokens = JSON.stringify(res_attr);
+          //selected.data_tokens = JSON.stringify(res_attr);
+          selected.data_tags = JSON.stringify(res_attr);
           $('#variables').selectpicker('refresh');
           loadVariableData();
           notify('success','Success!','Data saved.');
