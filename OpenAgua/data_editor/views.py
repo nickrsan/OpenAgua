@@ -129,7 +129,7 @@ def check_or_save_data():
             new_value == None # placeholder
             
         # either way, we should check the data before saving
-        errcode, errmsg, timeseries = eval_data(cur_data_type, new_value, do_eval=True)
+        errcode, errmsg, eval_value = eval_data(cur_data_type, new_value, do_eval=True)
         
         if action == 'save' and errcode == 1:
             conn = make_connection()
@@ -146,7 +146,7 @@ def check_or_save_data():
                                metadata, scen_id)
         else:
             status = 0 # no save attempt - just report error
-        return jsonify(status = status, errcode = errcode, errmsg = errmsg, timeseries = timeseries)
+        return jsonify(status=status, errcode=errcode, errmsg=errmsg, eval_value=eval_value)
     
     return redirect(url_for('data_editor.data_editor_main'))
 

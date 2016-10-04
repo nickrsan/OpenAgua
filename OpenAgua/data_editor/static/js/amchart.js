@@ -9,9 +9,8 @@ function amchart(title, timeseries, dateFormat, divname, log) {
   var chart = AmCharts.makeChart(divname, {
       "type": "serial",
       "theme": "light",
-      "marginRight": 40,
-      "marginLeft": 50,
-      "autoMarginOffset": 30,
+      "marginRight": 60,
+      "autoMarginOffset": 50,
       "mouseWheelZoomEnabled":false,
       "dataDateFormat": dateFormat,
       "valueAxes": [{
@@ -77,7 +76,7 @@ function amchart(title, timeseries, dateFormat, divname, log) {
       }],
       "valueScrollbar":{
         "oppositeAxis":false,
-        "offset":40,
+        "offset": 50,
         "scrollbarHeight":5
       },
       "categoryField": "date",

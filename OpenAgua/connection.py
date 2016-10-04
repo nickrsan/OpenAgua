@@ -522,6 +522,8 @@ def save_data(conn, old_data_type, cur_data_type, res_attr, res_attr_data, new_v
                 'dataset': dataset}
         result = conn.call('add_data_to_attribute', args)  
             
+    # NB: this has presented a problem in the past, particularly if there is already
+    # an existing dataset with the same value. In that case, we should create a new dataset instead.
     else: # just update the existing dataset
         dataset = res_attr_data['value']
         dataset['type'] = new_data_type
