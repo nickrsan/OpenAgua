@@ -6,7 +6,7 @@ from flask import redirect, url_for, render_template, \
 from flask_security import login_required, current_user
 from ..connection import connection, make_connection, save_data, load_hydrauser
 from ..utils import hydra_timeseries, d2o, \
-     eval_scalar, eval_timeseries, eval_function, eval_data
+     eval_scalar, eval_timeseries, eval_function, eval_data, get_dates
 
 # import blueprint definition
 from . import data_editor
@@ -74,6 +74,7 @@ def get_variable_data():
     res_attr_id = int(request.args.get('res_attr_id'))
     scen_id = int(request.args.get('scen_id'))
     type_id = int(request.args.get('type_id'))
+    data_type = request.args.get('data_type')
 
     args = {'%s_id' % feature_type: feature_id,
             'scenario_id': scen_id,
@@ -81,12 +82,13 @@ def get_variable_data():
     feature_data = conn.call('get_%s_data' % feature_type, args)
     
     res_attr_data = [row for row in feature_data if row.resource_attr_id == res_attr_id]
-
+    
+    eval_value = None
     if res_attr_data:
         
         # evaluate the data
         res_attr_data = res_attr_data[0]
-        data_type = res_attr_data.value.type
+        #data_type = res_attr_data.value.type
         
         function = None
         if data_type == 'timeseries':
@@ -96,9 +98,12 @@ def get_variable_data():
                     function = metadata['function']
         eval_value = eval_data(data_type, res_attr_data.value.value, function=function)
         
-    else:
+    if eval_value is None:
         res_attr_data = None
-        eval_value = None
+        if data_type == 'timeseries':
+            eval_value = [{'date': date, 'value': ''} for date in get_dates()]
+        else:
+            result = ''
     
     return jsonify(res_attr_data=res_attr_data, eval_value=eval_value)
 

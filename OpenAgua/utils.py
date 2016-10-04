@@ -56,7 +56,6 @@ def hydra_timeseries(data):
         #result.append(row)
     #return result
 
-
 def eval_scalar(x):
     
     try: # create the function
@@ -178,8 +177,12 @@ def eval_data(data_type, data, do_eval=False, function=None):
 
     #if timeseries is None:
         #timeseries = openagua_timeseries("''")
-    if result is None:
-        result = ''
+    #if result is None:
+        #result = ''
+        #if data_type == 'timeseries':
+            #result = [{'date': date, 'value': ''} for date in get_dates()]
+        #else:
+            #result = ''
         
     if do_eval:
         return returncode, errormsg, result

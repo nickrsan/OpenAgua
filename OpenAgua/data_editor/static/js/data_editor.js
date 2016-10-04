@@ -7,10 +7,8 @@ var feature_id, feature_type,
     orig_data_type, cur_data_type;
 
 var unit,
-    dimension,
-    
+    dimension, 
     original_data,
-    
     res_attr_data;
 
 // initialize selectpick
@@ -37,6 +35,8 @@ aceEditor.setOptions({
 var hotEditor = makeHandsontable('timeseries', $("#timeseries").css("height"), unsaved)
 
 $(document).ready(function(){
+
+  clearPreview()
 
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
@@ -262,7 +262,8 @@ function loadVariableData() {
     feature_type: feature_type,
     feature_id: feature_id,
     res_attr_id: res_attr.res_attr_id,
-    scen_id: scen_id
+    scen_id: scen_id,
+    data_type: res_attr.data_type
   }
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     var res_attr_data = resp.res_attr_data,
@@ -479,26 +480,26 @@ function saved() {
 // PREVIEW FUNCTIONS
 
 function previewTimeseries(title, timeseries) {
-  clearPreview();
+  clearPreview('');
   $('#preview_timeseries').show();
   amchart(title, timeseries, dateFormat, "preview_timeseries", false)
 }
 
 function previewScalar(value) {
-  clearPreview();
+  clearPreview('');
   $("#preview_scalar").text(value).show();
 }
 
 function previewArray(value) {
-  clearPreview();
+  clearPreview('');
   $("#preview_array").text(value).show(); // placeholder
 }
 
-function clearPreview(msg='') {
+function clearPreview(msg='No data to preview') {
   $('.preview').empty().hide()
   if (msg.length) {
-    $('#preview_status').text(msg).show();
+    $('#preview_status').text(msg); 
   } else {
-    $('#preview_status').empty().hide();
+    $('#preview_status').empty().hide();  
   }
 }

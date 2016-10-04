@@ -27,7 +27,7 @@
   display: none;
 }
 
-#preview_status {
+.viewer_status {
   color: #999999;
   font-size: large;
   margin-bottom: 15px;
