@@ -282,11 +282,7 @@ function loadVariableData() {
     
     loadEditorData(cur_data_type, res_attr_data, eval_value);
     loadPreviewData(cur_data_type, scen_name, eval_value);
-    
     saved();
-    
-    // turn on the data type selector
-    
     
   });
 }
@@ -294,7 +290,6 @@ function loadVariableData() {
 
 function loadEditorData(cur_data_type, res_attr_data, eval_value) {
 
-  // update the editor
   clearEditor();
   updateEditor(cur_data_type, unit, dimension);
   
@@ -308,8 +303,6 @@ function loadEditorData(cur_data_type, res_attr_data, eval_value) {
       }
       setDataTypeSelector(cur_data_type);
       updateAceEditor(original_data);
-      //showDataTypes();
-      //previewTimeseries(scen_name, eval_value);
       break;
   
     case 'timeseries':
@@ -317,17 +310,13 @@ function loadEditorData(cur_data_type, res_attr_data, eval_value) {
       setDataTypeSelector(cur_data_type);
       var col_headers = ['Month', scen_name]; // get from settings later
       updateHandsontable(eval_value, col_headers);
-      //showDataTypes();
-      //previewTimeseries(scen_name, eval_value);
       break;
       
     case 'scalar':
       if (res_attr_data == null) {
         original_data = ''
-        //clearPreview('No value to preview')
       } else {
         original_data = res_attr_data.value.value;       
-        //previewScalar(eval_value)
       }
       scalarEditor(original_data)
       break;
@@ -335,74 +324,48 @@ function loadEditorData(cur_data_type, res_attr_data, eval_value) {
     case 'descriptor':
       if (res_attr_data == null) {
         original_data = ''
-        //clearPreview('No value to preview')
       } else {
         original_data = res_attr_data.value.value;       
-        //previewDescriptor(eval_value)
       }
       textEditor(original_data)
       break;
       
     case 'array':
-      //previewArray('No array data preview yet.')
       break;
       
     default:
       break;
   }
 }
-    
-    
+
 function loadPreviewData(cur_data_type, scen_name, eval_value) {
 
-  // update the editor
-  //clearEditor();
-  //updateEditor(cur_data_type, unit, dimension);
-  
-  // load the data
   clearPreview();
   
   switch(cur_data_type) {
       
     case 'function':
-      //if (res_attr_data == null) {
-        //original_data = '';
-      //} else {
-        //original_data = JSON.parse(res_attr_data.value.metadata).function;
-      //}
-      //setDataTypeSelector(cur_data_type);
-      //updateAceEditor(original_data);
       previewTimeseries(scen_name, eval_value);
       break;
   
     case 'timeseries':
-      //original_data = _.cloneDeep(eval_value);
-      //setDataTypeSelector(cur_data_type);
-      //var col_headers = ['Month', scen_name]; // get from settings later
-      //updateHandsontable(eval_value, col_headers);
       previewTimeseries(scen_name, eval_value);
       break;
       
     case 'scalar':
       if (eval_value == null) {
-        //original_data = ''
         clearPreview('No data to preview')
       } else {
-        //original_data = res_attr_data.value.value;       
         previewScalar(eval_value)
       }
-      //scalarEditor(original_data)
       break;
       
     case 'descriptor':
       if (eval_value == null) {
-        //original_data = ''
         clearPreview('No data to preview')
       } else {
-        //original_data = res_attr_data.value.value;       
         previewDescriptor(eval_value)
       }
-      //textEditor(original_data)
       break;
       
     case 'array':
@@ -573,7 +536,3 @@ function clearPreview(msg='No data to preview') {
     $('#preview_status').empty().hide();  
   }
 }
-
-//function showDataTypes() {
-  //$("#datatypes").attr("disabled", false).selectpicker("refresh");
-//}
