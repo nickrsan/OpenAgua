@@ -80,8 +80,7 @@ def get_variable_data():
             'type_id': type_id}
     feature_data = conn.call('get_%s_data' % feature_type, args)
     
-    res_attr_data = \
-        [row for row in feature_data if row.resource_attr_id == res_attr_id]
+    res_attr_data = [row for row in feature_data if row.resource_attr_id == res_attr_id]
 
     if res_attr_data:
         
@@ -95,16 +94,13 @@ def get_variable_data():
             if 'function' in metadata.keys():
                 if len(metadata['function']):
                     function = metadata['function']
-        timeseries = eval_data(data_type,
-                               res_attr_data.value.value, function = function)
+        eval_value = eval_data(data_type, res_attr_data.value.value, function=function)
         
     else:
         res_attr_data = None
-        
-        # create some blank data for plotting
-        timeseries = eval_data('generic', None)
+        eval_value = None
     
-    return jsonify(res_attr_data=res_attr_data, timeseries=timeseries)
+    return jsonify(res_attr_data=res_attr_data, eval_value=eval_value)
 
 # add a new variable from user input
 @data_editor.route('/_check_or_save_data', methods=['GET', 'POST'])
@@ -128,8 +124,7 @@ def check_or_save_data():
             new_value == None # placeholder
             
         # either way, we should check the data before saving
-        errcode, errmsg, timeseries = \
-            eval_data(cur_data_type, new_value, do_eval=True)
+        errcode, errmsg, timeseries = eval_data(cur_data_type, new_value, do_eval=True)
         
         if action == 'save' and errcode == 1:
             conn = make_connection()
@@ -146,8 +141,7 @@ def check_or_save_data():
                                metadata, scen_id)
         else:
             status = 0 # no save attempt - just report error
-        return jsonify(status = status, errcode = errcode, errmsg = errmsg,
-                       timeseries = timeseries)
+        return jsonify(status = status, errcode = errcode, errmsg = errmsg, timeseries = timeseries)
     
     return redirect(url_for('data_editor.data_editor_main'))
 

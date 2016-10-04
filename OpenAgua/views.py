@@ -8,15 +8,7 @@ from .connection import connection
 app.secret_key = app.config['SECRET_KEY']
 
 @app.route('/')
-def index():
-    
-    session['ti'] = '1/2000'
-    session['tf'] = '12/2019'
-    session['date_format'] = '%m/%Y'
-    session['timestep'] = 'MONTHLY'
-    session['hydra_time_format'] = '%Y-%m-01 00:00:00.000+0000'
-    session['hydra_season_format'] = '9999-%m-01 00:00:00.000+0000'
-    
+def index():    
     if current_user.is_authenticated:
         return redirect(url_for('home.home_main'))
     else:

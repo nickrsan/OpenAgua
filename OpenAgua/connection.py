@@ -391,13 +391,26 @@ class connection(object):
             .filter(HydraStudy.active == 1) \
             .first()
 
-        self.invalid_study = False
-        
-        if study:
+        session['ti'] = app.config['TEMP_TI'] # get from study db
+        session['tf'] = app.config['TEMP_TF'] # get from study db
+        session['date_format'] = app.config['MONTH_FORMAT'] # get from study db
+        session['amchart_date_format'] = app.config['AMCHART_DATE_FORMAT']
+        session['timestep'] = 'MONTHLY' # get from study db - must match rrule functions
+        session['hydra_time_format'] = app.config['HYDRA_DATETIME_FORMAT'] # get from config (can we query from HP?)
+
+        if not study:
+            session['project_id'] = None
+            session['network_id'] = None
+            session['template_id'] = None            
+            session['study_name'] = None        
+            self.invalid_study = True        
+
+        else:
             session['project_id'] = study.project_id
             session['network_id'] = study.network_id
             session['template_id'] = study.template_id
             session['study_name'] = study.name
+            self.invalid_study = False
         
             if load_from_hydra:
             
@@ -438,13 +451,7 @@ class connection(object):
                         
                 # delete this once concept of studies is fully developed
                 if not self.invalid_study:
-                    session['study_name'] = '{}'.format(self.network.name)
-        else:
-            self.invalid_study = True
-            session['project_id'] = None
-            session['network_id'] = None
-            session['template_id'] = None            
-            session['study_name'] = None            
+                    session['study_name'] = '{}'.format(self.network.name)            
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

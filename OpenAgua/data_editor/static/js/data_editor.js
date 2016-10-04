@@ -7,14 +7,11 @@ var feature_id, feature_type,
     orig_data_type, cur_data_type;
 
 var unit,
-    dimension;
-  
-var original_data;
-var res_attr_data;
-
-var plot_data, col_headers;
-
-//var default_data_type = 'function'; // setting this is subjective
+    dimension,
+    
+    original_data,
+    
+    res_attr_data;
 
 // initialize selectpick
 $(".selectpicker")
@@ -37,14 +34,14 @@ aceEditor.setOptions({
 });
 
 // initialize handsontable (time series editor)
-var hotEditor = makeHandsontable('timeseries', $("#timeseries").css("height"))
+var hotEditor = makeHandsontable('timeseries', $("#timeseries").css("height"), unsaved)
 
 $(document).ready(function(){
 
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
     clearEditor();
-    clearChart();
+    clearPreview();
     
     setDataTypeSelector("scalar");
     
@@ -68,13 +65,12 @@ $(document).ready(function(){
       unit = res_attr.unit;
       dimension = res_attr.dimension;
       orig_data_type = res_attr.data_type;
-      //cur_data_type = data_type; // initialize cur_data_type
       var spicker = $('#scenarios');
       if (spicker.attr('disabled')) {
         spicker.attr('disabled',false).selectpicker('refresh');
       }
       if (scen_id != null) {
-        loadData();
+        loadVariableData();
       } else {
       var stitle = 'Select a scenario'
       $('button[data-id="scenarios"]')
@@ -110,7 +106,7 @@ $(document).ready(function(){
       var data_tokens = JSON.parse(selected.attr("data-tokens"));
       scen_id = data_tokens.scen_id;
       scen_name = data_tokens.scen_name;
-      loadData();
+      loadVariableData();
     } else {
       scen_id = null;
       scen_name = null;
@@ -121,12 +117,12 @@ $(document).ready(function(){
   
   // listen to text editor changes
   $('#text_input').on('input', function() {
-    saveStatus(0);
+    unsaved();
   });
   
   // listen to function editor changes
   aceEditor.getSession().on("change", function() {
-    saveStatus(0);
+    unsaved();
   });
 
 });
@@ -187,7 +183,7 @@ $('#check, #save').click(function() {
       msg = 'No change detected.'    
     }
     notify('info', 'Alert!', msg);
-    saveStatus(1);
+    saved();
     return;
   } else {
     checkOrSaveData(new_data, action);
@@ -197,8 +193,8 @@ $('#check, #save').click(function() {
 
 // clear changes
 $('#revert').click(function() {
-  loadData();
-  saveStatus(1);
+  loadVariableData();
+  saved();
   errmsg('');
 });
 
@@ -259,7 +255,7 @@ function loadVariables(type_id) {
 }
 
 // load the variable data
-function loadData() {
+function loadVariableData() {
 
   var data = {
     type_id: type_id,
@@ -269,7 +265,8 @@ function loadData() {
     scen_id: scen_id
   }
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
-    res_attr_data = resp.res_attr_data;
+    var res_attr_data = resp.res_attr_data,
+        eval_value = resp.eval_value;
     if (res_attr_data != null) {
       orig_data_type = res_attr_data.value.type;
       metadata = JSON.parse(res_attr_data.value.metadata)
@@ -282,32 +279,14 @@ function loadData() {
     
     cur_data_type = orig_data_type;
     
-    // define the data to plot
-    plot_data = resp.timeseries;
-    
-    // clear the editor
+    // update the editor
     clearEditor();
-    
-    // load the returned time series into the table and plot, even if empty
-    loadDataActions(cur_data_type, res_attr_data);
-    col_headers = ['Month',scen_name];
     updateEditor(cur_data_type, unit, dimension);
-    if (cur_data_type == 'descriptor') {
-      clearChart();
-    } else {
-      updateChart(scen_name, plot_data);    
-    }
-    saveStatus(1);
     
-    // turn on the data type selector
-    $("#datatypes").attr("disabled", false).selectpicker("refresh");
+    // load the data
+    clearPreview();
     
-  });
-}
-
-function loadDataActions(data_type, res_attr_data) {
-
-    switch(data_type) {
+    switch(cur_data_type) {
         
       case 'function':
         if (res_attr_data == null) {
@@ -315,20 +294,26 @@ function loadDataActions(data_type, res_attr_data) {
         } else {
           original_data = JSON.parse(res_attr_data.value.metadata).function;
         }
-        updateAceEditor(original_data);
         setDataTypeSelector(cur_data_type);
+        updateAceEditor(original_data);
+        previewTimeseries(scen_name, eval_value);
         break;
     
       case 'timeseries':
-        original_data = _.cloneDeep(plot_data);
+        original_data = _.cloneDeep(eval_value);
         setDataTypeSelector(cur_data_type);
+        var col_headers = ['Month', scen_name]; // get from settings later
+        updateHandsontable(eval_value, col_headers);
+        previewTimeseries(scen_name, eval_value);
         break;
         
       case 'scalar':
         if (res_attr_data == null) {
           original_data = ''
+          clearPreview('No value to preview')
         } else {
           original_data = res_attr_data.value.value;       
+          previewScalar(eval_value)
         }
         scalarEditor(original_data)
         break;
@@ -336,18 +321,28 @@ function loadDataActions(data_type, res_attr_data) {
       case 'descriptor':
         if (res_attr_data == null) {
           original_data = ''
+          clearPreview('No value to preview')
         } else {
           original_data = res_attr_data.value.value;       
+          previewDescriptor(eval_value)
         }
         textEditor(original_data)
         break;
         
       case 'array':
+        previewArray('No array data preview yet.')
         break;
         
       default:
         break;
-    }
+    }    
+    
+    saved();
+    
+    // turn on the data type selector
+    $("#datatypes").attr("disabled", false).selectpicker("refresh");
+    
+  });
 }
 
 // data functions
@@ -388,7 +383,7 @@ function checkData(data) {
           errmsg('');
         }
         updateChart(scen_name, resp.timeseries);
-        saveStatus(0);
+        unsaved();
     }
   });
 }
@@ -410,12 +405,12 @@ function saveData(data) {
         case -1:
           notify('danger','Warning!','Your data seems okay, but something still went wrong.');
           errmsg(resp.errmsg);
-          saveStatus(0)
+          unsaved();
           break;
         case 0:
           notify('danger','Warning!','Your data is not correct. Check error message. Nothing saved.')
           errmsg(resp.errmsg);
-          saveStatus(0)
+          unsaved();
           break;
         case 1:
           data_type = cur_data_type;
@@ -423,24 +418,22 @@ function saveData(data) {
           var selected = $('#variables option:selected');
           selected.data_tokens = JSON.stringify(res_attr);
           $('#variables').selectpicker('refresh');
-          loadData();
+          loadVariableData();
           notify('success','Success!','Data saved.');
           errmsg('');
-          saveStatus(1);
+          saved();
       }
     }
   });   
 }
 
-// editor functions
+// EDITOR FUNCTIONS
+
 function updateEditor(data_type, unit, dimension) {
   $('.editor').hide();
   $('#'+data_type).show();
   $('#editor_status').hide();
   $('#editor').show()
-  if (data_type == 'timeseries') {
-      updateHandsontable(plot_data, col_headers);
-  }
   $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
 }
 
@@ -462,44 +455,50 @@ function setDataTypeSelector(data_type) {
   $('#datatypes_wrapper').show();
 }
 
-// update updateAceEditor
 function updateAceEditor(original_data) {
   aceEditor.setValue(original_data);
   aceEditor.gotoLine(1);
-  saveStatus(1);
+  saved();
 }
 
-// function scalar input
 function scalarEditor(original_data) {
   scalarInput.val(original_data);
 }
 
-// function scalar input
 function textEditor(original_data) {
   textInput.val(original_data);
 }
 
-// chart functions
-function updateChart(title, timeseries) {
-  if (timeseries != null) {
-    dateFormat = "MM/YYYY" // need to get this from the model setup
-    $('#preview_status').hide();
-    $('#preview').show();
-    amchart(title, timeseries, dateFormat, "preview", false)
-  } else {
-    clearChart() // actually, we shouldn't get here
-  }
+function unsaved() {
+  $('#save_status').text('Changes not saved!');
+}
+function saved() {
+  $('#save_status').empty();
 }
 
-function clearChart() {
-  $('#preview').empty().hide();
-  $('#preview_status').show();
+// PREVIEW FUNCTIONS
+
+function previewTimeseries(title, timeseries) {
+  clearPreview();
+  $('#preview_timeseries').show();
+  amchart(title, timeseries, dateFormat, "preview_timeseries", false)
 }
 
-function saveStatus(code) {
-  if(code == 0) {
-    $('#savestatus').text('Changes not saved!');
+function previewScalar(value) {
+  clearPreview();
+  $("#preview_scalar").text(value).show();
+}
+
+function previewArray(value) {
+  clearPreview();
+  $("#preview_array").text(value).show(); // placeholder
+}
+
+function clearPreview(msg='') {
+  $('.preview').empty().hide()
+  if (msg.length) {
+    $('#preview_status').text(msg).show();
   } else {
-    $('#savestatus').text('');  
+    $('#preview_status').empty().hide();
   }
 }

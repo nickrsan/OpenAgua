@@ -40,18 +40,21 @@ def hydra_timeseries(data):
     return timeseries
 
 
-def openagua_timeseries(valstr, **kwargs):
-    for key, val in kwargs.items():
-        exec('%s = %s' % (key, val))
-    dates = get_dates()
-    result = list()
-    for date in dates:
-        value = eval(valstr)
-        if eval("'%s'" % value) is None:
-            value = ''
-        row = {'date': date, 'value': value}
-        result.append(row)
-    return result
+#def openagua_timeseries(valstr, **kwargs):
+    #for kw in kwargs:
+        #exec('%s = %s' % (kw, kwargs[kw]), {}, locals())
+    #dates = get_dates()
+    #result = []
+    #for date in dates:
+        #if 'timeseries' in kwargs and date not in timeseries:
+                #value = ''
+        #else:
+            #value = eval(valstr)
+        #if eval("'%s'" % value) is None:
+            #value = ''
+        #row = {'date': date, 'value': value}
+        #result.append(row)
+    #return result
 
 
 def eval_scalar(x):
@@ -65,7 +68,8 @@ def eval_scalar(x):
         errormsg = "%s is not a number" % x
         result = None
     else:
-        result = openagua_timeseries('x', x=x)
+        #result = openagua_timeseries('x', x=x)
+        result = x
         returncode = 1
         errormsg = 'No errors!'
     
@@ -73,18 +77,20 @@ def eval_scalar(x):
 
     
 def eval_descriptor(s):
-    result = openagua_timeseries("''")
+    #result = openagua_timeseries("''")
+    result = s
     returncode = 1
     errormsg = 'No errors!'
     
     return returncode, errormsg, result
     
-def eval_generic(x):
-    result = openagua_timeseries('x', x=x)
-    returncode = 1
-    errormsg = 'No errors!'
+#def eval_generic(x):
+    ##result = openagua_timeseries('x', x=x)
+    #result = x
+    #returncode = 1
+    #errormsg = 'No errors!'
     
-    return returncode, errormsg, result
+    #return returncode, errormsg, result
     
 def eval_timeseries(timeseries):
     timeseries = loads(timeseries)['0']
@@ -92,10 +98,20 @@ def eval_timeseries(timeseries):
     for item in timeseries.items():
         ts = parser.parse(item[0]).strftime(session['date_format'])
         val = item[1]
-        #tsnew[ts] = str(val)
         tsnew[ts] = val
+        
+    dates = get_dates()
+    result = []
     
-    result = openagua_timeseries('tsnew[date]', tsnew=tsnew)
+    for date in dates:
+        if date not in tsnew:
+            value = ''
+        else:
+            value = tsnew[date]
+            if eval(str(value).strip()) is None:
+                value = ''
+        result.append({'date': date, 'value': value})
+    
     returncode = 1
     errormsg = 'No errors!'
     
@@ -156,17 +172,19 @@ def eval_function(s):
 
 def eval_data(data_type, data, do_eval=False, function=None):
     if data_type == 'timeseries' and function:
-        returncode, errormsg, timeseries = eval_function(function)
+        returncode, errormsg, result = eval_function(function)
     else:
-        returncode, errormsg, timeseries = eval('eval_{}(data)'.format(data_type))
+        returncode, errormsg, result = eval('eval_{}(data)'.format(data_type))
 
-    if timeseries is None:
-        timeseries = openagua_timeseries("''")
+    #if timeseries is None:
+        #timeseries = openagua_timeseries("''")
+    if result is None:
+        result = ''
         
     if do_eval:
-        return returncode, errormsg, timeseries
+        return returncode, errormsg, result
     else:
-        return timeseries
+        return result
     
 def encrypt(text, key):
     f = Fernet(key)

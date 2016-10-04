@@ -1,5 +1,5 @@
 // make handsontable
-function makeHandsontable(divname, tableHeight) {
+function makeHandsontable(divname, tableHeight, unsavedFn) {
 
   // settings
   var contextMenu = ['undo', 'redo']
@@ -8,7 +8,7 @@ function makeHandsontable(divname, tableHeight) {
   var container = document.getElementById(divname);
   hot = new Handsontable(container, {
     afterChange: function(changes, source) {
-      saveStatus(0);
+      unsavedFn();
     },
     manualColumnResize: true,
     defaultRowHeight: 60,

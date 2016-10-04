@@ -1,0 +1,50 @@
+/* EDITORS */
+
+#editor {display: none}
+
+.editor {
+  border-style: solid;
+  border-width: 1px;
+  border-color: #C0C0C0;
+  display: none
+}
+
+#scalar {border-width: 0px; margin-top: 10px; height: 35px}
+#function {height: 300px}
+#timeseries {height: 300px}
+#seasonalts {height: 300px}
+#array {height: 220px}
+
+#editor_footer {height:30px; margin-top:10px; margin-bottom:10px}
+#editor_metadata {margin-top: 5px}
+
+/* PREVIEWERS */
+
+.preview {
+  border-style: solid;
+  border-color: #999999;
+  border-width: 1px;
+  display: none;
+}
+
+#preview_status {
+  color: #999999;
+  font-size: large;
+  margin-bottom: 15px;
+}
+#preview_timeseries {
+  height: 350px;
+  width: 100%;
+}
+#preview_scalar {
+  color: #336699;
+  font-size: xx-large;
+  font-weight: bold;
+  margin: 0 15px 0 0;
+  padding: 15px;
+}
+#preview_array {
+  color: #999999;
+  font-size: large;
+  margin: 15px;
+}

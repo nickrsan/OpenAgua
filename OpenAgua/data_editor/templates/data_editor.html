@@ -2,39 +2,15 @@
 {% block title %} - Data Editor{% endblock %}
 {% block head_main %}
 
-<style type="text/css" media="screen">
-    <!--#editor {display: none}-->
-    .editor {border-style:solid; border-width:2px; border-color:#C0C0C0;}
-    .editor {display: none}
-    .view_status {
-      color:#999999;
-      font-size:large;
-      margin-bottom: 15px;
-    }
-    #scalar {border-width: 0px; margin-top: 10px}
-    #editor_footer {height:30px; margin-top:10px; margin-bottom:10px}
-    #editor_metadata {margin-top: 5px}
-    #preview {
-      border-style:solid;
-      border-color:#C0C0C0;
-      border-width:2px;
-      height:350px;
-      width=100%;
-      display:none
-    }
-</style>
-
-<style>
-  #function {height: 300px}
-  #timeseries {height: 300px}
-  #seasonalts {height: 300px}
-  #scalar {height: 35px}
-  #array {height: 220px}
-</style>
+<link href="{{ url_for('.static', filename='css/data_editor.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 {% endblock %}
 
 {% block content %}
+
+<script>
+  var dateFormat = "{{ session['amchart_date_format'] }}" // need to get this from the model setup
+</script>
 
 <div class="container-fluid" style="margin-left:0px;margin-right:0px">
 
@@ -110,7 +86,7 @@
         
         <div id='editor_metadata' style='width:100%'>
           <div id='unit' class='pull-left'></div>
-          <div id='savestatus' class='pull-right' style="font-weight:bold;color:red"></div>
+          <div id='save_status' class='pull-right' style="font-weight:bold;color:red"></div>
         </div><br>
         <div id="editor_footer">
           <div id="datatypes_wrapper" class="pull-left">
@@ -133,10 +109,14 @@
     </div>
     
     <div class="col-md-6 col-sm-12">
-      <label for="preview">Preview data&nbsp;<a href="/help/preview_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Preview chart instructions"></span></a></label>
-      <div id="preview_status" class='view_status'>No data loaded</div>
+      <label for="preview_timeseries">Preview data&nbsp;<a href="/help/preview_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Preview chart instructions"></span></a></label>
+      <div id="preview_status">No data loaded</div>
       
-      <div id="preview"></div>
+      <div id="preview_timeseries" class="preview"></div>
+      <div id="preview_scalar" class="preview"></div>
+      <div id="preview_array" class="preview"></div>
+      <div id="preview_descriptor" class="preview"></div>
+      
     </div>
   </div>
 
