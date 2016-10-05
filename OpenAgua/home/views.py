@@ -1,14 +1,12 @@
 from os.path import join
 import zipfile
 
-from flask import render_template, redirect, url_for, request, session, json, \
-     jsonify, flash
+from flask import render_template, redirect, url_for, request, session, json, jsonify, flash
 from flask_security import login_required, current_user
 
 from flask_uploads import UploadSet, configure_uploads, ARCHIVES
 
-from ..connection import make_connection, load_hydrauser, add_hydrastudy, \
-     activate_study
+from ..connection import make_connection, create_hydrauser, load_hydrauser, add_study,  activate_study
 
 # import blueprint definition
 from . import home
@@ -17,12 +15,60 @@ from OpenAgua import app, db
 templates = UploadSet('templates', ARCHIVES)
 configure_uploads(app, templates)
 
+@home.route('/_account_setup')
+@login_required
+def account_setup():
+
+    create_hydrauser(db=db,
+                     user_id=current_user.id,
+                     hydra_url=app.config['HYDRA_URL'],
+                     encrypt_key=app.config['SECRET_ENCRYPT_KEY'],
+                     hydra_admin_username=app.config['HYDRA_ROOT_USERNAME'],
+                     hydra_admin_password=app.config['HYDRA_ROOT_PASSWORD'],
+                     hydra_user_username=current_user.email,
+                     hydra_user_password='password') # to be set by user    
+    load_hydrauser()
+    if current_user.has_role('pro_user'):
+        # user will create their own project, but we still need to create a default study
+        default_project_id = -1
+    else:
+        conn = make_connection(login=True)
+
+        project_name = current_user.email
+        project_description = 'Default project created for {} {} ({})' \
+            .format(current_user.firstname, current_user.lastname, current_user.email)
+        
+        default_projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
+        default_project = default_projects[0]
+        if not default_project:
+            default_project = conn.add_default_project(project_name, project_description)
+        default_project_id = default_project.id
+    
+    default_network_id = -1
+    templates = conn.call('get_templates', {})
+    default_template_id = [tpl.id for tpl in templates if tpl.name == app.config['DEFAULT_HYDRA_TEMPLATE']][0]
+        
+    add_study(db=db,
+              name='Default study for {}'.format(current_user.email),
+              user_id=current_user.id,
+              hydrauser_id=session['hydrauser_id'],
+              project_id=default_project_id,
+              network_id=default_network_id,
+              template_id=default_template_id,
+              activate=True)
+        
+    flash('Account created!')
+    return(redirect(url_for('home.home_main')))
+
 @home.route('/home')
 @login_required
 def home_main():
     load_hydrauser() # do this at the top of every page
     conn = make_connection(login=True)
     conn.load_active_study(load_from_hydra=False)
+    if session['project_id'] is None:
+        projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
+        session['project_id'] = projects[0].id
     
     if current_user.has_role('pro_user') or current_user.has_role('superuser'):
         user_level = "pro"
@@ -54,7 +100,7 @@ def load_study():
         # create a new study with the just-selected network + default scenario
         templates = conn.call('get_templates', {})
         template = [t for t in templates if t.name == 'OpenAgua'][0]
-        add_hydrastudy(db,
+        add_study(db,
                        user_id = current_user.id,
                        hydrauser_id = session['hydrauser_id'],
                        project_id = session['project_id'],
@@ -107,8 +153,7 @@ def add_network():
     network = conn.call('add_network', {'net':new_net})
 
     # add the template
-    conn.call('apply_template_to_network',
-              {'template_id': tpl_id, 'network_id': network.id})
+    conn.call('apply_template_to_network', {'template_id': tpl_id, 'network_id': network.id})
     
     # add a default scenario (similar to Hydra Modeller)
     scenario = dict(
@@ -116,18 +161,18 @@ def add_network():
         description = 'Default OpenAgua scenario'
     )
 
-    result = conn.call('add_scenario',
-                       {'network_id': network.id, 'scen': scenario})
+    result = conn.call('add_scenario', {'network_id': network.id, 'scen': scenario})
     
     # create a default study consisting of the project, network, and scenario
-    add_hydrastudy(db,
-        user_id = current_user.id,
-        hydrauser_id = session['hydrauser_id'],
-        project_id = session['project_id'],
-        network_id = network.id,
-        template_id = session['template_id'],
-        active = 1
-    )
+    add_study(db = db,
+              name = 'Base study for {}'.format(network.name),
+              user_id = current_user.id,
+              hydrauser_id = session['hydrauser_id'],
+              project_id = session['project_id'],
+              network_id = network.id,
+              template_id = session['template_id'],
+              activate = True
+          )
     
     conn.load_active_study()
         

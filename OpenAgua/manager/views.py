@@ -7,7 +7,7 @@ from flask_security import login_required, current_user
 
 from flask_uploads import UploadSet, configure_uploads, ARCHIVES
 
-from ..connection import make_connection, load_hydrauser, add_hydrastudy, \
+from ..connection import make_connection, \
      activate_study
 
 # import blueprint definition
