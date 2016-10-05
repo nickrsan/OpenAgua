@@ -593,7 +593,7 @@ def create_hydrauser(db,
 
 def load_hydrauser():
 
-    hydrauser = HydraUser.query.filter(HydraUser.user_id==session['user_id']).first()
+    hydrauser = HydraUser.query.filter(HydraUser.user_id==current_user.id).first()
     hydraurl = HydraUrl.query.filter(HydraUrl.id==hydrauser.hydra_url_id).first()
 
     session['hydrauser_id'] = hydrauser.id
