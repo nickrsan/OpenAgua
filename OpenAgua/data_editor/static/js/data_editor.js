@@ -116,7 +116,7 @@ $(document).ready(function(){
   });
   
   // listen to text editor changes
-  $('#text_input').on('input', function() {
+  $('#scalar_input').on('input paste', function() {
     unsaved();
   });
   

@@ -134,7 +134,7 @@ def check_or_save_data():
         if action == 'save' and errcode == 1:
             conn = make_connection()
             
-            orig_data_type = request.args.get('orig_data_type')
+            orig_data_type = request.json['orig_data_type']
             res_attr = request.json['res_attr']
             res_attr_data = request.json['res_attr_data']
             scen_id = request.json['scen_id']

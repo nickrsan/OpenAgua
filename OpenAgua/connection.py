@@ -10,7 +10,7 @@ from attrdict import AttrDict
 
 import logging
 
-from .utils import hydra_timeseries, eval_data, encrypt, decrypt
+from .utils import hydra_timeseries, empty_hydra_timeseries, eval_data, encrypt, decrypt
 from .models import User, HydraUser, HydraUrl, HydraStudy
 from . import app # delete later
 
@@ -491,52 +491,53 @@ def save_data(conn, old_data_type, cur_data_type, res_attr, res_attr_data, new_v
     if cur_data_type == 'function':
         new_data_type = 'timeseries'
         metadata['function'] = new_value
-        new_value = json.dumps(hydra_timeseries(eval_data('generic', "''")))
+        new_value = json.dumps(empty_hydra_timeseries())
     else:
         new_data_type = cur_data_type
         metadata['function'] = ''
 
-    # has the data type changed?
-    if new_data_type != old_data_type:
-        # 1. copy old typeattr:
-        old_typeattr = {'attr_id': res_attr['attr_id'],
-                        'type_id': res_attr['type_id']}
-        # 2. delete the old typeattr
-        result = conn.call('delete_typeattr', {'typeattr': old_typeattr})
-        # 3. update the old typeattr with the new data type
-        new_typeattr = old_typeattr
-        new_typeattr['attr_is_var'] = 'N'
-        new_typeattr['data_type'] = new_data_type
-        new_typeattr['unit'] = res_attr['unit']
-        # 3. add the new typeattr
-        result = conn.call('add_typeattr', {'typeattr': new_typeattr})
-                
-    if res_attr_data is None: # add a new dataset
+    ##has the data type changed? - obsolete
+    #if new_data_type != old_data_type:
+        ## 1. copy old typeattr:
+        #old_typeattr = {'attr_id': res_attr['attr_id'],
+                        #'type_id': res_attr['type_id']}
+        ## 2. delete the old typeattr
+        #result = conn.call('delete_typeattr', {'typeattr': old_typeattr})
+        ## 3. update the old typeattr with the new data type
+        #new_typeattr = old_typeattr
+        #new_typeattr['attr_is_var'] = 'N'
+        #new_typeattr['data_type'] = new_data_type
+        #new_typeattr['unit'] = res_attr['unit']
+        ## 3. add the new typeattr
+        #result = conn.call('add_typeattr', {'typeattr': new_typeattr})
         
-        dataset = dict(
-            id=None,
-            name = res_attr['res_attr_name'],
-            unit = res_attr['unit'],
-            dimension = res_attr['dimension'],
-            type = new_data_type,
-            value = new_value,
-            metadata = json.dumps(metadata)
-        )
+    #if res_attr_data is None: # add a new dataset
         
-        args = {'scenario_id': scen_id,
-                'resource_attr_id': res_attr['res_attr_id'],
-                'dataset': dataset}
-        result = conn.call('add_data_to_attribute', args)  
+    # let's just try to add the new dataset directly
+    dataset = dict(
+        id=None,
+        name = res_attr['res_attr_name'],
+        unit = res_attr['unit'],
+        dimension = res_attr['dimension'],
+        type = new_data_type,
+        value = new_value,
+        metadata = json.dumps(metadata)
+    )
+    
+    args = {'scenario_id': scen_id,
+            'resource_attr_id': res_attr['res_attr_id'],
+            'dataset': dataset}
+    result = conn.call('add_data_to_attribute', args)  
             
     # NB: this has presented a problem in the past, particularly if there is already
     # an existing dataset with the same value. In that case, we should create a new dataset instead.
-    else: # just update the existing dataset
-        dataset = res_attr_data['value']
-        dataset['type'] = new_data_type
-        dataset['value'] = new_value
-        dataset['metadata'] = json.dumps(metadata)
+    #else: # just update the existing dataset
+        #dataset = res_attr_data['value']
+        #dataset['type'] = new_data_type
+        #dataset['value'] = new_value
+        #dataset['metadata'] = json.dumps(metadata)
         
-        result = conn.call('update_dataset', {'dataset': dataset})
+        #result = conn.call('update_dataset', {'dataset': dataset})
         
     if 'faultcode' in result.keys():
         returncode = -1

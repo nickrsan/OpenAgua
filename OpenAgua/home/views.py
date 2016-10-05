@@ -68,6 +68,7 @@ def home_main():
     
     conn = make_connection(login=True)
     conn.load_active_study(load_from_hydra=False)
+    session['study_name'] = None # turn this off for the home page
     if session['project_id'] is None:
         projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
         session['project_id'] = projects[0].id

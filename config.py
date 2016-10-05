@@ -21,6 +21,7 @@ UPLOADED_TEMPLATES_DEST = os.path.join(APP_ROOT, 'OpenAgua/static/hydra/template
 
 # OpenAgua settings
 MONTH_FORMAT = '%m/%Y'
+TIMESTEP_FORMAT = '%m/%Y'
 AMCHART_DATE_FORMAT = 'MM/YYYY'
 
 # Pyomo app settings

@@ -39,22 +39,9 @@ def hydra_timeseries(data):
     timeseries = {'0':timeseries}
     return timeseries
 
-
-#def openagua_timeseries(valstr, **kwargs):
-    #for kw in kwargs:
-        #exec('%s = %s' % (kw, kwargs[kw]), {}, locals())
-    #dates = get_dates()
-    #result = []
-    #for date in dates:
-        #if 'timeseries' in kwargs and date not in timeseries:
-                #value = ''
-        #else:
-            #value = eval(valstr)
-        #if eval("'%s'" % value) is None:
-            #value = ''
-        #row = {'date': date, 'value': value}
-        #result.append(row)
-    #return result
+def empty_hydra_timeseries():
+    timeseries = [{'date': date, 'value': ''} for date in get_dates()]
+    return hydra_timeseries(timeseries)
 
 def eval_scalar(x):
     
@@ -67,7 +54,6 @@ def eval_scalar(x):
         errormsg = "%s is not a number" % x
         result = None
     else:
-        #result = openagua_timeseries('x', x=x)
         result = x
         returncode = 1
         errormsg = 'No errors!'
@@ -76,20 +62,11 @@ def eval_scalar(x):
 
     
 def eval_descriptor(s):
-    #result = openagua_timeseries("''")
     result = s
     returncode = 1
     errormsg = 'No errors!'
     
     return returncode, errormsg, result
-    
-#def eval_generic(x):
-    ##result = openagua_timeseries('x', x=x)
-    #result = x
-    #returncode = 1
-    #errormsg = 'No errors!'
-    
-    #return returncode, errormsg, result
     
 def eval_timeseries(timeseries):
     timeseries = loads(timeseries)['0']
@@ -147,9 +124,7 @@ def eval_function(s):
     else:
         dates = get_dates(formatted=False)
         try:
-            result = [{'date': date.strftime(session['date_format']),
-                       'value': str(f(date))} \
-                      for date in dates] 
+            result = [{'date': date.strftime(session['date_format']), 'value': str(f(date))} for date in dates] 
         except Exception as err: # other error
             err_class = err.__class__.__name__
             detail = err.args[0]
