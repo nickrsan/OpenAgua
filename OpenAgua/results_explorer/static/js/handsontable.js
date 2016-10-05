@@ -2,7 +2,7 @@
 function makeHandsontable(divname, tableHeight) {
 
   // settings
-  var contextMenu = ['undo', 'redo']
+  //var contextMenu = ['undo', 'redo']
   
   // create the chart
   var container = document.getElementById(divname);
@@ -16,7 +16,7 @@ function makeHandsontable(divname, tableHeight) {
     minSpareCols: 0,
     rowHeaders: true,
     colHeaders: true,
-    contextMenu: contextMenu,
+    //contextMenu: contextMenu,
   });
   
   return hot;

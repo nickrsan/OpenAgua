@@ -22,30 +22,26 @@ var scalarInput = $('#scalar_input_field')
 var textInput = $('#text_input_field')
 
 // initialize Ace code viewer
-var aceViewer = ace.edit("function_input");
-aceViewer.setTheme("ace/theme/chrome");
-aceViewer.getSession().setMode("ace/mode/python");
-aceViewer.setReadOnly(true);
-aceViewer.$blockScrolling = Infinity // disable error message; cursor is placed at the beginning below
-aceViewer.setOptions({
+var aceInput = ace.edit("function_input");
+aceInput.setTheme("ace/theme/chrome");
+aceInput.getSession().setMode("ace/mode/python");
+aceInput.setReadOnly(true);
+aceInput.$blockScrolling = Infinity // disable error message; cursor is placed at the beginning below
+aceInput.setOptions({
   fontSize: "12pt"
 });
 
 // initialize handsontable (time series viewer)
-var hotInput = makeHandsontable('timeseries_input', $(".timeseries").css("height"))
-var hotTable = makeHandsontable('timeseries_table', $(".timeseries").css("height"))
+var hotInput = makeHandsontable('timeseries_table_input', $("#timeseries_table_input").css("height"))
+var hotTable = makeHandsontable('timeseries_table', $("#timeseries_table").css("height"))
 
 $(document).ready(function(){
 
-  clearOutput()
+  clearViewers();
 
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
-    clearInput();
-    clearTable();
-    clearOutput();
-    
-    setDataTypeSelector("scalar");
+    clearViewers();
     
     //$('#datatypes').attr('disabled', true).selectpicker('refresh');
     $('#scenarios').attr('disabled', true).selectpicker('refresh');
@@ -81,26 +77,6 @@ $(document).ready(function(){
     }
   });
   
-  // select the data class
-  $('#datatypes').on('changed.bs.select', function (e) {
-    var selected = $('#datatypes option:selected');
-    
-    var tags = JSON.parse(selected.attr("data-tags"));
-    var temp_data_type = tags.data_type;
-      var msg = 'Are you sure you want to change the data type? This change will become permanent if the new data is saved.'
-      bootbox.confirm(msg, function(confirm) {
-        if (confirm) {          
-          cur_data_type = temp_data_type;
-          if (cur_data_type == 'function' & cur_data_type != orig_data_type) {
-            aceInput.setValue('');          
-          }
-          updateInput(cur_data_type, unit, dimension);
-        } else {
-          setDataTypeSelector(cur_data_type);
-        }
-      });
-  });
-  
   // load the scenarios
   $('#scenarios').on('hide.bs.select', function (e) {
     var selected = $('#scenarios option:selected');
@@ -134,7 +110,7 @@ function loadVariables(type_id) {
   $.getJSON($SCRIPT_ROOT+'/_get_variables', data, function(resp) {
       var res_attrs = _.sortBy(resp.res_attrs, 'name');
       $.each(res_attrs, function(index, res_attr) {
-        if (res_attr.attr_is_var == 'N') {
+        //if (res_attr.attr_is_var == 'Y') {
           var tags = {
             attr_id: res_attr.attr_id,
             type_id: type_id,
@@ -150,13 +126,13 @@ function loadVariables(type_id) {
               .val(res_attr.tpl_type_attr.name)
               .text(res_attr.tpl_type_attr.name)
             );
-          }
+          //}
       });
       vpicker.attr('disabled',false);
       $('#variables').selectpicker('render');
       $('#variables').selectpicker('refresh');
       
-      // deselect all variables (select offers no function for this)
+      // deselect all variables (select offers no function for this?)
       var vbutton = $('button[data-id="variables"]')
       vbutton.children('.filter-option').text('Select a variable')
       vbutton.parent().children('.dropdown-menu')
@@ -169,7 +145,8 @@ function loadVariables(type_id) {
 
 // load the variable data
 function loadVariableData() {
-
+  var default_input_types = {timeseries: 'timeseries_table', descriptor: 'text', scalar: 'scalar', array: 'array_table'}
+  var input_type;
   var data = {
     type_id: type_id,
     feature_type: feature_type,
@@ -182,66 +159,61 @@ function loadVariableData() {
     res_attr_data = resp.res_attr_data;
     var eval_value = resp.eval_value;
     if (res_attr_data != null) {
-      orig_data_type = res_attr_data.value.type;
+      data_type = res_attr_data.value.type;
+      input_type = default_input_types[data_type]
       metadata = JSON.parse(res_attr_data.value.metadata)
       if (metadata.hasOwnProperty('function')) {
         if (metadata.function.length) {
-          orig_data_type = 'function';
+          input_type = 'function';
         }
       }
+      
     }
     
-    cur_data_type = orig_data_type;
+    loadInputData(input_type, res_attr_data, eval_value);
+    loadTableData(data_type, scen_name, eval_value);
+    loadOutputData(data_type, scen_name, eval_value);
     
-    loadInputData(cur_data_type, res_attr_data, eval_value);
-    loadTableData(cur_data_type, scen_name, eval_value);
-    loadOutputData(cur_data_type, scen_name, eval_value);
-    saved();
+    $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
     
   });
 }
 
+function loadInputData(input_type, res_attr_data, eval_value) {
 
-function loadInputData(cur_data_type, res_attr_data, eval_value) {
+  showInput(input_type);
 
-  clearInput();
-  updateInput(cur_data_type, unit, dimension);
-  
-  switch(cur_data_type) {
+  switch(input_type) {
       
     case 'function':
       if (res_attr_data == null) {
-        original_data = '';
+        val = '';
       } else {
-        original_data = JSON.parse(res_attr_data.value.metadata).function;
+        val = JSON.parse(res_attr_data.value.metadata).function;
       }
-      setDataTypeSelector(cur_data_type);
-      updateAceInput(original_data);
+      aceInput.setValue(val);
+      aceInput.gotoLine(1);
       break;
   
-    case 'timeseries':
-      original_data = _.cloneDeep(eval_value);
-      setDataTypeSelector(cur_data_type);
+    case 'table':
       var col_headers = ['Month', scen_name]; // get from settings later
       updateHandsontable(hotInput, eval_value, col_headers);
       break;
       
     case 'scalar':
       if (res_attr_data == null) {
-        original_data = ''
+        scalarInput.val('');
       } else {
-        original_data = res_attr_data.value.value;       
+        scalarInput.val(res_attr_data.value.value);  
       }
-      scalarInput(original_data)
       break;
       
-    case 'descriptor':
+    case 'text':
       if (res_attr_data == null) {
-        original_data = ''
+        descriptorInput.val('');
       } else {
-        original_data = res_attr_data.value.value;       
+        descriptorInput.val(res_attr_data.value.value);       
       }
-      textInput(original_data)
       break;
       
     case 'array':
@@ -252,38 +224,24 @@ function loadInputData(cur_data_type, res_attr_data, eval_value) {
   }
 }
  
-function loadTableData(cur_data_type, scen_name, eval_value) {
-
-  clearOutput();
+function loadTableData(data_type, scen_name, eval_value) {
   
-  switch(cur_data_type) {
-      
-    case 'function':
-      tableTimeseries(scen_name, eval_value);
-      break;
+  switch(data_type) {
   
     case 'timeseries':
-      outputTimeseries(scen_name, eval_value);
+      showTable(data_type);
+      $('#timeseries_table').show();
+      var col_headers = ['Month', scen_name]; // get from settings later
+      updateHandsontable(hotTable, eval_value, col_headers);
       break;
       
     case 'scalar':
-      if (eval_value == null) {
-        clearOutput('No data to show')
-      } else {
-        outputScalar(eval_value)
-      }
       break;
       
     case 'descriptor':
-      if (eval_value == null) {
-        clearOutput('No data to show')
-      } else {
-        outputDescriptor(eval_value)
-      }
       break;
       
     case 'array':
-      outputArray('No data to show.')
       break;
       
     default:
@@ -291,38 +249,24 @@ function loadTableData(cur_data_type, scen_name, eval_value) {
   }
 }
     
-function loadOutputData(cur_data_type, scen_name, eval_value) {
-
-  clearOutput();
+function loadOutputData(data_type, scen_name, eval_value) {
   
-  switch(cur_data_type) {
-      
-    case 'function':
-      outputTimeseries(scen_name, eval_value);
-      break;
+  switch(data_type) {
   
     case 'timeseries':
-      outputTimeseries(scen_name, eval_value);
+      showOutput(data_type);
+      amchart('Results', eval_value, dateFormat, "timeseries_output", false, "MMM YYYY")
       break;
       
     case 'scalar':
-      if (eval_value == null) {
-        clearOutput('No data to show')
-      } else {
-        outputScalar(eval_value)
-      }
+      showOutput(data_type);
+      $("#scalar_output").text(eval_value);
       break;
       
     case 'descriptor':
-      if (eval_value == null) {
-        clearOutput('No data to show')
-      } else {
-        outputDescriptor(eval_value)
-      }
       break;
       
     case 'array':
-      outputArray('No data to show.')
       break;
       
     default:
@@ -330,59 +274,18 @@ function loadOutputData(cur_data_type, scen_name, eval_value) {
   }
 }
 
-// INPUT VIEWER FUNCTIONS
-
-function updateInput(data_type, unit, dimension) {
-  $('.input').hide();
-  $('#input_'+data_type).show();
-  $('#input').show()
-  $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
+function showOutput(data_type) {
+  $('#'+data_type+'_output').show();
 }
 
-function clearInput() {
-  scalarInput.val('');
-  textInput.val('');
-  aceInput.setValue('');
-  $('#input').hide();
+function showTable(data_type) {
+  $('#'+data_type+'_table').show();
 }
 
-function updateAceInput(original_data) {
-  aceInput.setValue(original_data);
-  aceInput.gotoLine(1);
-  saved();
+function showInput(input_type) {
+  $('#'+input_type+'_input').show();
 }
 
-function scalarInput(original_data) {
-  scalarInput.val(original_data);
-}
-
-function textInput(original_data) {
-  textInput.val(original_data);
-}
-
-// OUTPUT VIEWER FUNCTIONS
-
-function outputTimeseries(title, timeseries) {
-  clearOutput('');
-  $('#output_timeseries').show();
-  amchart(title, timeseries, dateFormat, "output_timeseries", false)
-}
-
-function outputScalar(value) {
-  clearOutput('');
-  $("#output_scalar").text(value).show();
-}
-
-function outputArray(value) {
-  clearOutput('');
-  $("#output_array").text(value).show(); // placeholder
-}
-
-function clearOutput(msg='No data to output') {
-  $('.output').empty().hide()
-  if (msg.length) {
-    $('#output_status').text(msg); 
-  } else {
-    $('#output_status').empty().hide();  
-  }
+function clearViewers() {
+  $('.viewer').hide();
 }
