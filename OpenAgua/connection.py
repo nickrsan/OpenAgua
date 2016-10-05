@@ -594,14 +594,19 @@ def create_hydrauser(db,
 def load_hydrauser():
 
     hydrauser = HydraUser.query.filter(HydraUser.user_id==current_user.id).first()
-    hydraurl = HydraUrl.query.filter(HydraUrl.id==hydrauser.hydra_url_id).first()
-
-    session['hydrauser_id'] = hydrauser.id
-    session['hydra_url'] = hydraurl.hydra_url
-    session['hydra_userid'] = hydrauser.hydra_userid
-    session['hydra_username'] = hydrauser.hydra_username
-    session['hydra_password'] = hydrauser.hydra_password # it's encrypted
-    session['hydra_sessionid'] = hydrauser.hydra_sessionid
+    if not hydrauser: # somehow the hydrauser record was not created
+        return False # unsuccessful
+    
+    else:
+        hydraurl = HydraUrl.query.filter(HydraUrl.id==hydrauser.hydra_url_id).first()
+    
+        session['hydrauser_id'] = hydrauser.id
+        session['hydra_url'] = hydraurl.hydra_url
+        session['hydra_userid'] = hydrauser.hydra_userid
+        session['hydra_username'] = hydrauser.hydra_username
+        session['hydra_password'] = hydrauser.hydra_password # it's encrypted
+        session['hydra_sessionid'] = hydrauser.hydra_sessionid
+        return True
 
 
 def add_default_template(conn, template_name):

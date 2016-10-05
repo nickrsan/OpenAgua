@@ -57,13 +57,15 @@ def account_setup():
               template_id=default_template_id,
               activate=True)
         
-    flash('Account created!')
+    #flash('Account created!')
     return(redirect(url_for('home.home_main')))
 
 @home.route('/home')
 @login_required
 def home_main():
-    load_hydrauser() # do this at the top of every page
+    if not load_hydrauser():
+        return redirect(url_for('home.account_setup'))
+    
     conn = make_connection(login=True)
     conn.load_active_study(load_from_hydra=False)
     if session['project_id'] is None:
