@@ -37,11 +37,13 @@ var hotTable = makeHandsontable('timeseries_table', $("#timeseries_table").css("
 
 $(document).ready(function(){
 
-  clearViewers();
+  //clearViewers();
+  //showViewerStatus();
 
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
     clearViewers();
+    showViewerStatus();
     
     //$('#datatypes').attr('disabled', true).selectpicker('refresh');
     $('#scenarios').attr('disabled', true).selectpicker('refresh');
@@ -145,110 +147,53 @@ function loadVariables(type_id) {
 
 // load the variable data
 function loadVariableData() {
-  var default_input_types = {timeseries: 'timeseries_table', descriptor: 'text', scalar: 'scalar', array: 'array_table'}
-  var input_type;
+
+  clearViewers();
+
+  var default_input_types = {
+    timeseries: 'timeseries_table',
+    descriptor: 'text',
+    scalar: 'scalar',
+    array: 'array_table'
+  }
+  var data_type = res_attr.data_type;
+  var input_type = default_input_types[data_type];
   var data = {
     type_id: type_id,
     feature_type: feature_type,
     feature_id: feature_id,
     res_attr_id: res_attr.res_attr_id,
     scen_id: scen_id,
-    data_type: res_attr.data_type
-  }
+    data_type: data_type
+  }  
+  
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     res_attr_data = resp.res_attr_data;
     var eval_value = resp.eval_value;
     if (res_attr_data != null) {
-      data_type = res_attr_data.value.type;
-      input_type = default_input_types[data_type]
-      metadata = JSON.parse(res_attr_data.value.metadata)
+      //data_type = res_attr_data.value.type;
+      //input_type = default_input_types[data_type]
+      metadata = JSON.parse(res_attr_data.value.metadata);
       if (metadata.hasOwnProperty('function')) {
         if (metadata.function.length) {
           input_type = 'function';
         }
       }
       
+      hideViewerStatus();
+      loadOutputData(data_type, scen_name, eval_value);
+      loadTableData(data_type, scen_name, eval_value);
+      loadInputData(input_type, res_attr_data, eval_value);
+      
+      $('.unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
+
+    } else {
+      showViewerStatus();    
     }
-    
-    loadInputData(input_type, res_attr_data, eval_value);
-    loadTableData(data_type, scen_name, eval_value);
-    loadOutputData(data_type, scen_name, eval_value);
-    
-    $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
     
   });
 }
 
-function loadInputData(input_type, res_attr_data, eval_value) {
-
-  showInput(input_type);
-
-  switch(input_type) {
-      
-    case 'function':
-      if (res_attr_data == null) {
-        val = '';
-      } else {
-        val = JSON.parse(res_attr_data.value.metadata).function;
-      }
-      aceInput.setValue(val);
-      aceInput.gotoLine(1);
-      break;
-  
-    case 'table':
-      var col_headers = ['Month', scen_name]; // get from settings later
-      updateHandsontable(hotInput, eval_value, col_headers);
-      break;
-      
-    case 'scalar':
-      if (res_attr_data == null) {
-        scalarInput.val('');
-      } else {
-        scalarInput.val(res_attr_data.value.value);  
-      }
-      break;
-      
-    case 'text':
-      if (res_attr_data == null) {
-        descriptorInput.val('');
-      } else {
-        descriptorInput.val(res_attr_data.value.value);       
-      }
-      break;
-      
-    case 'array':
-      break;
-      
-    default:
-      break;
-  }
-}
- 
-function loadTableData(data_type, scen_name, eval_value) {
-  
-  switch(data_type) {
-  
-    case 'timeseries':
-      showTable(data_type);
-      $('#timeseries_table').show();
-      var col_headers = ['Month', scen_name]; // get from settings later
-      updateHandsontable(hotTable, eval_value, col_headers);
-      break;
-      
-    case 'scalar':
-      break;
-      
-    case 'descriptor':
-      break;
-      
-    case 'array':
-      break;
-      
-    default:
-      break;
-  }
-}
-    
 function loadOutputData(data_type, scen_name, eval_value) {
   
   switch(data_type) {
@@ -274,11 +219,82 @@ function loadOutputData(data_type, scen_name, eval_value) {
   }
 }
 
+function loadTableData(data_type, scen_name, eval_value) {  
+  
+  switch(data_type) {
+  
+    case 'timeseries':
+      showTable(data_type);
+      $('#timeseries_table').show();
+      var col_headers = ['Month', scen_name]; // get from settings later
+      updateHandsontable(hotTable, eval_value, col_headers);
+      break;
+      
+    case 'scalar':
+      break;
+      
+    case 'descriptor':
+      break;
+      
+    case 'array':
+      break;
+      
+    default:
+      break;
+  }
+}
+
+function loadInputData(input_type, res_attr_data, eval_value) {
+
+  showInput(input_type);
+
+  switch(input_type) {
+      
+    case 'function':
+      if (res_attr_data == null) {
+        val = '';
+      } else {
+        val = JSON.parse(res_attr_data.value.metadata).function;
+      }
+      aceInput.setValue(val);
+      aceInput.gotoLine(1);
+      break;
+  
+    case 'timeseries_table':
+      var col_headers = ['Month', scen_name]; // get from settings later
+      updateHandsontable(hotInput, eval_value, col_headers);
+      break;
+      
+    case 'scalar':
+      if (res_attr_data == null) {
+        scalarInput.val('');
+      } else {
+        scalarInput.val(res_attr_data.value.value);  
+      }
+      break;
+      
+    case 'text':
+      if (res_attr_data == null) {
+        descriptorInput.val('');
+      } else {
+        descriptorInput.val(res_attr_data.value.value);       
+      }
+      break;
+      
+    case 'array_table':
+      break;
+      
+    default:
+      break;
+  }
+}
+ 
 function showOutput(data_type) {
   $('#'+data_type+'_output').show();
 }
 
 function showTable(data_type) {
+  $('#table_label').show()
   $('#'+data_type+'_table').show();
 }
 
@@ -287,5 +303,16 @@ function showInput(input_type) {
 }
 
 function clearViewers() {
+  $('#table_label').hide();
   $('.viewer').hide();
+  $('.output').empty();
+  $('.unit').empty();
+}
+
+function hideViewerStatus() {
+  $('.viewer_status').hide();
+}
+
+function showViewerStatus() {
+  $('.viewer_status').show();
 }

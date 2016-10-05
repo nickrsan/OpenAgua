@@ -59,8 +59,10 @@
     <div id="viewers" class="col-md-8 col-sm-7">
       
       <!--begin graphical output-->
-      <div id="output_status" class='viewer_status'>No graphical data to display</div>
+      <label id="output_label" for="input">Graphical results</label>
       <div id="output" class="viewer_contents">
+      
+	<div id="output_status" class='viewer_status'>No data to display</div>
       
 	<!--scalar viewer-->
 	<div id="scalar_output" class="output scalar viewer"></div>
@@ -71,7 +73,7 @@
 	<!--array viewer-->
 	<div id="array_output" class="output array viewer"></div>
 	
-	<div id='unit'></div>
+	<div id='unit' class='unit'></div>
   
       </div>
       <!--end graphical output-->
@@ -80,16 +82,18 @@
     <div id="viewers" class="col-md-4 col-sm-5">
   
       <!--begin table-->
-      <div id="table_status" class='viewer_status'>No tabular data to display</div>
+      <label id="table_label" for="table" style="display:none;">Tabular results</label>
       <div id="table" class='viewer_contents'>
 	    
+	<!--<div id="table_status" class='viewer_status'>No data to display</div>-->
+	
 	<!--timeseries table-->
 	<div id="timeseries_table" class="table_viewer timeseries viewer"></div>
 	
 	<!--array table-->
 	<div id="array_table" class="output_viewer array viewer"></div>
 	
-	<div id='unit'></div>
+	<div id='unit' class='unit'></div>
       
       </div>
       <!--end table-->
@@ -100,9 +104,11 @@
     <div id="viewers" class="col-md-12 col-sm-12">
   
       <!--begin input-->
-      <div id="input_viewer_status" class='viewer_status'>No data loaded</div>
+      <label id="input_label" for="input">Input</label>
       <div id="input" class="viewer_contents">
   
+	<div id="input_status" class='viewer_status'>No data loaded</div>
+	
 	<!--scalar input-->
 	<div id="scalar_input" class="input_viewer scalar viewer">
 	  <label class="control-label sr-only sr-only-focusable" for="scalar_input_field">Number:</label>
@@ -124,7 +130,7 @@
 	  <textarea id="text_intput_field" class="form-control" rows="3" placeholder="Enter some text..."></textarea>
 	</div>
 	
-	<div id='unit'></div>
+	<div id='unit' class='unit'></div>
 	    
       </div>
       <!--end input-->
