@@ -3,31 +3,36 @@ var interval = 2500;
 
 $('button#run_model').click(function() {
 
-    $(this).button('loading');
-    $('button#stop_model').show();
-    update_progress_bar(0);
-    
     var scids = [];
     $("#scenarios option:selected").each(function() {
         scids.push(Number($(this).val()))
     });
-
-    // collect run parameters here
-    var commandData = {
-        scids: scids,
-        sol: 'glpk'
+    
+    if (scids.length) {
+    
+        $(this).button('loading');
+        $('button#stop_model').show();
+        update_progress_bar(0);
+        
+        // collect run parameters here
+        var commandData = {
+            scids: scids,
+            sol: 'glpk'
+        }
+    
+        $.ajax({
+          type: "POST",
+          contentType: "application/json; charset=utf-8",
+          url: $SCRIPT_ROOT+'/_run_model',
+          data: JSON.stringify(commandData),
+          success: function (resp) {
+            update_status(1, 0);
+          },
+          dataType: "json"
+        });
+    } else {
+        notify('danger', 'Error!', 'No scenarios selected. Please try again.')    
     }
-
-    $.ajax({
-      type: "POST",
-      contentType: "application/json; charset=utf-8",
-      url: $SCRIPT_ROOT+'/_run_model',
-      data: JSON.stringify(commandData),
-      success: function (resp) {
-        update_status(1, 0);
-      },
-      dataType: "json"
-    });    
 
 });
 

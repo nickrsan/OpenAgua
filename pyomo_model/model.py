@@ -156,14 +156,18 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     
     return model
 
-def prepare_model(model_name, network, template, timestep_dict):
+def prepare_model(model_name, network, template, attr_names, timestep_dict):
+#def prepare_model(model_name, network, attrs, timestep_dict):
     
-    # prepare data - we could move some of this to elsewhere
-
-    template_id = template.id      
+    # prepare data - we could move some of this to elsewhere 
     
-    # extract info about nodes
+    template_id = template.id
     
+    # extract info about nodes & links
+    
+    res_attrs = {}
+    
+    # NODES
     nodes = []
     type_nodes = {}
     for n in network.nodes:
@@ -175,12 +179,16 @@ def prepare_model(model_name, network, template, timestep_dict):
         for t in n.types:
             if t.template_id == template_id:
                 type_name = t.name.replace(' ', '_')
+                
                 if type_name not in type_nodes.keys():
                     type_nodes[type_name] = []
-                type_nodes[type_name].append(n.id)     
+                type_nodes[type_name].append(n.id)
+            
+        # general resource attribute information    
+        for ra in n.attributes:
+            res_attrs[ra.id] = AttrDict({'name': attr_names[ra.attr_id], 'is_var': ra.attr_is_var})           
                 
-    # extract info about links
-    
+    # LINKS
     links = []
     link_nodes = {}
     type_links = {}
@@ -200,9 +208,12 @@ def prepare_model(model_name, network, template, timestep_dict):
                 if type_name not in type_links.keys():
                     type_links[type_name] = []
                 type_links[type_name].append(tuple(node_ids))
+        
+        # general resource attribute information    
+        for ra in l.attributes:
+            res_attrs[ra.id] = AttrDict({'name': attr_names[ra.attr_id], 'is_var': ra.attr_is_var})          
     
     # extract info about time steps
-    
     timesteps = [ot for (ht, ot) in timestep_dict.values()]
     
     # initialize dictionary of parameters
@@ -210,23 +221,27 @@ def prepare_model(model_name, network, template, timestep_dict):
     
     ra_node = {} # res_attr to node lookup
     for node in network.nodes:
-        for res_attr in node.attributes:
-            ra_node[res_attr.id] = node.id
+        for ra in node.attributes:
+            ra_node[ra.id] = node.id
     
     ra_link = {} # res_attr to link lookup
     for link in network.links:
-        for res_attr in link.attributes:
-            ra_link[res_attr.id] = link.id
+        for ra in link.attributes:
+            ra_link[ra.id] = link.id
             
     #ra_net = dict() # res_attr to network lookup
     #for link in network.links:
         #for res_attr in link.attributes:
             #ra_link[res_attr.id] = link.id
+            
     resourcescenarios = network.scenarios[0].resourcescenarios    
     
     for rs in resourcescenarios:
         
         ra_id = rs.resource_attr_id
+        
+        if res_attrs[ra_id].is_var == 'Y':
+            continue # counterintuitively, this is not an input variable
         
         # get identifiers
         if ra_id in ra_node.keys():
@@ -240,7 +255,7 @@ def prepare_model(model_name, network, template, timestep_dict):
             #fid = ra_net[rs.resource_attr_id]        
         
         # initialize parameter dictionary
-        param = rs.value.name.replace(' ', '_')
+        param = res_attrs[ra_id].name.replace(' ', '_')
         if param not in p[ftype].keys():
             p[ftype][param] = {}
             

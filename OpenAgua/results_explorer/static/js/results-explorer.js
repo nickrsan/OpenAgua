@@ -171,8 +171,7 @@ function loadVariableData() {
     res_attr_data = resp.res_attr_data;
     var eval_value = resp.eval_value;
     if (res_attr_data != null) {
-      //data_type = res_attr_data.value.type;
-      //input_type = default_input_types[data_type]
+    
       metadata = JSON.parse(res_attr_data.value.metadata);
       if (metadata.hasOwnProperty('function')) {
         if (metadata.function.length) {
@@ -183,7 +182,7 @@ function loadVariableData() {
       hideViewerStatus();
       loadOutputData(data_type, scen_name, eval_value);
       loadTableData(data_type, scen_name, eval_value);
-      loadInputData(input_type, res_attr_data, eval_value);
+      //loadInputData(input_type, res_attr_data, eval_value);
       
       $('.unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
 
