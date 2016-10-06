@@ -46,7 +46,7 @@ def run_scenario(scenario_id, args=None):
         OAtHPt[oat] = hpt
     
     # create the model
-    instance = prepare_model('OpenAguaModel', conn.network, conn.template, timestep_dict)
+    instance = prepare_model('OpenAgua', conn.network, conn.template, timestep_dict)
     
     logd.info('model created')
     opt = SolverFactory(args.solver)

@@ -222,8 +222,9 @@ def prepare_model(model_name, network, template, timestep_dict):
     #for link in network.links:
         #for res_attr in link.attributes:
             #ra_link[res_attr.id] = link.id
+    resourcescenarios = network.scenarios[0].resourcescenarios    
     
-    for rs in network.scenarios[0].resourcescenarios:
+    for rs in resourcescenarios:
         
         ra_id = rs.resource_attr_id
         
