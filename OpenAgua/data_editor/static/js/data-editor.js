@@ -446,12 +446,6 @@ function saveData(data) {
           unsaved();
           break;
         case 1:
-          data_type = cur_data_type;
-          res_attr.data_type = data_type; // update local record
-          var selected = $('#variables option:selected');
-          //selected.data_tokens = JSON.stringify(res_attr);
-          selected.data_tags = JSON.stringify(res_attr);
-          $('#variables').selectpicker('refresh');
           loadVariableData();
           notify('success','Success!','Data saved.');
           errmsg('');

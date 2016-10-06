@@ -101,7 +101,7 @@ def get_variable_data():
     if eval_value is None:
         res_attr_data = None
         if data_type == 'timeseries':
-            eval_value = [{'date': date, 'value': ''} for date in get_dates()]
+            eval_value = empty_hydra_timeseries()
         else:
             result = ''
     

@@ -408,7 +408,7 @@ class connection(object):
         session['date_format'] = app.config['MONTH_FORMAT'] # get from study db
         session['amchart_date_format'] = app.config['AMCHART_DATE_FORMAT']
         session['timestep'] = 'MONTHLY' # get from study db - must match rrule functions
-        session['hydra_time_format'] = app.config['HYDRA_DATETIME_FORMAT'] # get from config (can we query from HP?)
+        session['hydra_datetime_format'] = app.config['HYDRA_DATETIME_FORMAT'] # get from config (can we query from HP?)
 
         if not study:
             session['project_id'] = None

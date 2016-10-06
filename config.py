@@ -14,6 +14,7 @@ HYDRA_ROOT_PASSWORD = ''
 
 # Other Hydra Server-related settings
 HYDRA_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f000Z' # must be the same as in hydra.ini
+#HYDRA_DATETIME_FORMAT = '%Y-%m-%d' # must be the same as in hydra.ini
 HYDRA_SEASONAL_YEAR = 9999 # not used yet
 DEFAULT_HYDRA_TEMPLATE = 'OpenAgua'
 DEFAULT_SCENARIO_NAME = 'Baseline'

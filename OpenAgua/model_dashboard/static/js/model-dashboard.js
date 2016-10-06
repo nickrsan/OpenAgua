@@ -1,4 +1,5 @@
 var myInterval;
+var interval = 2500;
 
 $('button#run_model').click(function() {
 
@@ -38,7 +39,7 @@ $('button#stop_model').bind('click', function() {
     bootbox.confirm(msg, function(confirm) {
     
         clearInterval(myInterval);
-        $("#status_message").text("Model stopped.");
+        $("#status_message").text("Model stopped");
         $("button#run_model").button('reset');
         $("button#stop_model").hide();
         
@@ -48,6 +49,26 @@ $('button#stop_model').bind('click', function() {
 });
 
 // FUNCTIONS
+
+function interval(func, wait, times){
+    var interv = function(w, t){
+        return function(){
+            if(typeof t === "undefined" || t-- > 0){
+                setTimeout(interv, w);
+                try{
+                    func.call(null);
+                }
+                catch(e){
+                    t = 0;
+                    throw e.toString();
+                }
+            }
+        };
+    }(wait, times);
+
+    setTimeout(interv, wait);
+};
+
 
 function check_progress() {
     $.getJSON($SCRIPT_ROOT+'/_model_progress', function(resp) {
@@ -75,8 +96,9 @@ function update_status(status, progress) {
         case 1: // just started
             msg = "Model started...";
             $("button#stop_model").show();
+            model_stopped = false;
             update_progress_bar(0);
-            myInterval = setInterval(check_progress, 2000);
+            myInterval = setInterval(check_progress, interval);
             break;
         case 2: // running or still starting
             update_progress_bar(progress);
