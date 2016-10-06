@@ -110,9 +110,13 @@ class connection(object):
         return project
     
     
-    def get_network(self, network_id=None, include_data='N'):
+    def get_network(self, network_id=None, include_data=False):
+        include_data = {False: 'N', True: 'Y'}[include_data]
         return self.call('get_network', {'network_id':network_id,
                                          include_data: include_data})
+    
+    def get_scenarios(self, network_id=None):
+        return self.call('get_scenarios', {'network_id': network_id})
     
     def get_template(self, template_id=None):
         return self.call('get_template', {'template_id':template_id})
@@ -392,7 +396,7 @@ class connection(object):
         
         return hlinks, hnodes
     
-    def load_active_study(self, load_from_hydra=True):
+    def load_active_study(self, load_from_hydra=True, include_data=False):
         
         study = HydraStudy.query \
             .filter(HydraStudy.user_id == current_user.id) \
@@ -431,7 +435,7 @@ class connection(object):
                     self.invalid_study = True
                     
                 # get network
-                self.network = self.get_network(study.network_id)
+                self.network = self.get_network(study.network_id, include_data)
                 if 'faultcode' in self.network:
                     self.network = None
                     session['network_id'] = None

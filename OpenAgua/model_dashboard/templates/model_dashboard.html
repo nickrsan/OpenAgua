@@ -1,97 +1,43 @@
 {% extends "master.html" %}
-{% block title %} - Model dashboard{% endblock %}
+{% block title %} - model dashboard{% endblock %}
 {% block head_main %}
 {% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="container-fluid">
     <div class="row">
-        <div class="col col-md-5 col-sm-9">
-        
-            <div class="row">        
-            
-                <div class="form-group">
-                    <label for='initial_timestep'>First month (mm/yyyy)</label>
-                    <div class='input-group date' id='initial_timestep'>
-                        <input type='text' class="form-control" />
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div>
-                </div>
-                        
-                <div class="form-group">
-                    <label for='final_timestep'>Last month (mm/yyyy)</label>
-                    <div class='input-group date' id='final_timestep'>
-                        <input type='text' class="form-control" />
-                        <span class="input-group-addon">
-                            <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                    </div>
-                </div>                
-            </div>
-            
-            <div class="row">
-                <label for "management_scenarios">Select management scenario sets</label>
-                <div id="mgt_scens" class="form-group">
-                    <select class="selectpicker" multiple data-selected-text-format="count > 1" data-actions-box="true">
-                    {% for mgt_scen_grp in mgt_scen_grps.keys()%}
-                    <optgroup label="{{ mgt_scen_grp }}">
-                        {% for mgt_scen in mgt_scen_grps[mgt_scen_grp] %}
-                            <option>{{ mgt_scen }}</option>
-                        {% endfor %}
-                    </optgroup>
+        <div class="col col-sm-12 col-md-6 col-lg-6">
+            <label for "management_scenarios">Select scenarios</label>
+            <div id="scenarios" class="form-group">
+                <select class="selectpicker" multiple data-selected-text-format="count > 1" data-actions-box="true">
+                    {% for scen in scenarios %}
+                        <option value="{{ scen.id }}">{{ scen.name }}</option>
                     {% endfor %}
-                    </select>
-                </div>
-            </div>
-      
-            <div class="row">
+                </select>
+
                 <button id="run_model" type="button" data-loading-text="Running..." class="btn btn-primary">Run model</button>
                 <button id="stop_model" style="display:none" type="button" class="btn btn-danger">Stop model</button>
-            </div> 
-      
-            <div class="row">
-                <label for="run_progress">Progress</label>
-                <div id="run_progress" class="progress">
-                    <div id="model_run_progress" class="progress-bar" role="progressbar" style="width:{{ progress }}%">{{progress}}%</div>
-                </div>
-                <div id="status_message"></div>      
             </div>
-       
         </div>
     </div>
+    
+    <div class="row">
+        <div class="col col-sm-12 col-md-3 col-lg-4">
+            <label for="run_progress">Progress</label>
+            <div id="run_progress" class="progress">
+                <div id="model_run_progress" class="progress-bar" role="progressbar" style="width:{{ progress }}%">{{progress}}%</div>
+            </div>
+            <div id="status_message"></div>      
+        </div>            
+    </div>
 </div>
-  
-{% include "model_modals.html" %}  
-
-<script type="text/javascript">
-    $(function () {
-        $('#initial_timestep').datetimepicker({
-            viewMode: 'years',
-            format: 'MM/YYYY'        
-        });
-        $('#final_timestep').datetimepicker({
-            viewMode: 'years',
-            format: 'MM/YYYY',
-            useCurrent: false //Important! See issue #1075
-        });
-        $("#initial_timestep").on("dp.change", function (e) {
-            $('#final_timestep').data("DateTimePicker").minDate(e.date);
-        });
-        $("#final_timestep").on("dp.change", function (e) {
-            $('#initial_timestep').data("DateTimePicker").maxDate(e.date);
-        });
-        $('#initial_timestep').data("DateTimePicker").defaultDate('01/2000');
-        $('#final_timestep').data("DateTimePicker").defaultDate('12/2015');
-    });
-</script>
   
 <script>
 var status = {{ status }};
 var progress = {{ progress }};
 </script>
 
-<script src="{{ url_for('model_dashboard.static', filename='js/model-dashboard.js') }}"></script>
+<script src="{{ url_for('static', filename='js/openagua.js') }}"></script>
+<script src="{{ url_for('.static', filename='js/model-dashboard.js') }}"></script>
 
 {% endblock %}

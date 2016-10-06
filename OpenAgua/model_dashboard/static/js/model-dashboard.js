@@ -1,18 +1,22 @@
 var myInterval;
 
-$('button#run_model').bind('click', function() {
+$('button#run_model').click(function() {
 
     $(this).button('loading');
     $('button#stop_model').show();
     update_progress_bar(0);
+    
+    var scids = [];
+    $("#scenarios option:selected").each(function() {
+        scids.push(Number($(this).val()))
+    });
 
-    // 1. get run data and store it as json
-    commandData = {
-        ti: $('#initial_timestep').data().date,
-        tf: $('#final_timestep').data().date,
+    // collect run parameters here
+    var commandData = {
+        scids: scids,
         sol: 'glpk'
     }
-    
+
     $.ajax({
       type: "POST",
       contentType: "application/json; charset=utf-8",
@@ -23,28 +27,24 @@ $('button#run_model').bind('click', function() {
       },
       dataType: "json"
     });    
-    
+
 });
 
 //$( document ).ready(update_model_progress());
 
 // stop the model
 $('button#stop_model').bind('click', function() {
-    $('#modal_stop_model').show();
-});
-
-$('button#stop_model_cancel').bind('click', function() {
-    $('#modal_stop_model').hide();
-});
-
-$('button#stop_model_confirm').bind('click', function() {
-    // this doesn't really stop the model, but it stops the javascript
-    clearInterval(myInterval);
-    $("#status_message").text("Model stopped.");
-    $("button#run_model").button('reset');
-    $("button#stop_model").hide();
-    $("#modal_stop_model").hide();
+    var msg = 'Are you sure you want to stop this model run? Model results may not be complete.';
+    bootbox.confirm(msg, function(confirm) {
     
+        clearInterval(myInterval);
+        $("#status_message").text("Model stopped.");
+        $("button#run_model").button('reset');
+        $("button#stop_model").hide();
+        
+        notify('success', 'Success!', 'Model stopped.')
+    
+    });
 });
 
 // FUNCTIONS

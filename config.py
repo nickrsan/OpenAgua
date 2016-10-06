@@ -27,7 +27,7 @@ AMCHART_DATE_FORMAT = 'MM/YYYY'
 # Pyomo app settings
 PYOMO_APP_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
 PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'checker.py')
-PYOMO_APP_NAME = 'OpenAgua optimization model'
+PYOMO_APP_NAME = 'OpenAgua'
 SOLVER = "glpk"
 FORESIGHT = 'perfect' # to be set by user
 TEMP_TI = '01/2000'

@@ -6,7 +6,7 @@ from flask import render_template, request, session, json, jsonify, current_app
 from flask_security import login_required
 
 from OpenAgua import app
-from ..connection import connection
+from ..connection import make_connection, load_hydrauser
 from ..utils import decrypt
 
 # import blueprint definition
@@ -15,20 +15,24 @@ from . import model_dashboard
 @model_dashboard.route('/model_dashboard')
 @login_required
 def model_dashboard_main():
-    
+    load_hydrauser() # do this at the top of every page
+    conn = make_connection(login=True)
+    conn.load_active_study(load_from_hydra=False)
+    scenarios = conn.get_scenarios(session['network_id']) # NB: we just need the IDs, so load from study instead
     # check status and progress of any running model
     status, progress = 0, 0 # default state
     
-    mgt_scen_grps = {
-        "Base scenario": ["Baseline"],
-        "Infrastructure": ["El Cuchillo Expansion","New Presa"],
-        "Hydrologic information": ["General forecasting","Santa Catarinia"],
-        "Environmental flows": ["El Cuchillo MIF", "Flood pulse program"],
-        "Efficiency improvements": ["Toilet replacement program"]
-    }
+    #mgt_scen_grps = {
+        #"Base scenario": ["Baseline"],
+        #"Infrastructure": ["El Cuchillo Expansion","New Presa"],
+        #"Hydrologic information": ["General forecasting","Santa Catarinia"],
+        #"Environmental flows": ["El Cuchillo MIF", "Flood pulse program"],
+        #"Efficiency improvements": ["Toilet replacement program"]
+    #}
     
     return render_template('model_dashboard.html',
-                           mgt_scen_grps=mgt_scen_grps,
+                           #mgt_scen_grps=mgt_scen_grps,
+                           scenarios=scenarios,
                            status=status,
                            progress=progress) 
 
@@ -40,10 +44,8 @@ def run_model():
         return redirect(url_for('model_dashboard.model_dashboard_main'))
 
     # 1. get user input
-    ti = request.json['ti']
-    tf = request.json['tf']
-    #scids = request.json['scids']
-    scids = [5] # need to get these from study / user
+    scids = request.json['scids']
+    #scids = [5] # need to get these from study / user
     session['scenarios_count'] = len(scids)
     
     session['pyomo_scen_dir'] = '{}@{}'.format(session['hydra_username'], datetime.now().strftime('%d%m%Y.%H%M%S'))
@@ -56,7 +58,7 @@ def run_model():
         app = app.config['PYOMO_APP_NAME'],
         url = session['hydra_url'],
         user = session['hydra_username'],
-        pw = decrypt(session['hydra_password'],
+        pw = decrypt(session['hydra_password'], # POTENTIAL SECURITY CONCERN?
                      app.config['SECRET_ENCRYPT_KEY']),
         sid = session['hydra_sessionid'],
         nid = session['network_id'],
@@ -66,7 +68,7 @@ def run_model():
         ti = app.config['TEMP_TI'],
         tf = app.config['TEMP_TF'],
         tsf = app.config['TIMESTEP_FORMAT'],
-        htsf = app.config['HYDRA_TIMESTEP_FORMAT'],
+        htsf = app.config['HYDRA_DATETIME_FORMAT'],
         fs = app.config['FORESIGHT'],
         sol = app.config['SOLVER'],
         ldir = session['pyomo_scen_dir']
