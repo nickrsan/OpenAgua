@@ -7,8 +7,7 @@ from flask_security import login_required, current_user
 
 from flask_uploads import UploadSet, configure_uploads, ARCHIVES
 
-from ..connection import make_connection, \
-     activate_study
+from ..connection import make_connection, activate_study
 
 # import blueprint definition
 from . import manager
@@ -16,6 +15,11 @@ from OpenAgua import app, db
 
 templates = UploadSet('templates', ARCHIVES)
 configure_uploads(app, templates)
+
+@manager.route('/manage/studies')
+@login_required
+def manage_studies():
+    return render_template('studies_manager.html')
 
 @manager.route('/manage/templates')
 @login_required

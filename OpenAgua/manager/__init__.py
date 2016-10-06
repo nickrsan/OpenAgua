@@ -6,4 +6,4 @@ manager = Blueprint('manager',
                  static_folder='static',
                  static_url_path='/manager/static')
 
-from . import manager
+from . import views

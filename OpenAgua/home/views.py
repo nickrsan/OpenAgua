@@ -80,17 +80,6 @@ def home_main():
     
     return render_template('home.html', user_level=user_level)
 
-@home.route('/manage/templates')
-@login_required
-def manage_templates():
-    conn = make_connection()
-    
-    # get list of all templates
-    templates = conn.call('get_templates', {})
-    
-    return render_template('templates_manager.html',
-                           templates=templates)
-
 @home.route('/_load_study')
 @login_required
 def load_study():

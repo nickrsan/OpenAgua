@@ -17,6 +17,11 @@
 }(function (L) {
 "use strict";
 
+L.Polyline._flat = L.Polyline._flat || function (latlngs) {
+    // true if it's a flat array of latlngs; false if nested
+    return !L.Util.isArray(latlngs[0]) || (typeof latlngs[0][0] !== 'object' && typeof latlngs[0][0] !== 'undefined');
+};
+
 /**
  * @fileOverview Leaflet Geometry utilities for distances and linear referencing.
  * @name L.GeometryUtil
@@ -155,54 +160,112 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
     /**
         Returns the closest latlng on layer.
 
+        Accept nested arrays
+
         @tutorial closest
 
         @param {L.Map} map Leaflet map to be used for this method
-        @param {Array<L.LatLng>|L.PolyLine|L.Polygon} layer - Layer that contains the result
+        @param {Array<L.LatLng>|Array<Array<L.LatLng>>|L.PolyLine|L.Polygon} layer - Layer that contains the result
         @param {L.LatLng} latlng - The position to search
         @param {?boolean} [vertices=false] - Whether to restrict to path vertices.
-        @returns {L.LatLng} Closest geographical point
+        @returns {L.LatLng} Closest geographical point or null if layer param is incorrect
     */
     closest: function (map, layer, latlng, vertices) {
-        if (typeof layer.getLatLngs != 'function')
-            layer = L.polyline(layer);
 
-        var latlngs = layer.getLatLngs().slice(0),
+        var latlngs,
             mindist = Infinity,
             result = null,
             i, n, distance;
 
-        // Lookup vertices
-        if (vertices) {
-            for(i = 0, n = latlngs.length; i < n; i++) {
-                var ll = latlngs[i];
-                distance = L.GeometryUtil.distance(map, latlng, ll);
-                if (distance < mindist) {
+        if (layer instanceof Array) {
+            // if layer is Array<Array<T>>
+            if (layer[0] instanceof Array && typeof layer[0][0] !== 'number') {
+                // if we have nested arrays, we calc the closest for each array
+                // recursive
+                for (var i = 0; i < layer.length; i++) {
+                    var subResult = L.GeometryUtil.closest(map, layer[i], latlng, vertices);
+                    if (subResult.distance < mindist) {
+                        mindist = subResult.distance;
+                        result = subResult;
+                    }
+                }
+                return result;
+            } else if (layer[0] instanceof L.LatLng 
+                        || typeof layer[0][0] === 'number'
+                        || typeof layer[0].lat === 'number') { // we could have a latlng as [x,y] with x & y numbers or {lat, lng}
+                layer = L.polyline(layer);
+            } else {
+                return result;
+            }
+        }
+        
+        // if we don't have here a Polyline, that means layer is incorrect
+        // see https://github.com/makinacorpus/Leaflet.GeometryUtil/issues/23
+        if (! ( layer instanceof L.Polyline ) )
+            return result;
+
+        // deep copy of latlngs
+        latlngs = JSON.parse(JSON.stringify(layer.getLatLngs().slice(0)));
+
+        // add the last segment for L.Polygon
+        if (layer instanceof L.Polygon) {
+            // add the last segment for each child that is a nested array
+            var addLastSegment = function(latlngs) {
+                if (L.Polyline._flat(latlngs)) {
+                    latlngs.push(latlngs[0]);
+                } else {
+                    for (var i = 0; i < latlngs.length; i++) {
+                        addLastSegment(latlngs[i]);
+                    }
+                }
+            }
+            addLastSegment(latlngs);
+        }
+
+        // we have a multi polygon / multi polyline / polygon with holes 
+        // use recursive to explore and return the good result
+        if ( ! L.Polyline._flat(latlngs) ) {
+
+            for (var i = 0; i < latlngs.length; i++) {
+                // if we are at the lower level, and if we have a L.Polygon, we add the last segment
+                var subResult = L.GeometryUtil.closest(map, latlngs[i], latlng, vertices);
+                if (subResult.distance < mindist) {
+                    mindist = subResult.distance;
+                    result = subResult;
+                }
+            }
+            return result;
+
+        } else {
+
+            // Lookup vertices
+            if (vertices) {
+                for(i = 0, n = latlngs.length; i < n; i++) {
+                    var ll = latlngs[i];
+                    distance = L.GeometryUtil.distance(map, latlng, ll);
+                    if (distance < mindist) {
+                        mindist = distance;
+                        result = ll;
+                        result.distance = distance;
+                    }
+                }
+                return result;
+            }
+            
+            // Keep the closest point of all segments
+            for (i = 0, n = latlngs.length; i < n-1; i++) {
+                var latlngA = latlngs[i],
+                    latlngB = latlngs[i+1];
+                distance = L.GeometryUtil.distanceSegment(map, latlng, latlngA, latlngB);
+                if (distance <= mindist) {
                     mindist = distance;
-                    result = ll;
+                    result = L.GeometryUtil.closestOnSegment(map, latlng, latlngA, latlngB);
                     result.distance = distance;
                 }
             }
             return result;
         }
-        
-        // add the first point to close the polygon
-        if (layer instanceof L.Polygon) {
-            latlngs.push(latlngs[0]);
-        }
 
-        // Keep the closest point of all segments
-        for (i = 0, n = latlngs.length; i < n-1; i++) {
-            var latlngA = latlngs[i],
-                latlngB = latlngs[i+1];
-            distance = L.GeometryUtil.distanceSegment(map, latlng, latlngA, latlngB);
-            if (distance <= mindist) {
-                mindist = distance;
-                result = L.GeometryUtil.closestOnSegment(map, latlng, latlngA, latlngB);
-                result.distance = distance;
-            }
-        }
-        return result;
     },
 
     /**
@@ -223,18 +286,27 @@ L.GeometryUtil = L.extend(L.GeometryUtil || {}, {
 
         for (var i = 0, n = layers.length; i < n; i++) {
             var layer = layers[i];
-            // Single dimension, snap on points, else snap on closest
-            if (typeof layer.getLatLng == 'function') {
-                ll = layer.getLatLng();
-                distance = L.GeometryUtil.distance(map, latlng, ll);
-            }
-            else {
-                ll = L.GeometryUtil.closest(map, layer, latlng);
-                if (ll) distance = ll.distance;  // Can return null if layer has no points.
-            }
-            if (distance < mindist) {
-                mindist = distance;
-                result = {layer: layer, latlng: ll, distance: distance};
+            if (layer instanceof L.LayerGroup) {
+                // recursive
+                var subResult = L.GeometryUtil.closestLayer(map, layer.getLayers(), latlng);
+                if (subResult.distance < mindist) {
+                    mindist = subResult.distance;
+                    result = subResult;
+                }
+            } else {
+                // Single dimension, snap on points, else snap on closest
+                if (typeof layer.getLatLng == 'function') {
+                    ll = layer.getLatLng();
+                    distance = L.GeometryUtil.distance(map, latlng, ll);
+                }
+                else {
+                    ll = L.GeometryUtil.closest(map, layer, latlng);
+                    if (ll) distance = ll.distance;  // Can return null if layer has no points.
+                }
+                if (distance < mindist) {
+                    mindist = distance;
+                    result = {layer: layer, latlng: ll, distance: distance};
+                }
             }
         }
         return result;
