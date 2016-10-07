@@ -1,9 +1,9 @@
 from flask import Blueprint
 
-results_explorer = Blueprint('results_explorer',
+basic_results = Blueprint('basic_results',
                           __name__,
                           template_folder='templates',
                           static_folder='static',
-                          static_url_path='/results_explorer/static')
+                          static_url_path='/basic_results/static')
 
 from . import views

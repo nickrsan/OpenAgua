@@ -1,17 +1,15 @@
 from collections import OrderedDict
 from datetime import datetime
 
-from flask import redirect, url_for, render_template, \
-     request, session, jsonify, json
+from flask import redirect, url_for, render_template, request, session, jsonify, json
 from flask_security import login_required, current_user
 from ..connection import connection, make_connection, save_data, load_hydrauser
-from ..utils import hydra_timeseries, d2o, \
-     eval_scalar, eval_timeseries, eval_function, eval_data
+from ..utils import hydra_timeseries, d2o, eval_scalar, eval_timeseries, eval_function, eval_data
 
 # import blueprint definition
-from . import results_explorer
+from . import basic_results
 
-@results_explorer.route('/results_explorer')
+@basic_results.route('/basic_results')
 @login_required
 def main():
     load_hydrauser() # do this at the top of every page
@@ -32,11 +30,11 @@ def main():
             
     scenarios = [{'id':s.id, 'name':s.name} for s in conn.network.scenarios]
     
-    return render_template('results_explorer.html',
+    return render_template('basic_results.html',
                            features=features,
                            scenarios=scenarios)
 
-@results_explorer.route('/_get_variables', methods=['GET','POST'])
+@basic_results.route('/_get_variables', methods=['GET','POST'])
 @login_required
 def get_variables():
     conn = make_connection()
@@ -64,7 +62,7 @@ def get_variables():
     
     return jsonify(res_attrs=res_attrs)
 
-@results_explorer.route('/_get_variable_data')
+@basic_results.route('/_get_variable_data')
 @login_required
 def get_variable_data():
     conn = make_connection()

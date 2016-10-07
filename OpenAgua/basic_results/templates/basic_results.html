@@ -1,8 +1,8 @@
 {% extends "master.html" %}
-{% block title %} - Results Explorer{% endblock %}
+{% block title %} - basic results{% endblock %}
 {% block head_main %}
 
-<link href="{{ url_for('.static', filename='css/results-explorer.css') }}" media="all" rel="stylesheet" type="text/css" />
+<link href="{{ url_for('.static', filename='css/basic-results.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 {% endblock %}
 
@@ -12,9 +12,9 @@
   var dateFormat = "{{ session['amchart_date_format'] }}" // need to get this from the model setup
 </script>
 
-<div class="container-fluid" style="margin-left:0px;margin-right:0px">
+<div class="container-fluid">
 
-  <div class="row" style="margin-top:15px;margin-bottom:15px">
+  <div class="row">
   
     <!--select a feature-->
     <div class="col-sm-6 col-md-3">    
@@ -108,7 +108,7 @@
   
 </div>
 
-{% include "results_explorer_modals.html" %}
+{% include "basic_results_modals.html" %}
 
 {% endblock %}
 
@@ -120,6 +120,6 @@ var template_id = {{session['template_id']}}
 
 <script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ url_for('.static', filename='js/results-explorer.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/basic-results.js') }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}

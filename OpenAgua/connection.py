@@ -184,6 +184,27 @@ class connection(object):
                 updated_link = self.call('update_link', {'link': new_link})
         return
     
+    def get_attrs(self):
+        attrs = {}
+        for t in self.template.types:
+            for ta in t.typeattrs:
+                attrs[ta.attr_id] = {'name': ta.attr_name, 'is_var': ta.is_var}
+        return attrs
+    
+    def get_res_attrs(self):
+        attrs = self.get_attrs()
+        res_attrs = {}
+        for f in self.network.nodes + self.network.links:
+            ttype = [t.name for t in f.types if t.template_id==self.template.id][0]
+            for ra in f.attributes:
+                res_attrs[ra.id] = AttrDict({
+                    'res_name': f.name,
+                    'res_type': ttype,
+                    'attr_name': attrs[ra.attr_id]['name'],
+                    'is_var': attrs[ra.attr_id]['is_var']})
+        return res_attrs
+        
+    
     def make_geojson_from_node(self, node=None):
         type_id = [t.id for t in node.types \
                    if t.template_id==self.template.id][0]
@@ -413,9 +434,9 @@ class connection(object):
         if not study:
             session['project_id'] = None
             session['network_id'] = None
-            session['template_id'] = None            
-            session['study_name'] = None        
-            self.invalid_study = True        
+            session['template_id'] = None
+            session['study_name'] = None
+            self.invalid_study = True
 
         else:
             session['project_id'] = study.project_id
