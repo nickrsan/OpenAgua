@@ -1,27 +1,35 @@
 
-#viewers .viewer {
+.viewer {
   display: none;
 }
-#output.viewer, #table.viewer {
+.output, .table {
   height: 400px;
   border-style:solid;
   border-width:1px;
   border-color:#999999;
 }
+#table > .table {
+  border-width: 0px;
+}
 #scalar_output {
+  height: 50px;
   color: #336699;
   font-size: xx-large;
   font-weight: bold;
   margin: 0 15px 0 0;
+  line-height: 20px;
   padding: 15px;
 }
 
-.input {
+#input > .timeseries_table, #input > .array_table, #input > .function {
   height: 250px;
   border: thin solid #999999;
 }
+#input > .timeseries_table {
+  border-width: 0px;
+}
 #scalar_input {
-  height: 50px;
+  /*height: 50px;*/
 }
 
 .viewer_status {
@@ -31,4 +39,10 @@
 }
 .footer {
   display: none;
+}
+#output > .footer {
+  margin: 5px 0 15px 0;
+}
+#table > .footer {
+  margin-top: -15px;
 }

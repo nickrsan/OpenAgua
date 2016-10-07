@@ -16,7 +16,7 @@ var default_input_types = {
   scalar: 'scalar',
   array: 'array_table'
 }
-var is_var_def = {'N': 'Input', 'Y': 'Results'}
+var is_var_label = {'N': 'Input', 'Y': 'Results'}
 
 //var default_data_type = 'function'; // setting this is subjective
 
@@ -76,7 +76,7 @@ $(document).ready(function(){
       res_attr = JSON.parse(selected.attr("data-tags"));
       unit = res_attr.unit;
       dimension = res_attr.dimension;
-      orig_data_type = res_attr.data_type;
+      //orig_data_type = res_attr.data_type;
       var spicker = $('#scenarios');
       if (spicker.attr('disabled')) {
         spicker.attr('disabled',false).selectpicker('refresh');
@@ -87,6 +87,11 @@ $(document).ready(function(){
       var stitle = 'Select a scenario'
       $('button[data-id="scenarios"]')
         .attr('title',stitle).children('.filter-option').text(stitle)
+      }
+      if (res_attr.is_var == 'N') {
+        $('#show_input').show();     
+      } else {
+        $('#show_input').hide();      
       }
     }
   });
@@ -133,8 +138,8 @@ function loadVariables(type_id) {
   }
   $.getJSON($SCRIPT_ROOT+'/_get_variables', data, function(resp) {
       var res_attrs = _.sortBy(resp.res_attrs, 'name');
-      $.each(['Y','N'], function(j, is_var) {
-        optgroup = $('<optgroup>').attr('label', is_var_def[is_var])
+      $.each(['Y','N'], function(j, is_var) { // show results variables first
+        optgroup = $('<optgroup>').attr('label', is_var_label[is_var])
         res_attrs_filtered = res_attrs.filter(function (ra) { return ra.attr_is_var == is_var; });
         $.each(res_attrs_filtered, function(index, res_attr) {
           var tags = {
@@ -145,6 +150,7 @@ function loadVariables(type_id) {
             data_type: res_attr.tpl_type_attr.data_type,
             unit: res_attr.tpl_type_attr.unit,
             dimension: res_attr.tpl_type_attr.dimension,
+            is_var: is_var
           }
           optgroup.append($('<option>')
             .attr('data-tags',JSON.stringify(tags))
@@ -174,9 +180,10 @@ function loadVariableData() {
 
   clearViewers();
 
+  var data_type = res_attr.data_type;
+
   input_type = default_input_types[data_type];
   
-  var data_type = res_attr.data_type;
   var data = {
     type_id: type_id,
     feature_type: feature_type,
