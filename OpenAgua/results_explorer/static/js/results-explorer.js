@@ -1,12 +1,22 @@
 // global variables
-var feature_id, feature_type,
+var feature_id, feature_type, feature_name,
+    variable_name,
     scen_id, scen_name,
     template_id,
-    res_attr, res_attr_id, res_attr_name,
+    res_attr, res_attr_id,
     type_id,
     data_type,
     unit,
-    dimension;
+    dimension,
+    input_type, res_attr_data, eval_value;
+    
+var default_input_types = {
+  timeseries: 'timeseries_table',
+  descriptor: 'text',
+  scalar: 'scalar',
+  array: 'array_table'
+}
+var is_var_def = {'N': 'Input', 'Y': 'Results'}
 
 //var default_data_type = 'function'; // setting this is subjective
 
@@ -49,6 +59,7 @@ $(document).ready(function(){
     $('#scenarios').attr('disabled', true).selectpicker('refresh');
     var selected = $('#features option:selected');
     if (selected.length) {
+      feature_name = selected.text();
       var tags = $.parseJSON(selected.attr("data-tags"));
       type_id = tags.type_id;
       feature_id = tags.feature_id;
@@ -61,6 +72,7 @@ $(document).ready(function(){
   $('#variables').on('changed.bs.select', function (e) {
     var selected = $('#variables option:selected');
     if (selected.length) {
+      variable_name = selected.text();
       res_attr = JSON.parse(selected.attr("data-tags"));
       unit = res_attr.unit;
       dimension = res_attr.dimension;
@@ -94,9 +106,19 @@ $(document).ready(function(){
       aceInput.setValue('');
     }
   });
+  
+  $("#show_input").click(function(event) {
+    $("#input_modal .modal-title").text('Input: '+variable_name+' for '+feature_name+' ('+scen_name+' scenario)');
+    $("#input_modal").show();
+    loadInputData(input_type, res_attr_data, eval_value);
+  });
+
+  $("#close_input").click(function() {
+    $(".input_viewer").hide();
+    $("#input_modal").hide();
+  });
 
 });
-
 
 // FUNCTIONS
 
@@ -108,11 +130,13 @@ function loadVariables(type_id) {
     type_id: type_id,
     feature_id: feature_id,
     feature_type: feature_type
-    }
+  }
   $.getJSON($SCRIPT_ROOT+'/_get_variables', data, function(resp) {
       var res_attrs = _.sortBy(resp.res_attrs, 'name');
-      $.each(res_attrs, function(index, res_attr) {
-        //if (res_attr.attr_is_var == 'Y') {
+      $.each(['Y','N'], function(j, is_var) {
+        optgroup = $('<optgroup>').attr('label', is_var_def[is_var])
+        res_attrs_filtered = res_attrs.filter(function (ra) { return ra.attr_is_var == is_var; });
+        $.each(res_attrs_filtered, function(index, res_attr) {
           var tags = {
             attr_id: res_attr.attr_id,
             type_id: type_id,
@@ -122,18 +146,18 @@ function loadVariables(type_id) {
             unit: res_attr.tpl_type_attr.unit,
             dimension: res_attr.tpl_type_attr.dimension,
           }
-          vpicker
-            .append($('<option>')
-              .attr('data-tags',JSON.stringify(tags))
-              .val(res_attr.tpl_type_attr.name)
-              .text(res_attr.tpl_type_attr.name)
-            );
-          //}
+          optgroup.append($('<option>')
+            .attr('data-tags',JSON.stringify(tags))
+            .val(res_attr.tpl_type_attr.name)
+            .text(res_attr.tpl_type_attr.name)
+          );
+        });
+        vpicker.append(optgroup)
       });
       vpicker.attr('disabled',false);
       $('#variables').selectpicker('render');
       $('#variables').selectpicker('refresh');
-      
+    
       // deselect all variables (select offers no function for this?)
       var vbutton = $('button[data-id="variables"]')
       vbutton.children('.filter-option').text('Select a variable')
@@ -141,7 +165,7 @@ function loadVariables(type_id) {
         .children('.inner')
           .children('.selected')
             .removeClass('selected')
-  });
+    });
 }
 
 
@@ -150,14 +174,9 @@ function loadVariableData() {
 
   clearViewers();
 
-  var default_input_types = {
-    timeseries: 'timeseries_table',
-    descriptor: 'text',
-    scalar: 'scalar',
-    array: 'array_table'
-  }
+  input_type = default_input_types[data_type];
+  
   var data_type = res_attr.data_type;
-  var input_type = default_input_types[data_type];
   var data = {
     type_id: type_id,
     feature_type: feature_type,
@@ -169,7 +188,7 @@ function loadVariableData() {
   
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     res_attr_data = resp.res_attr_data;
-    var eval_value = resp.eval_value;
+    eval_value = resp.eval_value;
     if (res_attr_data != null) {
     
       metadata = JSON.parse(res_attr_data.value.metadata);
@@ -182,8 +201,6 @@ function loadVariableData() {
       hideViewerStatus();
       loadOutputData(data_type, scen_name, eval_value);
       loadTableData(data_type, scen_name, eval_value);
-      //loadInputData(input_type, res_attr_data, eval_value);
-      
       $('.unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
 
     } else {
@@ -290,11 +307,13 @@ function loadInputData(input_type, res_attr_data, eval_value) {
  
 function showOutput(data_type) {
   $('#'+data_type+'_output').show();
+  $('#output .footer').show();
 }
 
 function showTable(data_type) {
   $('#table_label').show()
   $('#'+data_type+'_table').show();
+  $('#table .footer').show();
 }
 
 function showInput(input_type) {
@@ -305,7 +324,7 @@ function clearViewers() {
   $('#table_label').hide();
   $('.viewer').hide();
   $('.output').empty();
-  $('.unit').empty();
+  $('.footer').hide();
 }
 
 function hideViewerStatus() {
