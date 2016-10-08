@@ -13,7 +13,8 @@ $(function() {
           //rendererName: "Line Chart",
           renderers: $.extend(
               $.pivotUtilities.renderers, 
-            $.pivotUtilities.c3_renderers
+            //$.pivotUtilities.c3_renderers
+            $.pivotUtilities.plotly_renderers
           )
         });
     });
