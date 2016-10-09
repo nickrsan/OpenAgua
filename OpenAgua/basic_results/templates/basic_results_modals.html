@@ -1,0 +1,47 @@
+<div class="modal" id="input_modal" data-backdrop="false">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h4 class="modal-title" id="myModalLabel"></h4>
+      </div>
+
+      <div class="modal-body">
+
+	<div id="input_status" class='viewer_status'>No data loaded</div>
+
+	<div id="input" class="viewer_contents">
+
+	  <!--scalar input-->
+	  <div id="scalar_input" class="input scalar viewer">
+	    <label class="control-label sr-only sr-only-focusable" for="scalar_input_field">Number:</label>
+	    <input id="scalar_input_field" type="text" class="form-control" placeholder="No data entered">
+	  </div>
+  
+	  <!--function input-->
+	  <div id="function_input" class="input function viewer"></div>
+  
+	  <!--timeseries table input-->
+	  <div id="timeseries_table_input" class="input timeseries_table viewer"></div>
+  
+	  <!--array table input-->
+	  <div id="array_table_input" class="input array_table viewer"></div>
+  
+	  <!--text input-->
+	  <div id="text_input" class="input descriptor viewer">
+	    <label class="control-label sr-only sr-only-focusable" for="text_input_field">Text:</label>
+	    <textarea id="text_intput_field" class="form-control" rows="3" placeholder="Enter some text..."></textarea>
+	  </div>
+  
+	  <div id='unit' class='unit'></div>
+	</div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button id="close_input" type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -29,19 +29,20 @@ def get_dates(formatted=True):
     
     return dates            
             
+def empty_timeseries():
+    return [{'date': date, 'value': ''} for date in get_dates()]
 
 def hydra_timeseries(data):
     timeseries = {}
     for row in data:
         date = datetime.strptime(row['date'], session['date_format']) \
-            .strftime(session['hydra_time_format'])
+            .strftime(session['hydra_datetime_format'])
         timeseries[date] = row['value']
     timeseries = {'0':timeseries}
     return timeseries
 
 def empty_hydra_timeseries():
-    timeseries = [{'date': date, 'value': ''} for date in get_dates()]
-    return hydra_timeseries(timeseries)
+    return hydra_timeseries(empty_timeseries())
 
 def eval_scalar(x):
     
@@ -149,15 +150,6 @@ def eval_data(data_type, data, do_eval=False, function=None):
         returncode, errormsg, result = eval_function(function)
     else:
         returncode, errormsg, result = eval('eval_{}(data)'.format(data_type))
-
-    #if timeseries is None:
-        #timeseries = openagua_timeseries("''")
-    #if result is None:
-        #result = ''
-        #if data_type == 'timeseries':
-            #result = [{'date': date, 'value': ''} for date in get_dates()]
-        #else:
-            #result = ''
         
     if do_eval:
         return returncode, errormsg, result

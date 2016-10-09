@@ -1,0 +1,25 @@
+{% extends "layout.html" %}
+
+{% block title %} - manage studies{% endblock %}
+
+{% block head_master %}
+{% include 'navbar.html' %}
+
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/study-manager.css') }}" media="all" type="text/css" />
+
+{% endblock %}    
+    
+{% block main %}
+
+<div class="container-fluid">
+
+      <div class="row">   
+      
+            <div class="col col-sm-12 col-md-12 col-lg-12">
+                  <h3>Studies</h3>
+            </div>
+
+      </div> 
+</div>
+
+{% endblock %}

@@ -14,6 +14,7 @@ HYDRA_ROOT_PASSWORD = ''
 
 # Other Hydra Server-related settings
 HYDRA_DATETIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f000Z' # must be the same as in hydra.ini
+#HYDRA_DATETIME_FORMAT = '%Y-%m-%d' # must be the same as in hydra.ini
 HYDRA_SEASONAL_YEAR = 9999 # not used yet
 DEFAULT_HYDRA_TEMPLATE = 'OpenAgua'
 DEFAULT_SCENARIO_NAME = 'Baseline'
@@ -27,7 +28,7 @@ AMCHART_DATE_FORMAT = 'MM/YYYY'
 # Pyomo app settings
 PYOMO_APP_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'main.py')
 PYOMO_CHECK_PATH = os.path.join(APP_ROOT, 'pyomo_model', 'checker.py')
-PYOMO_APP_NAME = 'OpenAgua optimization model'
+PYOMO_APP_NAME = 'OpenAgua'
 SOLVER = "glpk"
 FORESIGHT = 'perfect' # to be set by user
 TEMP_TI = '01/2000'

@@ -1,0 +1,10 @@
+#json_editor {
+  height: 400px;
+  width: 100%;
+}
+#json_editor_wrapper {
+  display:none;    
+}
+#editor_buttons {
+  margin-top: 5px;    
+}

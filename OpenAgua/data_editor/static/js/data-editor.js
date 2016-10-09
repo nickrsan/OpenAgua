@@ -4,7 +4,7 @@ var feature_id, feature_type,
     template_id,
     res_attr, res_attr_id, res_attr_name,
     type_id,
-    orig_data_type, cur_data_type;
+    data_type, orig_data_type, cur_data_type;
 
 var unit,
     dimension, 
@@ -257,13 +257,14 @@ function loadVariables(type_id) {
 // load the variable data
 function loadVariableData() {
 
+  data_type = res_attr.data_type;
   var data = {
     type_id: type_id,
     feature_type: feature_type,
     feature_id: feature_id,
     res_attr_id: res_attr.res_attr_id,
     scen_id: scen_id,
-    data_type: res_attr.data_type
+    data_type: data_type
   }
   $.getJSON($SCRIPT_ROOT+'/_get_variable_data', data, function(resp) {
     res_attr_data = resp.res_attr_data;
@@ -276,12 +277,16 @@ function loadVariableData() {
           orig_data_type = 'function';
         }
       }
-    }
-    
-    cur_data_type = orig_data_type;
+  
+    } 
+    cur_data_type = orig_data_type; // should be here
     
     loadEditorData(cur_data_type, res_attr_data, eval_value);
-    loadPreviewData(cur_data_type, scen_name, eval_value);
+    if (res_attr_data != null) {
+      loadPreviewData(cur_data_type, scen_name, eval_value);    
+    } else {
+      clearPreview();    
+    }
     saved();
     
   });
@@ -446,12 +451,6 @@ function saveData(data) {
           unsaved();
           break;
         case 1:
-          data_type = cur_data_type;
-          res_attr.data_type = data_type; // update local record
-          var selected = $('#variables option:selected');
-          //selected.data_tokens = JSON.stringify(res_attr);
-          selected.data_tags = JSON.stringify(res_attr);
-          $('#variables').selectpicker('refresh');
           loadVariableData();
           notify('success','Success!','Data saved.');
           errmsg('');
@@ -531,7 +530,7 @@ function previewArray(value) {
 function clearPreview(msg='No data to preview') {
   $('.preview').empty().hide()
   if (msg.length) {
-    $('#preview_status').text(msg); 
+    $('#preview_status').text(msg).show(); 
   } else {
     $('#preview_status').empty().hide();  
   }

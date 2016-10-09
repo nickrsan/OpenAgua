@@ -56,7 +56,7 @@ def commandline_parser():
         description="""Run the OpenAgua pyomo optimization model.
                     Written by David Rheinheimer <david.rheinheimer@gmail.com>
                     (c) Copyright 2016, Tecnologico de Monterrey.
-        """, epilog="For more information visit www.openaguadss.org",
+        """, epilog="For more information visit www.openagua.org",
        formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument('-app', '--app-name',
@@ -79,7 +79,7 @@ def commandline_parser():
     parser.add_argument('-scids', '--scenario-ids',
                         help='''The scenario IDs of the scenarios to be run,
                         specified as a string containing a comma-separated list of
-                        integers. If no IDs are specified, all scenarios asscoiated
+                        integers. If no IDs are specified, all scenarios associated
                         with the network/template will be run.
                         ''')
     parser.add_argument('-ti', '--initial-timestep',

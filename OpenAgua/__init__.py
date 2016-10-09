@@ -47,7 +47,8 @@ from .data_editor import data_editor
 from .network_editor import net_editor
 from .main_overview import main_overview
 from .model_dashboard import model_dashboard
-from .results_explorer import results_explorer
+from .basic_results import basic_results
+from .pivot_results import pivot_results
 from .chart_maker import chart_maker
 
 # register blueprints
@@ -57,7 +58,8 @@ app.register_blueprint(main_overview, url_prefix='')
 app.register_blueprint(data_editor, url_prefix='')
 app.register_blueprint(net_editor, url_prefix='')
 app.register_blueprint(model_dashboard, url_prefix='')
-app.register_blueprint(results_explorer, url_prefix='')
+app.register_blueprint(pivot_results, url_prefix='')
+app.register_blueprint(basic_results, url_prefix='')
 app.register_blueprint(chart_maker, url_prefix='')
 
 # set up admin

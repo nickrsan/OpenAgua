@@ -1,0 +1,9 @@
+#map {
+    height: 500px;
+    border: thin solid black;
+    z-index: 1;
+}
+.dropdown-menu {
+  z-index: 1000;
+  width: 200px
+}

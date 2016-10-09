@@ -17,8 +17,6 @@ import wingdbstub
 
 # run the the main scenario-specific routine
 def run_scenario(scenario_id, args=None):
-
-    scenario_id = 5 # get from args
     
     logd = create_logger(appname='{} - {} - details'.format(args.app_name, scenario_id),
                          logfile=join(args.scenario_log_dir,'scenario_{}_details.txt'.format(scenario_id)),
@@ -44,9 +42,18 @@ def run_scenario(scenario_id, args=None):
         hpt = date.strftime(args.hydra_timestep_format)
         timestep_dict[date] = [hpt, oat]
         OAtHPt[oat] = hpt
-    
+        
+    template_attributes = conn.call('get_template_attributes', {'template_id': conn.template.id})
+    attr_names = {}
+    for ta in template_attributes:
+        attr_names[ta.id] = ta.name
+        
     # create the model
-    instance = prepare_model('OpenAguaModel', conn.network, conn.template, timestep_dict)
+    instance = prepare_model(model_name='OpenAgua',
+                             network=conn.network,
+                             template=conn.template,
+                             attr_names=attr_names,
+                             timestep_dict=timestep_dict)
     
     logd.info('model created')
     opt = SolverFactory(args.solver)

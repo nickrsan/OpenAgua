@@ -2,22 +2,15 @@
 {% block title %} - Network Editor{% endblock %}
 {% block head_main %}
 
-<style>
-.dropdown-menu {
-  z-index: 1000;
-  width: 200px
-}
-
-#map {
-  z-index: 1
-}
-</style>
+<link href="{{ url_for('.static', filename='css/network-editor.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 <!--Leaflet-->
 <!--<link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.css" />-->
 <!--<script src="https://unpkg.com/leaflet@1.0.0-rc.3/dist/leaflet.js"></script>-->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.7/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>
+<!--<link rel="stylesheet" href="https://unpkg.com/leaflet@0.7.7/dist/leaflet.css" />-->
+<!--<script src="https://unpkg.com/leaflet@0.7.7/dist/leaflet.js"></script>-->
+<link rel="stylesheet" href="{{ url_for('.static', filename='lib/leaflet/leaflet/leaflet.css') }}" />
+<script src="{{ url_for('.static', filename='lib/leaflet/leaflet/leaflet.js') }}"></script>
 
 <!--draw-->
 <link rel="stylesheet" href="{{ url_for('.static', filename='lib/leaflet/draw/leaflet.draw.css') }}" />
@@ -57,19 +50,36 @@
 
 <!--network editor-->
 <div class='container-fluid'>
-  <div class='row'>  
-    <div class="btn-group pull-right" style='margin-bottom:5px'>
-      <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <span class="caret"></span></button>
-      <ul class="dropdown-menu">
-        <li>
-          &nbsp;&nbsp;<input type="checkbox" name="show_labels" checked>&nbsp;&nbsp;Node labels      
-        </li>
-      </ul>
+  <div class='row'>
+  
+    <!--instructions-->
+    <div class="col col-sm-9 col-md-10 col-lg-10">
+      <div>
+      <p><strong>Basic usage:</strong> Use the top left buttons to add polylines (rivers, etc.) and points (demand sites, reservoirs, etc.)</p>
+      </div>
+    </div>
+    
+    <!--settings-->
+    <div class="col col-sm-3 col-md-2 col-lg-2">
+      <div class="btn-group pull-right" style='margin-bottom:5px'>
+        <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <span class="caret"></span></button>
+        <ul class="dropdown-menu">
+          <li>
+            &nbsp;&nbsp;<input type="checkbox" name="show_labels" checked>&nbsp;&nbsp;Node labels      
+          </li>
+        </ul>
+      </div>
+      
+    </div>
+    
+  </div>
+  
+  <div class='row'>
+    <div class="col col-sm-12 col-md-12 col-lg-12">
+      <div id="map"></div>
     </div>
   </div>
-  <div class='row'>
-    <div id="map" style="height: 500px; border: thin solid black"></div>
-  </div>
+  
 </div>
 
 {% include "network_modals.html" %}
@@ -80,7 +90,7 @@ $("[name='show_labels']").bootstrapSwitch();
 var showLabels = $("[name='show_labels']").bootstrapSwitch("state");
 </script>
 
-<script src="{{ url_for('network_editor.static', filename='js/network_editor.js') }}"></script>
+<script src="{{ url_for('network_editor.static', filename='js/network-editor.js') }}"></script>
 
 <script>
 $( document ).ready( function() {

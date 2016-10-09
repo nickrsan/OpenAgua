@@ -1,8 +1,8 @@
 {% extends "master.html" %}
-{% block title %} - Results Explorer{% endblock %}
+{% block title %} - basic results{% endblock %}
 {% block head_main %}
 
-<link href="{{ url_for('.static', filename='css/results_explorer.css') }}" media="all" rel="stylesheet" type="text/css" />
+<link href="{{ url_for('.static', filename='css/basic-results.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 {% endblock %}
 
@@ -12,9 +12,9 @@
   var dateFormat = "{{ session['amchart_date_format'] }}" // need to get this from the model setup
 </script>
 
-<div class="container-fluid" style="margin-left:0px;margin-right:0px">
+<div class="container-fluid">
 
-  <div class="row" style="margin-top:15px;margin-bottom:15px">
+  <div class="row">
   
     <!--select a feature-->
     <div class="col-sm-6 col-md-3">    
@@ -56,7 +56,7 @@
   </div>
 
   <div class="row" style="margin-bottom:20px">
-    <div id="viewers" class="col-md-8 col-sm-7">
+    <div id="output_viewers" class="col-md-8 col-sm-12">
       
       <!--begin graphical output-->
       <label id="output_label" for="input">Graphical results</label>
@@ -73,13 +73,17 @@
 	<!--array viewer-->
 	<div id="array_output" class="output array viewer"></div>
 	
-	<div id='unit' class='unit'></div>
+	<div class="footer">
+	  <span id='unit' class='unit pull-left'></span>
+	  <button id="show_input" type="button" class="btn btn-default pull-right">View input</button>
+	</div>
+
   
       </div>
       <!--end graphical output-->
     </div>
     
-    <div id="viewers" class="col-md-4 col-sm-5">
+    <div id="table_viewers" class="col-md-4 col-sm-12">
   
       <!--begin table-->
       <label id="table_label" for="table" style="display:none;">Tabular results</label>
@@ -88,56 +92,23 @@
 	<!--<div id="table_status" class='viewer_status'>No data to display</div>-->
 	
 	<!--timeseries table-->
-	<div id="timeseries_table" class="table_viewer timeseries viewer"></div>
+	<div id="timeseries_table" class="table timeseries viewer"></div>
 	
 	<!--array table-->
-	<div id="array_table" class="output_viewer array viewer"></div>
+	<div id="array_table" class="table array viewer"></div>
 	
-	<div id='unit' class='unit'></div>
+	<div class='footer'>
+	  <span id='unit' class='unit'></span>
+	</div>
       
       </div>
       <!--end table-->
     </div>
   </div>
   
-  <div class="row" style="margin-bottom:20px">
-    <div id="viewers" class="col-md-12 col-sm-12">
-  
-      <!--begin input-->
-      <label id="input_label" for="input">Input</label>
-      <div id="input" class="viewer_contents">
-  
-	<div id="input_status" class='viewer_status'>No data loaded</div>
-	
-	<!--scalar input-->
-	<div id="scalar_input" class="input_viewer scalar viewer">
-	  <label class="control-label sr-only sr-only-focusable" for="scalar_input_field">Number:</label>
-	  <input id="scalar_input_field" type="text" class="form-control" placeholder="No data entered">
-	</div>
-  
-	<!--function input-->
-	<div id="function_input" class="input_viewer function viewer"></div>
-	
-	<!--timeseries table input-->
-	<div id="timeseries_table_input" class="input_viewer timeseries_table viewer"></div>
-	
-	<!--array table input-->
-	<div id="array_table_input" class="input_viewer array_table viewer"></div>
-	
-	<!--text input-->
-	<div id="text_input" class="input_viewer descriptor viewer">
-	  <label class="control-label sr-only sr-only-focusable" for="text_input_field">Text:</label>
-	  <textarea id="text_intput_field" class="form-control" rows="3" placeholder="Enter some text..."></textarea>
-	</div>
-	
-	<div id='unit' class='unit'></div>
-	    
-      </div>
-      <!--end input-->
-      
-    </div>
-  </div>
 </div>
+
+{% include "basic_results_modals.html" %}
 
 {% endblock %}
 
@@ -149,6 +120,6 @@ var template_id = {{session['template_id']}}
 
 <script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
-<script src="{{ url_for('.static', filename='js/results_explorer.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/basic-results.js') }}" type="text/javascript" charset="utf-8"></script>
 
 {% endblock %}

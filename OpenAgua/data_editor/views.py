@@ -6,7 +6,7 @@ from flask import redirect, url_for, render_template, \
 from flask_security import login_required, current_user
 from ..connection import connection, make_connection, save_data, load_hydrauser
 from ..utils import hydra_timeseries, d2o, \
-     eval_scalar, eval_timeseries, eval_function, eval_data, get_dates
+     eval_scalar, eval_timeseries, eval_function, eval_data, get_dates, empty_timeseries
 
 # import blueprint definition
 from . import data_editor
@@ -101,9 +101,9 @@ def get_variable_data():
     if eval_value is None:
         res_attr_data = None
         if data_type == 'timeseries':
-            eval_value = [{'date': date, 'value': ''} for date in get_dates()]
+            eval_value = empty_timeseries()
         else:
-            result = ''
+            eval_value = ''
     
     return jsonify(res_attr_data=res_attr_data, eval_value=eval_value)
 

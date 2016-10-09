@@ -1,31 +1,45 @@
 {% extends "layout.html" %}    
     
 {% block head_master %}
+
 {% include 'head_master.html' %}
+{% include 'navbar.html' %}
+
 {% endblock %}
 
 {% block main %}
 
-{% include 'navbar.html' %}
+<div id="wrapper">   
 
-<div class="container-fluid">
-  
-  <div class="row">
-  
-    <div class="col-sm-3 col-md-2 sidebar">
-      {% include "sidebar.html" %}
-    </div>
-  
-    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-    
+  <!-- Sidebar -->
+  {% include "sidebar.html" %}
+  <!-- /#sidebar-wrapper -->
+
+    <!-- Page Content -->
+    <div id="page-content-wrapper">
       {{ macros.messages()}}
-    
       {% block content %}{% endblock %}
-      
     </div>
-    
-  </div>  
+    <!-- /#page-content-wrapper -->
 
 </div>
+<!-- /#wrapper -->
+  
+<script>
+$(function () {
+
+    <!-- Menu Toggle Script -->
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+    });
+    
+    $('ul.nav a.nav_top').filter(function () {
+        return this.href == window.location;
+    }).parent().addClass('active').parent().parent().addClass('active');
+
+});
+
+</script>
 
 {% endblock %}

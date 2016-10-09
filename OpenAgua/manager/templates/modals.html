@@ -74,3 +74,64 @@
     </div>
   </div>
 </div>
+
+<!--scenario date range-->
+
+<div class="modal" id="scenario_dates_selector" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
+  <div class="modal-dialog modal-sm" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title">Select scenario dates</h4>
+      </div>
+      <div class="modal-body">
+
+        <div class="form-group">
+            <label for='initial_timestep'>First month (mm/yyyy)</label>
+            <div class='input-group date' id='initial_timestep'>
+                <input type='text' class="form-control" />
+                <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
+        </div>
+                
+        <div class="form-group">
+            <label for='final_timestep'>Last month (mm/yyyy)</label>
+            <div class='input-group date' id='final_timestep'>
+                <input type='text' class="form-control" />
+                <span class="input-group-addon">
+                    <span class="glyphicon glyphicon-calendar"></span>
+                </span>
+            </div>
+        </div>      
+      
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+        <button id="scenario_dates_confirm" type="button" class="btn btn-danger">Confirm</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+        $('#initial_timestep').datetimepicker({
+            viewMode: 'years',
+            format: 'MM/YYYY'        
+        });
+        $('#final_timestep').datetimepicker({
+            viewMode: 'years',
+            format: 'MM/YYYY',
+            useCurrent: false //Important! See issue #1075
+        });
+        $("#initial_timestep").on("dp.change", function (e) {
+            $('#final_timestep').data("DateTimePicker").minDate(e.date);
+        });
+        $("#final_timestep").on("dp.change", function (e) {
+            $('#initial_timestep').data("DateTimePicker").maxDate(e.date);
+        });
+        $('#initial_timestep').data("DateTimePicker").defaultDate('01/2000');
+        $('#final_timestep').data("DateTimePicker").defaultDate('12/2015');
+    });
+</script>
