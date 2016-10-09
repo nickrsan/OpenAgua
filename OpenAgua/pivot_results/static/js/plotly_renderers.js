@@ -11,14 +11,14 @@
     }
   };
 
-  callWithJQuery(function($, plotly) {
+  callWithJQuery(function($, Plotly) {
     var makePlotlyChart;
-    makePlotlyChart = function(chartOpts) {
+    makePlotlyChart = function(chartType, chartOpts) {
       if (chartOpts == null) {
         chartOpts = {};
       }
       return function(pivotData, opts) {
-        var agg, attrs, base, base1, base2, base3, base4, base5, colKey, colKeys, columns, dataColumns, defaults, fullAggName, groupByTitle, h, hAxisTitle, headers, i, j, k, l, len, len1, len2, len3, len4, m, numCharsInHAxis, numSeries, params, ref, ref1, ref2, ref3, renderArea, result, rotationAngle, row, rowHeader, rowKey, rowKeys, s, scatterData, series, title, titleText, vAxisTitle, val, vals, x, xs;
+        var agg, attrs, base, base1, base2, base3, base4, base5, colKey, colKeys, columns, dataColumns, defaults, defaultTrace, fullAggName, groupByTitle, h, hAxisTitle, headers, hx, i, j, k, l, layout, len, len1, len2, len3, len4, m, numCharsInHAxis, numSeries, params, ref, ref1, ref2, ref3, renderArea, result, rotationAngle, row, rowHeader, rowKey, rowKeys, s, scatterData, series, stackedArea, title, titleText, trace, traces, traceName, vAxisTitle, val, vals, x, xs, y;
         defaults = {
           localeStrings: {
             vs: "vs",
@@ -26,18 +26,53 @@
           },
           plotly: {}
         };
+        
+        layout = {}
+        
+        switch(chartType) {
+          case 'line':
+            defaultTrace = {
+              type: 'scatter'          
+            };
+            break;
+          case 'bar':
+            defaultTrace = {
+              type: 'bar'
+            }
+            if (chartOpts.stacked) {
+              layout.barmode = 'stack'
+            } else {
+              layout.barmode = 'group'
+            }
+            break;
+          case 'area':
+            defaultTrace = {
+              fill: 'tonexty'
+            };
+            if (chartOpts.stacked && !stackedArea) {
+              stackedArea = function(traces) {
+                  for(var i=1; i<traces.length; i++) {
+                      for(var j=0; j<(Math.min(traces[i]['y'].length, traces[i-1]['y'].length)); j++) {
+                          traces[i]['y'][j] += traces[i-1]['y'][j];
+                      }
+                  }
+                  return traces;
+              };
+            }
+            break;
+          default:
+            defaultTrace = {
+              type: 'scatter'          
+            };
+            break;
+        }        
+        
         opts = $.extend(true, defaults, opts);
-        if ((base = opts.plotly).size == null) {
-          base.size = {};
+        if ((base = opts.plotly).width == null) {
+          base.width = window.innerWidth / 1.4;
         }
-        if ((base1 = opts.plotly.size).width == null) {
-          base1.width = window.innerWidth / 1.4;
-        }
-        if ((base2 = opts.plotly.size).height == null) {
-          base2.height = window.innerHeight / 1.4 - 50;
-        }
-        if (chartOpts.type == null) {
-          chartOpts.type = "line";
+        if ((base1 = opts.plotly).height == null) {
+          base1.height = window.innerHeight / 1.4 - 50;
         }
         rowKeys = pivotData.getRowKeys();
         if (rowKeys.length === 0) {
@@ -47,20 +82,22 @@
         if (colKeys.length === 0) {
           colKeys.push([]);
         }
+
         headers = (function() {
           var i, len, results;
           results = [];
-          for (i = 0, len = colKeys.length; i < len; i++) {
-            h = colKeys[i];
+          for (i = 0, len = rowKeys.length; i < len; i++) {
+            h = rowKeys[i];
             results.push(h.join("-"));
           }
           return results;
         })();
-        rotationAngle = 0;
+        headers.unshift("");
         fullAggName = pivotData.aggregatorName;
         if (pivotData.valAttrs.length) {
           fullAggName += "(" + (pivotData.valAttrs.join(", ")) + ")";
         }
+        //numCharsInHAxis = 0;
         
         //scatter chart
         if (chartOpts.type === "scatter") {
@@ -109,34 +146,56 @@
           
         //non-scatter chart
         } else {
-          numCharsInHAxis = 0;
+          //numCharsInHAxis = 0;
           for (k = 0, len2 = headers.length; k < len2; k++) {
-            x = headers[k];
-            numCharsInHAxis += x.length;
+            hx = headers[k];
+            //numCharsInHAxis += hx.length;
           }
-          if (numCharsInHAxis > 50) {
-            rotationAngle = 45;
-          }
-          columns = [];
-          for (l = 0, len3 = rowKeys.length; l < len3; l++) {
-            rowKey = rowKeys[l];
-            rowHeader = rowKey.join("-");
-            row = [rowHeader === "" ? pivotData.aggregatorName : rowHeader];
-            for (m = 0, len4 = colKeys.length; m < len4; m++) {
-              colKey = colKeys[m];
-              val = parseFloat(pivotData.getAggregator(rowKey, colKey).value());
-              if (isFinite(val)) {
-                if (val < 1) {
-                  row.push(val.toPrecision(3));
+          traces = [];
+          for (j = 0, len1 = rowKeys.length; j < len1; j++) {
+            rowKey = rowKeys[j];
+            traceName = rowKey.join("-");
+            x = [];
+            y = [];
+            for (i = 0, len = colKeys.length; i < len; i++) {
+              colKey = colKeys[i];
+              x.push(colKey.join("-"));
+              //numCharsInHAxis += x[0].length;
+
+              agg = pivotData.getAggregator(rowKey, colKey);
+              if (agg.value() != null) {
+                val = agg.value();
+                if ($.isNumeric(val)) {
+                  if (val < 1) {
+                    y.push(parseFloat(val.toPrecision(3)));
+                  } else {
+                    y.push(parseFloat(val.toFixed(3)));
+                  }
                 } else {
-                  row.push(val.toFixed(3));
+                  y.push(val);
                 }
               } else {
-                row.push(null);
+                y.push(null);
               }
             }
-            columns.push(row);
+            
+            trace = $.extend(true, {}, defaultTrace, {
+              x: x,
+              y: y,
+              name: traceName
+            });
+            if (chartType === 'area') {
+              if (j === 0) {
+                trace.fill = 'tozeroy';             
+              }
+            }
+            
+            traces.push(trace);
           }
+          if (chartType === 'area' && chartOpts.stacked === true) {
+            traces = stackedArea(traces);
+          }
+          
           vAxisTitle = pivotData.aggregatorName + (pivotData.valAttrs.length ? "(" + (pivotData.valAttrs.join(", ")) + ")" : "");
           hAxisTitle = pivotData.colAttrs.join("-");
           titleText = fullAggName;
@@ -154,105 +213,70 @@
           style: "text-align: center; font-weight: bold"
         });
         title.text(titleText);
-        params = {
-          axis: {
-            y: {
-              label: vAxisTitle
-            },
-            x: {
-              label: hAxisTitle,
-              tick: {
-                rotate: rotationAngle,
-                multiline: false
-              }
-            }
-          },
-          data: {
-            type: chartOpts.type
-          },
-          tooltip: {
-            grouped: false
-          },
-          color: {
-            pattern: ["#3366cc", "#dc3912", "#ff9900", "#109618", "#990099", "#0099c6", "#dd4477", "#66aa00", "#b82e2e", "#316395", "#994499", "#22aa99", "#aaaa11", "#6633cc", "#e67300", "#8b0707", "#651067", "#329262", "#5574a6", "#3b3eac"]
-          }
-        };
-        $.extend(true, params, opts.plotly);
+        layout = $.extend(true, layout, {
+          title: titleText,     
+          width: base.width,
+          height: base1.height
+        });
+        
+        //$.extend(true, layout, opts.plotly);
         
         //scatter plot
         if (chartOpts.type === "scatter") {
-          xs = {};
-          numSeries = 0;
-          dataColumns = [];
-          for (s in scatterData.x) {
-            numSeries += 1;
-            xs[s] = s + "_x";
-            dataColumns.push([s + "_x"].concat(scatterData.x[s]));
-            dataColumns.push([s].concat(scatterData.y[s]));
-          }
-          params.data.xs = xs;
-          params.data.columns = dataColumns;
-          params.axis.x.tick = {
-            fit: false
-          };
-          if (numSeries === 1) {
-            params.legend = {
-              show: false
-            };
-          }
-          params.tooltip.format = {
-            title: function() {
-              return fullAggName;
-            },
-            name: function() {
-              return "";
-            },
-            value: function(a, b, c, d) {
-              return scatterData.t[c][d];
-            }
-          };
-          
-        //non-scatter plot
         } else {
-          params.axis.x.type = 'category';
-          params.axis.x.categories = headers;
-          params.data.columns = columns;
+          //numSeries = 0;
+          //data = []
+          //for (s in scatterData.x) {
+            //numSeries += 1;
+            //trace = {
+              //x: scatterData.x[s],
+              //y: scatterData.t[s],
+              //mode: 'markers',
+              //type: 'scatter'
+            //}
+            //data.push(trace)
+          //}
+          //if (numSeries === 1) {
+            //params.legend = {
+              //show: false
+            //};
+          //}
+          
+        //if (chartOpts.stacked != null) {
+          //groups = [
+            //(function() {
+              //var len5, n, results;
+              //results = [];
+              //for (n = 0, len5 = rowKeys.length; n < len5; n++) {
+                //x = rowKeys[n];
+                //results.push(x.join("-"));
+              //}
+              //return results;
+            //})()
+          //];
         }
-        if (chartOpts.stacked != null) {
-          params.data.groups = [
-            (function() {
-              var len5, n, results;
-              results = [];
-              for (n = 0, len5 = rowKeys.length; n < len5; n++) {
-                x = rowKeys[n];
-                results.push(x.join("-"));
-              }
-              return results;
-            })()
-          ];
+
+        if ($("#plot").length) {
+          Plotly.purge('plot');
+          result = $("#plot").empty();
+        } else {
+          result = $("<div>")
+            .css({width: "100%", height: "100%"})
+            .attr('id', 'plot')
+            .appendTo($("body"));
         }
-        renderArea = $("<div>", {
-          style: "display:none;"
-        }).appendTo($("body"));
-        result = $("<div>").appendTo(renderArea);
-        params.bindto = result[0];
-        plotly.generate(params); // create plot here
-        result.detach();
-        renderArea.remove();
-        return $("<div>").append(title, result);
+        Plotly.plot(result[0], traces, layout, {showLink: false}); // create plot here
+        return result
       };
     };
     return $.pivotUtilities.plotly_renderers = {
-      "Line Chart": makePlotlyChart(),
-      "Bar Chart": makePlotlyChart({
-        type: "bar"
-      }),
-      "Stacked Bar Chart": makePlotlyChart({
-        type: "bar",
+      "Line Chart": makePlotlyChart("line"),
+      "Bar Chart": makePlotlyChart("bar"),
+      "Stacked Bar Chart": makePlotlyChart("bar", {
         stacked: true
       }),
-      "Area Chart": makePlotlyChart({
-        type: "area",
+      "Overlaid Area Chart": makePlotlyChart("area"),
+      "Stacked Area Chart": makePlotlyChart("area", {
         stacked: true
       }),
       "Scatter Chart": makePlotlyChart({

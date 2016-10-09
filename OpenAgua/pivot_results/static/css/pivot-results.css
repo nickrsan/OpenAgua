@@ -1,5 +1,29 @@
 /*body { font-family: Verdana;}*/
 
-#outpu > table > .pvtUi {
-    width: 500px;
+#output {
+    height: 600px;
+    margin-bottom: 20px;
+}
+
+#options_panel {
+    /*background-color: #999999;*/
+}
+
+/*Pivot result*/
+
+.pvtVals {
+    background: #ffffff;
+    border-left: 0px;
+    border-top: 0px;
+    padding: 5px 10px 5px 5px;
+    text-align: left;
+}
+
+.pvtAttr {
+    font-size: medium;
+}
+
+.pvtSelect {
+    padding: 5px 10px 5px 5px;
+    background-color: #ffffff;
 }
