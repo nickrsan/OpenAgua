@@ -1,28 +1,24 @@
-<ul class="nav nav-sidebar">
-    <li><a class="nav_top" href="/overview">Overview <span class="sr-only">(current)</span></a></li>
-    <li><a class="nav_top" href="/network_editor">Network Editor</a></li>
-    <li><a class="nav_top" href="/data_editor">Data Editor</a></li>
-    <li class="disabled"><a class="nav_top" href="/scenario_builder">Scenario Builder</a></li>
-    <li><a class="nav_top" href="/model_dashboard">Model Dashboard</a></li>
-    <li><a class="nav_top" href="/basic_results">Basic Results</a></li>
-    <li><a class="nav_top" href="/pivot_results">Pivot Chart</a></li>
-    <li><a class="nav_top" href="/chart_maker">Chart Maker</a></li>
-    <li class="disabled"><a class="nav_top" href="/my_charts">Charts Manager</a></li>
-    <li class="disabled"><a class="nav_top" href="/chart_dashboard">Charts Dashboard</a></li>
-    <li><a class="nav_top" href="#" id="btn_adv_viz" data-toggle="collapse" data-target="#adv_viz" aria-expanded="false">Advanced<span class="glyphicon glyphicon glyphicon-menu-down" aria-hidden="true"></a>
-        <ul class="nav collapse" id="adv_viz" role="menu" aria-labelledby="btn_adv_viz">
-            <li class="disabled"><a href="/ipython">IPython Notebook</a></li>
-            <li class="disabled"><a href="/tableau">Tableau</a></li>
-            <li class="disabled"><a href="/adv_viz_2">Network Animations</a></li>
-        </ul>
-    </li>
-    <li class="disabled"><a class="nav_top" href="/data_exporter">Data Exporter</a></li>
-</ul>
+<div id="sidebar-wrapper">
 
-<script>
-$(document).ready(function () {
-    $('ul.nav a.nav_top').filter(function () {
-        return this.href == window.location;
-    }).parent().addClass('active').parent().parent().addClass('active');
-});
-</script>
+        <ul class="sidebar-nav">
+            <li><a class="nav_top" href="/overview">Overview <span class="sr-only">(current)</span></a></li>
+            <li><a class="nav_top" href="/network_editor">Network Editor</a></li>
+            <li><a class="nav_top" href="/data_editor">Data Editor</a></li>
+            <li class="disabled"><a class="nav_top" href="/scenario_builder">Scenario Builder</a></li>
+            <li><a class="nav_top" href="/model_dashboard">Model Dashboard</a></li>
+            <li><a class="nav_top" href="/basic_results">Basic Results</a></li>
+            <li><a class="nav_top" href="/pivot_results">Pivot Charts/Tables</a></li>
+            <li><a class="nav_top" href="/chart_maker">Chart Maker</a></li>
+            <li class="disabled"><a class="nav_top" href="/my_charts">Charts Manager</a></li>
+            <li class="disabled"><a class="nav_top" href="/chart_dashboard">Charts Dashboard</a></li>
+            <li><a class="nav_top" href="#" id="btn_adv_viz" data-toggle="collapse" data-target="#adv_viz" aria-expanded="false">Advanced<span class="glyphicon glyphicon glyphicon-menu-down" aria-hidden="true"></a>
+                <ul class="nav collapse" id="adv_viz" role="menu" aria-labelledby="btn_adv_viz">
+                    <li class="disabled"><a href="/ipython">IPython Notebook</a></li>
+                    <li class="disabled"><a href="/tableau">Tableau</a></li>
+                    <li class="disabled"><a href="/adv_viz_2">Network Animations</a></li>
+                </ul>
+            </li>
+            <li class="disabled"><a class="nav_top" href="/data_exporter">Data Exporter</a></li>
+        </ul>
+
+</div>
