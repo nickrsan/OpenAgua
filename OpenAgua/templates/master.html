@@ -1,5 +1,5 @@
 {% extends "layout.html" %}    
-    
+
 {% block head_master %}
 
 {% include 'head_master.html' %}
@@ -11,34 +11,33 @@
 
 <div id="wrapper">   
 
-  <!-- Sidebar -->
-  {% include "sidebar.html" %}
-  <!-- /#sidebar-wrapper -->
-
-    <!-- Page Content -->
-    <div id="page-content-wrapper">
-      {{ macros.messages()}}
-      {% block content %}{% endblock %}
+    <!--Sidebar content-->
+    <div id="sidebar-wrapper" class="sidebar">
+        {% include "sidebar.html" %}
     </div>
-    <!-- /#page-content-wrapper -->
+
+    <!-- Page content -->
+    <div id="page-content-wrapper">
+        {{ macros.messages()}}
+        {% block content %}{% endblock %}
+    </div>
 
 </div>
-<!-- /#wrapper -->
-  
+
 <script>
 $(function () {
 
-    <!-- Menu Toggle Script -->
-    $("#menu-toggle").click(function(e) {
-        e.preventDefault();
-        $("#wrapper").toggleClass("toggled");
-    });
-    
-    $('ul.nav a.nav_top').filter(function () {
+<!-- Menu Toggle Script -->
+$("#menu-toggle").click(function(e) {
+    e.preventDefault();
+    $("#wrapper").toggleClass("toggled");
+        });
+
+    $('ul.sidebar-nav a').filter(function () {
         return this.href == window.location;
     }).parent().addClass('active').parent().parent().addClass('active');
 
-});
+    });
 
 </script>
 
