@@ -41,9 +41,9 @@
     font-size: medium;
 }
 
-.pvtSearch > .form-control {
-    margin-top: 5px;
-}
+/*.pvtSearch > .form-control {*/
+    /*margin-top: 5px;*/
+/*}*/
 
 .pvtSearch > .pvtSearchOk {
     margin-bottom: 0px;

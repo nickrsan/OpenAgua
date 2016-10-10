@@ -37,10 +37,11 @@ def account_setup():
         project_name = current_user.email
         project_description = 'Default project created for {} {} ({})' \
             .format(current_user.firstname, current_user.lastname, current_user.email)
-        
+        # this probably shouldn't be here...
         default_projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-        default_project = default_projects[0]
-        if not default_project:
+        if default_projects:
+            default_project = default_projects[0]
+        else:
             default_project = conn.add_default_project(project_name, project_description)
         default_project_id = default_project.id
     

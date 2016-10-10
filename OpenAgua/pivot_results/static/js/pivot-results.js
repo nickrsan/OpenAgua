@@ -69,7 +69,7 @@ function prettifyPivot() {
   $("#pivot button:contains('Select')").addClass('btn btn-default');
   $("#pivot button:contains('OK')").addClass('btn btn-primary')
     .parent().addClass('pvtSearchOk');
-  $("#pivot input.pvtSearch").addClass('form-control');
+  $("#pivot input.pvtSearch").addClass('form-control').css('margin-top', '5px');
   //$('.pvtAttrDropdown option').first().text('[no attribute]');
 }
 

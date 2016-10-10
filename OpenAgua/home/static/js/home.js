@@ -135,7 +135,7 @@ if (user_level == "pro") {
         cell.append(project_item)
         projlist.append(cell)
     
-        $('.project-btn').on('click', '.project-btn', function() {
+        $('#projects').on('click', '.project-btn', function() {
             active_project_id = Number($(this).attr('data-id'));
             active_network_id = null;
             update_projects(active_project_id)

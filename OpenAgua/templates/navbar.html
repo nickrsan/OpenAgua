@@ -1,5 +1,10 @@
-<nav class="navbar navbar-fixed-top">
+<nav id="navbar" class="navbar navbar-fixed-top">
   <div class="container-fluid">
+    <div class="nav-menu-toggle">
+      <ul class="nav navbar-nav">
+        <li class="nav-item"><a id="menu-toggle" href="#"><span class="glyphicon glyphicon-menu-hamburger"></span></a></li>
+      </ul>
+    </div>
     <div class="navbar-header">
       <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
               <span class="sr-only">Toggle navigation</span>
@@ -7,13 +12,12 @@
               <span class="icon-bar"></span>
               <span class="icon-bar"></span>
       </button>
-      <div  class="navbar-brand">
-        <a id="menu-toggle" href="#"><i class="fa fa-bars"></i></a>&nbsp;&nbsp;
-        <a href="#">OpenAgua</a>
+      <div class="navbar-brand">
+        <a id="brand" href="#">&nbsp;OpenAgua&nbsp;</a>
       </div>
     </div>
     
-    <div id="navbar" class="navbar-collapse collapse">
+    <div class="navbar-collapse collapse">
 
       <ul class="nav navbar-nav">
         {% if 'study_name' in session and session['study_name'] %}
