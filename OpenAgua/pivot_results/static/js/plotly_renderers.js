@@ -68,10 +68,10 @@
         }        
         
         opts = $.extend(true, defaults, opts);
-        if ((base = opts.plotly).width == null) {
+        if ((base = opts).width == null) {
           base.width = window.innerWidth / 1.4;
         }
-        if ((base1 = opts.plotly).height == null) {
+        if ((base1 = opts).height == null) {
           base1.height = window.innerHeight / 1.4 - 50;
         }
         rowKeys = pivotData.getRowKeys();

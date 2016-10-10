@@ -35,22 +35,23 @@
 {% block content %}
 <div class="container-fluid">
 <div class="row">
-    <div id="pivot_panel" class="col col-sm-12 col-md-9 col-md-9">
+    <div id="pivot_panel" class="col col-sm-12 col-md-9 col-lg-10">
         <div id="spinner"></div>
         <div id="pivot" style="width:100%"></div>
     </div>
-    <div class="col col-sm-12 col-md-3 col-md-3">
-        <div id="options_panel" class="well">
-            <div>
-                <label for="chart_renderer">Chart renderer</label>
-                <select id='chart_renderer' class='selectpicker'>
-                    <option value="plotly">Plotly</option>
-                    <option value="gchart">Google Charts</option>
-                    <option value="c3">C3</option>
-                </select>
-            </div>
-            <br>
-            <div><button id='load_options' class='btn btn-default'>Load</button></div>
+    <div id="options" class="col col-sm-12 col-md-3 col-lg-2">
+        <h4>Options</h4>
+        <div>
+            <label for="chart_renderer">Chart renderer</label>
+            <select id='chart_renderer' class='selectpicker' data-width='auto'>
+                <option value="plotly">Plotly</option>
+                <option value="gchart">Google Charts</option>
+                <option value="c3">C3</option>
+            </select>
+        </div>
+        <br>
+        <div>
+            <button id='load_options' class='btn btn-default'>Load</button>
         </div>
     </div>
 

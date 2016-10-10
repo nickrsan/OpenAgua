@@ -1,21 +1,39 @@
 /*body { font-family: Verdana;}*/
 
-#output {
-    height: 600px;
+#pivot_panel {
+    padding-left: 0;
+}
+
+#pivot {
+    /*height: 400px;*/
     margin-bottom: 20px;
 }
 
-#options_panel {
-    /*background-color: #999999;*/
+#options {
+    /*margin-right: -20px;*/
+    background-color: #ebf0fa;
+    border: 1px #336699 solid;
+    padding: 10px;
+    opacity: 0.9;
+    z-index: 2000;
 }
 
-/*Pivot result*/
+/*#page-content-wrapper {*/
+    /*padding-right: 5px;*/
+/*}*/
+
+/*Pivot results*/
+
+.pvtSelect {
+    padding: 0 10px 5px 0px;
+    background-color: #ffffff;
+}
 
 .pvtVals {
     background: #ffffff;
     border-left: 0px;
     border-top: 0px;
-    padding: 5px 10px 5px 5px;
+    padding: 0 10px 5px 0px;
     text-align: left;
 }
 
@@ -23,7 +41,10 @@
     font-size: medium;
 }
 
-.pvtSelect {
-    padding: 5px 10px 5px 5px;
-    background-color: #ffffff;
+.pvtSearch > .form-control {
+    margin-top: 5px;
+}
+
+.pvtSearch > .pvtSearchOk {
+    margin-bottom: 0px;
 }
