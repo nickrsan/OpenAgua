@@ -75,20 +75,36 @@ function prettifyPivot() {
 
 $(function() {
 
-  //spinner = $('<div>').appendTo('body');
-  //spinner.spin()
-  
   pivotOutput = $("#pivot");
+
+  // make plotly node
+  //var gd = Plotly.d3.select('body').append('div').node();
   
-  loadPivot(chartRenderName = 'plotly', chartWidth = getChartWidth());
-  //spinner.hide().spin(false);
+  loadPivot(chartRenderName='plotly', chartWidth=getChartWidth());
   
   $("#load_options").click( function() {
-    //spinner.show().spin();
     pivotOutput.empty();
-    loadPivot(chartRendererName = $("#chart_renderer").val(), chartWidth = getChartWidth());
-    //spinner.hide().spin(false);
-  });  
+    loadPivot(chartRendererName=$("#chart_renderer").val(), chartWidth=getChartWidth());
+  });
+
+  var d3 = Plotly.d3;
+
+  var HEIGHT_IN_PERCENT_OF_PARENT = 80;
+
+  var gd3 = d3.select('.pvtRendererArea')
+      .style({
+          width: getChartWidth(),  
+          height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
+      });
+      
+  var chartNode = gd3.node();
+
+  $( window ).resize(function() {
+    var width = getChartWidth();
+    var chartNode = Plotly.d3.select('.pvtRendererArea').style('width', width).node();
+    Plotly.Plots.resize(chartNode);
+    
+  });
   
 });
 
