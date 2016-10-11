@@ -33,16 +33,13 @@ def account_setup():
         default_project_id = -1
     else:
         conn = make_connection(login=True)
-
-        project_name = current_user.email
-        project_description = 'Default project created for {} {} ({})' \
-            .format(current_user.firstname, current_user.lastname, current_user.email)
+        
         # this probably shouldn't be here...
         default_projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
         if default_projects:
             default_project = default_projects[0]
         else:
-            default_project = conn.add_default_project(project_name, project_description)
+            default_project = conn.add_default_project()
         default_project_id = default_project.id
     
     default_network_id = -1
@@ -67,17 +64,24 @@ def home_main():
     if not load_hydrauser():
         return redirect(url_for('home.account_setup'))
     
+    if current_user.has_role('pro_user') or current_user.has_role('superuser'):
+        user_level = "pro"
+    else:
+        user_level = "basic"    
+    
     conn = make_connection(login=True)
     conn.load_active_study(load_from_hydra=False)
     session['study_name'] = None # turn this off for the home page
     if session['project_id'] is None:
         projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-        session['project_id'] = projects[0].id
-    
-    if current_user.has_role('pro_user') or current_user.has_role('superuser'):
-        user_level = "pro"
-    else:
-        user_level = "basic"
+        if projects:
+            session['project_id'] = projects[0].id
+        else: # something went wrong, and the user has no projects
+            if user_level == "basic":
+                # create a new default project
+                default_project = conn.add_default_project()
+                session['project_id'] = default_project.id
+                
     
     return render_template('home.html', user_level=user_level)
 
