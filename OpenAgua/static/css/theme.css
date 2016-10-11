@@ -1,4 +1,23 @@
 /*
+ * Index page
+ */
+.index {
+    margin-top: 15px;
+}
+.logo {
+  margin-top: 10px;
+  margin-bottom: 30px;
+  margin-left: 25px;
+  margin-right: 25px;
+  text-align: center;
+}
+/*#main {*/
+  /*padding-left: 50px;*/
+  /*padding-right:50px;*/
+/*}*/
+
+
+/*
  * Base structure
  */
 
@@ -7,9 +26,9 @@ body {
   padding-top: 50px;
 }
 
-.main .page-header {
-  margin-top: 0;
-}
+/*.main .page-header {*/
+  /*margin-top: 0;*/
+/*}*/
 
 .btn {
   border-radius: 0px;
@@ -32,10 +51,6 @@ body {
  * Top navigation
  */
  
-/*#navbar > .container-fluid {*/
-    /*padding-left: 0px;*/
-/*}*/
- 
 #study_name {
     color: #999999;
     font-weight: bold;
@@ -53,7 +68,10 @@ body {
     color: #ffffff;
 }
 
-.navbar-brand, .navbar-brand:hover, .navbar-brand > a, .navbar-brand > a:hover {
+#navbar .navbar-brand,
+#navbar .navbar-brand:hover,
+#navbar .navbar-brand > a,
+#navbar .navbar-brand > a:hover {
     color: #ffffff;
     text-decoration: none;
 }
