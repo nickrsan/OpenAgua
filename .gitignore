@@ -3,5 +3,12 @@
 *.sqlite
 *.log
 instance/
+
+# ignore migrations
 migrations/
+
+# pycharm folder
 .idea/
+
+# pyomo app log files
+pyomo_model/logs/*
