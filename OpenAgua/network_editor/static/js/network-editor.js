@@ -348,3 +348,12 @@ function purgeFeature(e) {
         }
     });
 }
+
+
+//$('#save_as_thumbnail').click(function() {
+    //html2canvas($("#map"), {
+      //onrendered: function(canvas) {
+        //$("body").append(canvas);
+      //}
+    //});
+//});

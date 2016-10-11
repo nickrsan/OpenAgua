@@ -111,3 +111,11 @@ $(function() {
 function getChartWidth() {
   return $("#pivot_panel").width() - 250; //$(".pvtRows").width() 
 }
+
+//$('#save_as_thumbnail').click(function() {
+    //html2canvas($("#pvtRendererArea"), {
+      //onrendered: function(canvas) {
+        //$("body").append(canvas);
+      //}
+    //});
+//});
