@@ -73,6 +73,8 @@ def home_main():
     conn.load_active_study(load_from_hydra=False)
     session['study_name'] = None # turn this off for the home page
     if session['project_id'] is None:
+        
+        # the following should probably be moved to a function
         projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
         if projects:
             session['project_id'] = projects[0].id
@@ -81,7 +83,10 @@ def home_main():
                 # create a new default project
                 default_project = conn.add_default_project()
                 session['project_id'] = default_project.id
-                
+        # also add the default template id
+        templates = conn.call('get_templates', {})
+        template = [t for t in templates if t.name == 'OpenAgua'][0]
+        session['template_id'] = template.id
     
     return render_template('home.html', user_level=user_level)
 
@@ -95,14 +100,12 @@ def load_study():
     conn.load_active_study()
     if conn.invalid_study:
         # create a new study with the just-selected network + default scenario
-        templates = conn.call('get_templates', {})
-        template = [t for t in templates if t.name == 'OpenAgua'][0]
         add_study(db,
                        user_id = current_user.id,
                        hydrauser_id = session['hydrauser_id'],
                        project_id = session['project_id'],
                        network_id = network_id,
-                       template_id = template.id,
+                       template_id = session['template_id'],
                        active = 1
                        )
         activate_study(db, session['hydrauser_id'], session['project_id'],
