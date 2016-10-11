@@ -4,3 +4,4 @@
 *.log
 instance/
 migrations/
+.idea/
