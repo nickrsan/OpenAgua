@@ -11,11 +11,11 @@ from . import pivot_results
 @pivot_results.route('/pivot_results')
 @login_required
 def main():
-    #load_hydrauser() # do this at the top of every page
-    #conn = make_connection(login=True)
-    #conn.load_active_study()
+    load_hydrauser() # do this at the top of every page
+    conn = make_connection(login=True)
+    conn.load_active_study()
     
-    return render_template('pivot_results.html')
+    return render_template('pivot_results.html', ttypes=conn.ttypes)
 
 @pivot_results.route('/_load_pivot_data')
 @login_required

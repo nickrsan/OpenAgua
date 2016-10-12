@@ -35,11 +35,11 @@
 {% block content %}
 <div class="container-fluid">
 <div class="row">
-    <div id="pivot_panel" class="col col-sm-12 col-md-9 col-lg-10">
+    <div id="pivot_panel" class="col col-sm-12 col-md-9 col-lg-9">
         <div id="spinner"></div>
         <div id="pivot" style="width:100%"></div>
     </div>
-    <div id="options" class="col col-sm-12 col-md-3 col-lg-2">
+    <div id="options" class="col col-sm-12 col-md-3 col-lg-3">
         <h4>Options</h4>
         <div>
             <label for="chart_renderer">Chart renderer</label>
@@ -49,9 +49,33 @@
                 <option value="c3">C3</option>
             </select>
         </div>
-        <br>
+        <br/>
+        <h4>Filters</h4>
         <div>
-            <button id='load_options' class='btn btn-default'>Load</button>
+            <select id='filterby' class='selectpicker' data-width='auto' title='Filter by...'>
+                <option value="res_type" data-subtext="Reservoir, River, etc.">Feature type</option>
+                <option value="attr" data-subtext="Storage, Flow, etc.">Variable</option>
+            </select>
+        </div>
+        <div class='res_type_filter filter' style="display:none">
+            <!--<label for="res_type_filter">Feature type</label>-->
+            <select id='res_type_filter' class='selectpicker' data-width='auto' multiple title='Select a feature type...' data-selected-text-format="count > 2" data-actions-box="true">
+                {% for ttid in ttypes %}
+                    <option data-id="{{ ttid }}">{{ ttypes[ttid].name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class='attr_filter filter' style='display:none'>
+            <!--<label for="attr_filter">Variable type</label>-->
+            <select id='attr_filter' class='selectpicker' data-width='auto' multiple title='Select a variable...' data-selected-text-format="count > 2" data-actions-box="true">
+                {% for ttid in ttypes %}
+                    <option data-id="{{ ttid }}">{{ ttypes[ttid].name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <br/>
+        <div>
+            <button id='load_options' class='btn btn-default pull-right'>Load</button>
         </div>
         <!--<div>-->
             <!--<button id="save_as_thumbnail" class="btn btn-default">Set as icon</button>-->

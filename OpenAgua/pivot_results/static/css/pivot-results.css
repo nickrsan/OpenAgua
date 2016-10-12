@@ -18,6 +18,10 @@
     z-index: 2000;
 }
 
+.filter {
+    margin-top: 5px;
+}
+
 /*#page-content-wrapper {*/
     /*padding-right: 5px;*/
 /*}*/

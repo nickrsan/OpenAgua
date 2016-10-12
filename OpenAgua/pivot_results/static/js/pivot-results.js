@@ -103,7 +103,16 @@ $(function() {
     var width = getChartWidth();
     var chartNode = Plotly.d3.select('.pvtRendererArea').style('width', width).node();
     Plotly.Plots.resize(chartNode);
-    
+  });
+  
+  // load feature types
+  $('#filterby').on('changed.bs.select', function (e) {
+    var selected = $('#filterby option:selected');
+    if (selected.length) {
+      $('.filter').hide();
+      filterby = selected.val();
+      $('.'+filterby+'_filter').show();
+    }
   });
   
 });
