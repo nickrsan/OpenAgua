@@ -24,9 +24,17 @@ def get_completed(scen_log_dir):
                         compl, cnt = parts[-1].split('/')
                         completed += int(compl)
                         count = int(cnt)
-            
+        
+        logfiles = [lf for lf in os.listdir(scen_log_dir) if 'details' in lf]
+        if logfiles:
+            lfpath = os.path.join(scen_log_dir, logfiles[0])
+            with open(lfpath, 'r') as f:
+                details = f.read()#.replace('\n','<br/>')
+        else:
+            details = 'Detailed log not created yet.'
     result = dumps({'completed': completed,
-                    'count': count})
+                    'count': count,
+                    'details': details})
     print(result)
 
 def commandline_parser():

@@ -1,12 +1,16 @@
 {% extends "master.html" %}
 {% block title %} - model dashboard{% endblock %}
 {% block head_main %}
+
+<link href="{{ url_for('.static', filename='css/model-dashboard.css') }}" media="all" rel="stylesheet" type="text/css" />
+
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-    <div class="row">
-        <div class="col col-sm-12 col-md-6 col-lg-6">
+
+    <div id="model_dashboard_top" class="row">
+        <div class="col col-sm-12 col-md-12 col-lg-12">
             <label for "management_scenarios">Select scenarios</label>
             <div id="scenarios" class="form-group">
                 <select class="selectpicker" multiple data-selected-text-format="count > 1" data-actions-box="true">
@@ -17,18 +21,34 @@
 
                 <button id="run_model" type="button" data-loading-text="Running..." class="btn btn-primary">Run model</button>
                 <button id="stop_model" style="display:none" type="button" class="btn btn-danger">Stop model</button>
+                <button id="view_run_log" style="display:none" type="button" class="btn btn-info">View log</button>
             </div>
         </div>
     </div>
     
     <div class="row">
-        <div class="col col-sm-12 col-md-3 col-lg-4">
-            <label for="run_progress">Progress</label>
-            <div id="run_progress" class="progress">
-                <div id="model_run_progress" class="progress-bar" role="progressbar" style="width:{{ progress }}%">{{progress}}%</div>
+    
+        <!--status bars-->
+        <div class="col col-sm-12 col-md-5 col-lg-5>
+            <label for="progress_bars">Progress</label>
+            <div id="progress_bars" class="progress-bars">
+                <div class="progress-row">
+                    <div class="progress">
+                        <div id="model_run_progress" class="progress-bar" role="progressbar" style="width:{{ progress }}%">{{progress}}%</div>
+                    </div>&nbsp;
+                    <button class="btn btn-default btn-xs btn-scenario-log">View log</button>
+                </div>
             </div>
             <div id="status_message"></div>      
-        </div>            
+        </div>
+        
+        <!--log output-->
+        <div class="col col-sm-12 col-md-7 col-lg-7">
+            <label for="log_output">Details</label>
+            <div id="log_output"></div>
+            <div id="log_status_message"></div>      
+        </div>
+        
     </div>
 </div>
   
