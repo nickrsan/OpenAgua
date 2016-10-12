@@ -216,7 +216,13 @@
         layout = $.extend(true, layout, {
           title: titleText,     
           width: base.width,
-          height: base1.height
+          height: base1.height,
+          xaxis: {
+            title: hAxisTitle
+          },
+          yaxis: {
+            title: vAxisTitle
+          }
         });
         
         //$.extend(true, layout, opts.plotly);
