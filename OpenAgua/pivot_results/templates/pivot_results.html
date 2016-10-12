@@ -30,6 +30,10 @@
 <!--OpenAgua-->
 <link href="{{ url_for('.static', filename='css/pivot-results.css') }}" media="all" rel="stylesheet" type="text/css" />
 
+<script>
+var ttypes = {{ ttypes|tojson|safe }};
+</script>
+
 {% endblock %}
 
 {% block content %}
@@ -53,11 +57,12 @@
         <h4>Filters</h4>
         <div>
             <select id='filterby' class='selectpicker' data-width='auto' title='Filter by...'>
+                <option value="none">No filter</option>
                 <option value="res_type" data-subtext="Reservoir, River, etc.">Feature type</option>
                 <option value="attr" data-subtext="Storage, Flow, etc.">Variable</option>
             </select>
         </div>
-        <div class='res_type_filter filter' style="display:none">
+        <div id="res_type_filter_container" class='filter' style="display:none">
             <!--<label for="res_type_filter">Feature type</label>-->
             <select id='res_type_filter' class='selectpicker' data-width='auto' multiple title='Select a feature type...' data-selected-text-format="count > 2" data-actions-box="true">
                 {% for ttid in ttypes %}
@@ -65,12 +70,16 @@
                 {% endfor %}
             </select>
         </div>
-        <div class='attr_filter filter' style='display:none'>
+        <div id="attr_filter_container" class='filter' style='display:none'>
             <!--<label for="attr_filter">Variable type</label>-->
             <select id='attr_filter' class='selectpicker' data-width='auto' multiple title='Select a variable...' data-selected-text-format="count > 2" data-actions-box="true">
                 {% for ttid in ttypes %}
                     <option data-id="{{ ttid }}">{{ ttypes[ttid].name }}</option>
                 {% endfor %}
+            </select>
+        </div>
+        <div id="secondary_filter_container" class='filter' style='display:none'>
+            <select id='secondary_filter' class='selectpicker' data-width='auto' multiple data-selected-text-format="count > 2" data-actions-box="true">
             </select>
         </div>
         <br/>

@@ -1,9 +1,9 @@
-var pivotOutput;
+var pivotOutput, filterParams = {};
 
-function loadPivot(chartRendererName='plotly', chartWidth) {
+function loadPivot(chartRendererName='plotly', filterParams, chartWidth) {
 
   // Get JSON-formatted data from the server
-  var chartRenderers, nCharts, opts;
+  var chartRenderers, nCharts, opts, defaultVals;
   
   switch(chartRendererName) {
     case 'plotly':
@@ -26,14 +26,17 @@ function loadPivot(chartRendererName='plotly', chartWidth) {
       break;      
   }
   
-  $.getJSON("/_load_pivot_data", function( resp ) {
+  if (filterParams === {}) {
+    defaultVals = ['value']
+  } else {
+    defaultVals = []
+  }
+  
+  $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
       var pivotData = resp.data;
       var pivotOptions = {
-          //rows: ['scenario'],
-          //cols: ['year'],
-          vals: ['value'],
+          vals: defaultVals,
           aggregatorName: "Average",
-          //rendererName: "Line Chart",
           renderers: $.extend(chartRenderers, $.pivotUtilities.renderers),
           rendererOptions: opts,
       };
@@ -80,11 +83,17 @@ $(function() {
   // make plotly node
   //var gd = Plotly.d3.select('body').append('div').node();
   
-  loadPivot(chartRenderName='plotly', chartWidth=getChartWidth());
+  loadPivot(chartRenderName='plotly',
+    filterParams=filterParams,
+    chartWidth=getChartWidth());
   
   $("#load_options").click( function() {
     pivotOutput.empty();
-    loadPivot(chartRendererName=$("#chart_renderer").val(), chartWidth=getChartWidth());
+    loadPivot(
+      chartRendererName=$("#chart_renderer").val(),
+      filterParams=filterParams,
+      chartWidth=getChartWidth()
+    );
   });
 
   var d3 = Plotly.d3;
@@ -109,16 +118,55 @@ $(function() {
   $('#filterby').on('changed.bs.select', function (e) {
     var selected = $('#filterby option:selected');
     if (selected.length) {
-      $('.filter').hide();
+      $('.filters').hide();
       filterby = selected.val();
-      $('.'+filterby+'_filter').show();
+      if (filterby !== 'none' && filterby !== null) {
+        $('#'+filterby+'_filter_container').show();
+        filterParams.filterby = filterby;
+      } else {
+        filterParams = {};
+      }
     }
+  });
+  
+  $('#res_type_filter').on('hidden.bs.select', function(e) {
+    var idx, ttype_id, type_attrs, attr_id;
+    var type_attrs = [];
+    filterParams.ttype_ids = [];
+    $('#res_type_filter option:selected').each(function() {
+      ttype_id = Number($(this).attr('data-id'));
+      if (type_attrs.length) {
+        type_attrs = _.intersectionBy(type_attrs, ttypes[ttype_id].typeattrs, 'attr_id');
+      } else {
+        type_attrs = ttypes[ttype_id].typeattrs;
+      }
+      filterParams.ttype_ids.push(ttype_id);
+    });
+    var select = $('#secondary_filter').attr('title', 'Variables').empty();
+    $.each(type_attrs, function(i, ta) {
+      select.append($('<option>').val(ta.attr_id).text(ta.attr_name));
+    });
+    select.selectpicker('refresh');
+    $('#secondary_filter_container').show();
+  });
+  
+  $('#secondary_filter').on('hidden.bs.select', function(e) {
+    filterParams.attr_ids = [];
+    $('#secondary_filter option:selected').each(function() {
+      //attr_id = Number($(this).attr('data-id'));
+      attr_id = Number($(this).val()); // this is inconsistent with above method, but is correct
+      filterParams.attr_ids.push(attr_id);
+    });
   });
   
 });
 
 function getChartWidth() {
   return $("#pivot_panel").width() - 250; //$(".pvtRows").width() 
+}
+
+function loadFilteredData() {
+
 }
 
 //$('#save_as_thumbnail').click(function() {
