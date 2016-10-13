@@ -125,6 +125,9 @@ $(function() {
         filterParams.filterby = filterby;
       } else {
         filterParams = {};
+        $('.filter').hide();
+        $(".filter option").removeAttr("selected");
+        $('.filter select').selectpicker('refresh');
       }
     }
   });
