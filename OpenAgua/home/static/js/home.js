@@ -61,12 +61,7 @@ $(function() {
       description: $('#network_description').val(),
       project_id: active_project_id
     }
-<<<<<<< HEAD
     var data = {proj_id: active_project_id, net: net, tpl_id: active_template_id}
-=======
-  var data = {net: net, tpl_id: active_template_id}
->>>>>>> c7b00ac13f58ddc0526738a717885d4c2c07afac
-
     $.ajax({
       type : "POST",
       url : '/_add_network',
