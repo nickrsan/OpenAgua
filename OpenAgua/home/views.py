@@ -85,15 +85,12 @@ def load_study():
     if conn.invalid_study:
         # create a new study with the just-selected network + default scenario
         add_study(db,
-                       user_id = current_user.id,
-                       hydrauser_id = session['hydrauser_id'],
-                       project_id = session['project_id'],
-                       network_id = network_id,
-                       template_id = session['template_id'],
-                       active = 1
-                       )
-        activate_study(db, session['hydrauser_id'], session['project_id'],
-                       network_id)
+                  user_id = current_user.id,
+                  hydrauser_id = session['hydrauser_id'],
+                  project_id = session['project_id'],
+                  network_id = network_id,
+                  template_id = session['template_id'],
+                  activate = True)
         conn.load_active_study()    
     
     return jsonify(resp=0)
