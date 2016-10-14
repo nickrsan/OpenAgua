@@ -28,19 +28,6 @@ def account_setup():
                      hydra_user_username=current_user.email,
                      hydra_user_password='password') # to be set by user    
     load_hydrauser()
-    #if current_user.has_role('pro_user'):
-        ## user will create their own project, but we still need to create a default study
-        #default_project_id = -1
-    #else:
-        #conn = make_connection(login=True)
-        
-        ## this probably shouldn't be here...
-        #default_projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-        #if default_projects:
-            #default_project = default_projects[0]
-        #else:
-            #default_project = conn.add_default_project()
-        #default_project_id = default_project.id
         
     return(redirect(url_for('home.home_main')))
 
@@ -114,70 +101,77 @@ def load_study():
 @home.route('/_add_project')
 @login_required
 def add_project():
-    conn = make_connection()
     
-    projects = conn.call('get_projects', {'user_id':session['hydra_userid']})
-    project_names = [project.name for project in projects]
-    activate = request.args.get('activate')
-    proj = request.args.get('proj')
-    proj = json.loads(proj)
-    if proj['name'] in project_names:
-        status_code = -1 # name already exists
-    else:
-        project = conn.call('add_project', {'project':proj})
-        status_code = 1
+    if request.method == 'POST':
+        conn = make_connection()
+        
+        projects = conn.call('get_projects', {'user_id':session['hydra_userid']})
+        project_names = [project.name for project in projects]
+        proj = request.json['proj']
+        if proj['name'] in project_names:
+            status_code = -1 # name already exists
+        else:
+            project = conn.call('add_project', {'project':proj})
+            status_code = 1
+        
+        return jsonify(status_code=status_code)
     
-    return jsonify(status_code=status_code)
+    redirect(url_for('home.home_main')) 
 
 
 @home.route('/_add_network', methods=['GET', 'POST'])
 @login_required
 def add_network():
-    conn = make_connection()
-
-    networks = conn.call('get_networks',
-                         {'project_id': session['project_id'],
-                          'include_data': 'N'})
-    network_names = [network.name for network in networks]
     
-    # add network
-    new_net = request.args.get('net')
-    new_net = json.loads(new_net)
-    tpl_id = int(request.args.get('tpl_id'))
+    if request.method == 'POST':
     
-    # return error if there is no template ID
+        conn = make_connection()
     
-    
-    if new_net['name'] in network_names:
-        return jsonify(status_code -1)
-    
-    network = conn.call('add_network', {'net':new_net})
-
-    # add the template
-    conn.call('apply_template_to_network', {'template_id': tpl_id, 'network_id': network.id})
-    
-    # add a default scenario (similar to Hydra Modeller)
-    scenario = dict(
-        name = 'Baseline',
-        description = 'Default OpenAgua scenario'
-    )
-
-    result = conn.call('add_scenario', {'network_id': network.id, 'scen': scenario})
-    
-    # create a default study consisting of the project, network, and scenario
-    add_study(db = db,
-              name = 'Base study for {}'.format(network.name),
-              user_id = current_user.id,
-              hydrauser_id = session['hydrauser_id'],
-              project_id = session['project_id'],
-              network_id = network.id,
-              template_id = session['template_id'],
-              activate = True
-          )
-    
-    conn.load_active_study()
+        networks = conn.call('get_networks',
+                             {'project_id': session['project_id'],
+                              'include_data': 'N'})
+        network_names = [network.name for network in networks]
         
-    return jsonify(status_code=1)
+        # add network
+        new_net = request.args.get('net')
+        new_net = json.loads(new_net)
+        tpl_id = int(request.args.get('tpl_id'))
+        
+        # return error if there is no template ID
+        
+        
+        if new_net['name'] in network_names:
+            return jsonify(status_code -1)
+        
+        network = conn.call('add_network', {'net':new_net})
+    
+        # add the template
+        conn.call('apply_template_to_network', {'template_id': tpl_id, 'network_id': network.id})
+        
+        # add a default scenario (similar to Hydra Modeller)
+        scenario = dict(
+            name = 'Baseline',
+            description = 'Default OpenAgua scenario'
+        )
+    
+        result = conn.call('add_scenario', {'network_id': network.id, 'scen': scenario})
+        
+        # create a default study consisting of the project, network, and scenario
+        add_study(db = db,
+                  name = 'Base study for {}'.format(network.name),
+                  user_id = current_user.id,
+                  hydrauser_id = session['hydrauser_id'],
+                  project_id = session['project_id'],
+                  network_id = network.id,
+                  template_id = session['template_id'],
+                  activate = True
+              )
+        
+        conn.load_active_study()
+            
+        return jsonify(status_code=1)
+    
+    redirect(url_for('home.home_main'))
 
 
 @home.route('/_purge_project')
