@@ -128,21 +128,11 @@ def add_network():
     if request.method == 'POST':
     
         conn = make_connection()
-    
-        networks = conn.call('get_networks',
-                             {'project_id': session['project_id'],
-                              'include_data': 'N'})
-        network_names = [network.name for network in networks]
         
         # add network
+        proj_id = request.json['proj_id']
         new_net = request.json['net']
         tpl_id = request.json['tpl_id']
-        
-        # return error if there is no template ID
-        
-        
-        if new_net['name'] in network_names:
-            return jsonify(status_code -1)
         
         network = conn.call('add_network', {'net':new_net})
     
