@@ -5,7 +5,7 @@
 instance/
 
 # ignore migrations
-migrations/
+#migrations/
 
 # pycharm folder
 .idea/

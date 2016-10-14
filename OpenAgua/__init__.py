@@ -14,6 +14,8 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.base import MenuLink
 
+from flask_babel import Babel
+
 # create the app
 app = Flask(__name__, instance_relative_config=True)
 
@@ -23,6 +25,7 @@ app.config.from_pyfile('config.py')
 # Initialize extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
+babel = Babel(app)
 
 # import models and views
 from OpenAgua import models, views

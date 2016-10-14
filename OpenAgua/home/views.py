@@ -41,26 +41,28 @@ def account_setup():
         else:
             default_project = conn.add_default_project()
         default_project_id = default_project.id
-    
-    default_network_id = -1
-    templates = conn.call('get_templates', {})
-    default_template_id = [tpl.id for tpl in templates if tpl.name == app.config['DEFAULT_HYDRA_TEMPLATE']][0]
         
-    add_study(db=db,
-              name='Default study for {}'.format(current_user.email),
-              user_id=current_user.id,
-              hydrauser_id=session['hydrauser_id'],
-              project_id=default_project_id,
-              network_id=default_network_id,
-              template_id=default_template_id,
-              activate=True)
-        
-    #flash('Account created!')
     return(redirect(url_for('home.home_main')))
 
 @home.route('/home')
 @login_required
 def home_main():
+    
+    conn = make_connection(login=True)
+    
+    # first check if default template is available
+    templates = conn.call('get_templates', {})
+    default_template_id = [tpl.id for tpl in templates if tpl.name == app.config['DEFAULT_HYDRA_TEMPLATE']]
+    if not default_template_id:
+        if current_user.has_role('superuser'):
+            flash('Default template does not exist. Please upload it!', category='error')
+            return redirect(url_for('manager.manage_templates'))
+        else:
+            flash('Default template does not exist. Please contact support: admin@openagua.org', category='error')
+            return redirect('/logout')
+    else:
+        session['template_id'] = default_template_id[0]
+    
     if not load_hydrauser():
         return redirect(url_for('home.account_setup'))
     
@@ -68,8 +70,7 @@ def home_main():
         user_level = "pro"
     else:
         user_level = "basic"    
-    
-    conn = make_connection(login=True)
+
     conn.load_active_study(load_from_hydra=False)
     session['study_name'] = None # turn this off for the home page
     if session['project_id'] is None:
@@ -84,9 +85,9 @@ def home_main():
                 default_project = conn.add_default_project()
                 session['project_id'] = default_project.id
         # also add the default template id
-        templates = conn.call('get_templates', {})
-        template = [t for t in templates if t.name == 'OpenAgua'][0]
-        session['template_id'] = template.id
+        #templates = conn.call('get_templates', {})
+        #template = [t for t in templates if t.name == 'OpenAgua'][0]
+        #session['template_id'] = template.id
     
     return render_template('home.html', user_level=user_level)
 
@@ -147,6 +148,10 @@ def add_network():
     new_net = request.args.get('net')
     new_net = json.loads(new_net)
     tpl_id = int(request.args.get('tpl_id'))
+    
+    # return error if there is no template ID
+    
+    
     if new_net['name'] in network_names:
         return jsonify(status_code -1)
     
@@ -248,7 +253,7 @@ def upload_template():
     else:
         flash('Something went wrong.')
         
-    return redirect(url_for('home.manage_templates'))
+    return redirect(url_for('manager.manage_templates'))
         
 @home.route('/_get_templates_for_network')
 @login_required

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import os
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -54,3 +56,9 @@ SECURITY_CHANGEABLE = True
 SECURITY_LOGIN_WITHOUT_CONFIRMATION = False
 
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+# Flask-Babel options
+LANGUAGES = {
+    'en': 'English',
+    'es': 'Español'
+}

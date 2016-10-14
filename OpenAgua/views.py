@@ -1,4 +1,4 @@
-from flask import session, redirect, url_for, render_template
+from flask import session, redirect, url_for, render_template, request
 from flask_security import login_required, current_user
 
 from OpenAgua import app
@@ -17,3 +17,12 @@ def index():
 @app.errorhandler(404)
 def page_not_found(e):
     return render_template('404.html'), 404
+
+# Internationalization / localization
+
+from OpenAgua import babel
+from config import LANGUAGES
+
+@babel.localeselector
+def get_locale():
+    return request.accept_languages.best_match(LANGUAGES.keys())
