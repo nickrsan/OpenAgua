@@ -79,12 +79,13 @@ def home_main():
 def load_study():
     conn = make_connection()
     network_id = int(request.args.get('network_id'))
-    activate_study(db, session['hydrauser_id'], session['project_id'],
-                   network_id)
+    activate_study(db, session['hydrauser_id'], session['project_id'], network_id)
     conn.load_active_study()
     if conn.invalid_study:
         # create a new study with the just-selected network + default scenario
+        network = conn.get_network(network_id=network_id)
         add_study(db,
+                  name = 'Base study for {}'.format(network.name),
                   user_id = current_user.id,
                   hydrauser_id = session['hydrauser_id'],
                   project_id = session['project_id'],
