@@ -41,9 +41,9 @@ def home_main():
     conn = make_connection(login=True)    
           
     if current_user.has_role('pro_user') or current_user.has_role('superuser'):
-        user_level = "pro"
+        session['user_level'] = "pro" # we should move this to load_hydrauser
     else:
-        user_level = "basic"    
+        session['user_level'] = "basic"    
 
     conn.load_active_study(load_from_hydra=False)
     session['study_name'] = None # turn this off for the home page
@@ -55,7 +55,7 @@ def home_main():
         projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
         if projects:
             session['project_id'] = projects[0].id
-        elif user_level == "basic": # shouldn't get here
+        elif session['user_level'] == "basic": # shouldn't get here
             default_project = conn.add_default_project()
             session['project_id'] = default_project.id
         
@@ -72,7 +72,7 @@ def home_main():
         else:
             session['template_id'] = default_template_id[0]        
     
-    return render_template('home.html', user_level=user_level)
+    return render_template('home.html')
 
 @home.route('/_load_study')
 @login_required

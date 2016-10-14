@@ -27,7 +27,6 @@
     {% endif %}
     
     var network_img = "{{ url_for('home.static', filename='images/default_network_image.png') }}";
-    var user_level = "{{ user_level }}";
 
 </script>
 
@@ -35,7 +34,7 @@
 
       <div class="row"><br>
       
-        {% if user_level=="pro" %}
+        {% if session['user_level']=="pro" %}
       
         <!--projects-->
         <div class="col col-sm-4 col-md-4 col-lg-3">
@@ -74,6 +73,10 @@
 {% include "modals.html" %}
   
 <script src="{{ url_for('home.static', filename='js/functions.js') }}"></script>
-<script src="{{ url_for('home.static', filename='js/home.js') }}"></script>
+<script src="{{ url_for('home.static', filename='js/network-actions.js') }}"></script>
+
+{% if session['user_level']=="pro" %}
+<script src="{{ url_for('home.static', filename='js/project-actions.js') }}"></script>
+{% endif %}
 
 {% endblock %}
