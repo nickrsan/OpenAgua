@@ -103,8 +103,13 @@ function populate_networks(networks) {
   // go to network overview
   $('.study_overview').click(function(e) {
     var network_id = Number($(this).attr('data-id'));
-    $.get('/_load_study', { network_id: network_id }, function() {
-      window.location.href = "/overview";    
+    $.ajax({
+      type : "POST",
+      url : '/_load_study',
+      data: JSON.stringify({ project_id: active_project_id, network_id: network_id}),
+      contentType: 'application/json',
+      success: function(resp) {
+        window.location.href = "/overview";    
     });
   });
 
