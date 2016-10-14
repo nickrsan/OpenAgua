@@ -203,16 +203,15 @@ var network_dropdown = make_button_div('network', network_actions);
 // update network list
 function update_networks(active_project_id, active_network_id) {
 
-  if (active_project_id) {
     var func = 'get_networks'
     var args = {'project_id': active_project_id, 'include_data':'N'}
     $.getJSON($SCRIPT_ROOT + '/_hydra_call', {func: func, args: JSON.stringify(args)}, function(resp) {
-      var networks = resp.result;
-      populate_networks(networks);
+      if ('resposecode' in resp.result) {
+        $("#network_list").empty().text("Select a project first.")
+      } else {
+        populate_networks(resp.result);
+      }
     }); 
-  } else {
-    $("#network_list").empty().text("Select a project first.")
-  }
 }
 
 function populate_networks(networks) {
