@@ -74,33 +74,27 @@ def home_main():
     
     return render_template('home.html')
 
-@home.route('/_load_study', methods['GET', 'POST'])
+@home.route('/_load_study')
 @login_required
 def load_study():
+    conn = make_connection()
+    network_id = int(request.args.get('network_id'))
+    activate_study(db, session['hydrauser_id'], session['project_id'], network_id)
+    conn.load_active_study()
+    if conn.invalid_study:
+        # create a new study with the just-selected network + default scenario
+        network = conn.get_network(network_id=network_id)
+        add_study(db,
+                  name = 'Base study for {}'.format(network.name),
+                  user_id = current_user.id,
+                  hydrauser_id = session['hydrauser_id'],
+                  project_id = session['project_id'],
+                  network_id = network_id,
+                  template_id = session['template_id'],
+                  activate = True)
+        conn.load_active_study()    
     
-    if request.method == 'POST':
-        
-        conn = make_connection()
-        network_id = request.json['network_id']
-        project_id = request.json['project_id']
-        activate_study(db, session['hydrauser_id'], session['project_id'], network_id)
-        conn.load_active_study()
-        if conn.invalid_study:
-            # create a new study with the just-selected network + default scenario
-            network = conn.get_network(network_id=network_id)
-            add_study(db,
-                      name = 'Base study for {}'.format(network.name),
-                      user_id = current_user.id,
-                      hydrauser_id = session['hydrauser_id'],
-                      project_id = project_id,
-                      network_id = network_id,
-                      template_id = session['template_id'],
-                      activate = True)
-            conn.load_active_study()    
-        
-        return jsonify(resp=0)
-    
-    redirect(url_for('home.home_main')) 
+    return jsonify(resp=0)
 
 @home.route('/_add_project', methods=['GET', 'POST'])
 @login_required
