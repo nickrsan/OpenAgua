@@ -130,20 +130,9 @@ def add_network():
         conn = make_connection()
         
         # add network
-<<<<<<< HEAD
         proj_id = request.json['proj_id']
         new_net = request.json['net']
         tpl_id = request.json['tpl_id']
-=======
-        new_net = request.json['net']
-        tpl_id = request.json['tpl_id']
-        
-        # return error if there is no template ID
-        
-        
-        if new_net['name'] in network_names:
-            return jsonify(status_code -1)
->>>>>>> c7b00ac13f58ddc0526738a717885d4c2c07afac
         
         network = conn.call('add_network', {'net':new_net})
     
