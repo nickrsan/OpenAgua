@@ -16,15 +16,12 @@ $(function() {
 
     $("button#add_project_confirm").bind('click', function() {
       var project_name = $('#project_name').val();
-      var proj = {
-        name: project_name,
-        description: $('#project_description').val()
-      }
+      var data = {proj: {name: project_name, description: $('#project_description').val()}}
 
       $.ajax({
         type : "POST",
         url : '/_add_project',
-        data: JSON.stringify(proj),
+        data: JSON.stringify(data),
         contentType: 'application/json',
         success: function(resp) {            
 
@@ -55,7 +52,7 @@ $(function() {
     description: $('#network_description').val(),
     project_id: active_project_id
     }
-  var data = {net: JSON.stringify(net), tpl_id: active_template_id}
+  var data = {net: net, tpl_id: active_template_id}
 
     $.ajax({
       type : "POST",
