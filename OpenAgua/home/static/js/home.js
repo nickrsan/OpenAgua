@@ -1,3 +1,5 @@
+var proj_networks = [];
+
 $(function() {
 
   if (user_level == "pro") {
@@ -16,15 +18,12 @@ $(function() {
 
     $("button#add_project_confirm").bind('click', function() {
       var project_name = $('#project_name').val();
-      var proj = {
-        name: project_name,
-        description: $('#project_description').val()
-      }
+      var data = {proj: {name: project_name, description: $('#project_description').val()}}
 
       $.ajax({
         type : "POST",
         url : '/_add_project',
-        data: JSON.stringify(proj),
+        data: JSON.stringify(data),
         contentType: 'application/json',
         success: function(resp) {            
 
@@ -33,6 +32,7 @@ $(function() {
             $("#add_project_error").text('Name already in use. Please try again.');
           } else if ( status_code == 1 ) {
             $('#modal_add_project').modal('hide');
+            active_project_id = resp.new_project_id;
             update_projects(active_project_id);
             notify('success', 'Success!', 'Project "'+project_name+'" added.');
           }
@@ -48,14 +48,20 @@ $(function() {
     }
   );
 
+  // add network
   $("button#add_network_confirm").bind('click', function() {
   var network_name = $('#network_name').val();
-  var net = {
-    name: network_name,
-    description: $('#network_description').val(),
-    project_id: active_project_id
+  
+  if (_.includes(proj_networks, network_name)) {
+    $("#add_network_error").text('Name already in use. Please try again.');
+  } else {
+    $("#add_network_error").empty();
+    var net = {
+      name: network_name,
+      description: $('#network_description').val(),
+      project_id: active_project_id
     }
-  var data = {net: JSON.stringify(net), tpl_id: active_template_id}
+    var data = {proj_id: active_project_id, net: net, tpl_id: active_template_id}
 
     $.ajax({
       type : "POST",
@@ -64,16 +70,17 @@ $(function() {
       contentType: 'application/json',
       success: function(resp) {
 
-        if ( resp.status_code == -1 ) {
-          $("#add_network_error").text('Name already in use. Please try again.');
-        } else if ( resp.status_code == 1 ){
+        if ( resp.status_code == 1 ){
           $('#modal_add_network').modal('hide');
           update_networks(active_project_id, active_network_id);
           $('#network_name').val('');
           notify('success', 'Success!', 'Network "'+network_name+'" added.');
+        } else {
+          notify('danger', 'Whoops!', 'Something went wrong. Please contact support.')
         }
       }
     });
+  }
   });
 
 });
@@ -220,13 +227,16 @@ function populate_networks(networks) {
     cell, network_item, dropdown, menu, img, preview, footer, main_action;
 
   netlist.empty();
+  proj_networks = [];
 
   // add existing networks, if any    
   $.each(networks, function(index, network){
 
+    proj_networks.push(network.name);
+
     cell = $('<div>').addClass('network-col col col-sm-6 col-md-4 col-lg-3');
 
-    network_item = $('<div>').addClass('network');  
+    network_item = $('<div>').addClass('network'); 
 
     dropdown = network_dropdown.clone()
       .find('a')

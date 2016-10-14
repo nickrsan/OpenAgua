@@ -98,7 +98,7 @@ def load_study():
     
     return jsonify(resp=0)
 
-@home.route('/_add_project')
+@home.route('/_add_project', methods=['GET', 'POST'])
 @login_required
 def add_project():
     
@@ -110,11 +110,13 @@ def add_project():
         proj = request.json['proj']
         if proj['name'] in project_names:
             status_code = -1 # name already exists
+            project_id = None
         else:
             project = conn.call('add_project', {'project':proj})
             status_code = 1
+            project_id = project.id
         
-        return jsonify(status_code=status_code)
+        return jsonify(status_code=status_code, new_project_id=project_id)
     
     redirect(url_for('home.home_main')) 
 
@@ -126,22 +128,11 @@ def add_network():
     if request.method == 'POST':
     
         conn = make_connection()
-    
-        networks = conn.call('get_networks',
-                             {'project_id': session['project_id'],
-                              'include_data': 'N'})
-        network_names = [network.name for network in networks]
         
         # add network
-        new_net = request.args.get('net')
-        new_net = json.loads(new_net)
-        tpl_id = int(request.args.get('tpl_id'))
-        
-        # return error if there is no template ID
-        
-        
-        if new_net['name'] in network_names:
-            return jsonify(status_code -1)
+        proj_id = request.json['proj_id']
+        new_net = request.json['net']
+        tpl_id = request.json['tpl_id']
         
         network = conn.call('add_network', {'net':new_net})
     
