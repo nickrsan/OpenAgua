@@ -12,7 +12,7 @@ import logging
 
 from .utils import hydra_timeseries, empty_hydra_timeseries, eval_data, encrypt, decrypt
 from .models import User, HydraUser, HydraUrl, HydraStudy
-from . import app # delete later
+from . import app, db # delete later
 
 log = logging.getLogger(__name__)
 
@@ -513,8 +513,7 @@ def make_connection(login=False):
                        password=decrypt(session['hydra_password'],
                                         app.config['SECRET_ENCRYPT_KEY']))
             session['hydra_sessionid'] = conn.session_id
-            
-            # ALSO: need to add to database 
+            update_hydrauser(db=db, hydrauser_id=session['hydrauser_id'], hydra_sessionid=conn.session_id)
     
     return conn
 
@@ -625,6 +624,14 @@ def create_hydrauser(db,
     session['hydra_username'] = hydrauser.hydra_username
     session['hydra_password'] = hydrauser.hydra_password
 
+def update_hydrauser(db=None,
+                     hydrauser_id=None,
+                     **kwargs):
+    hydrauser = HydraUser.query.filter(HydraUser.id == hydrauser_id).first()
+    for kw in kwargs:
+        exec('hydrauser.{} = "{}"'.format(kw, kwargs[kw]))
+    db.session.commit()
+
 def load_hydrauser():
 
     hydrauser = HydraUser.query.filter(HydraUser.user_id==current_user.id).first()
@@ -641,49 +648,6 @@ def load_hydrauser():
         session['hydra_password'] = hydrauser.hydra_password # it's encrypted
         session['hydra_sessionid'] = hydrauser.hydra_sessionid
         return True
-
-
-def add_default_template(conn, template_name):
-    
-    # load / activate template
-    templates = conn.call('get_templates',{})
-    if not templates or template_name not in [t.name for t in templates]:
-        zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
-        template_xml = zf.read('OpenAgua/template/template.xml')
-        default_tpl = conn.call('upload_template_xml', {'template_xml': template_xml.decode()})
-    else:
-        default_tpl = [t for t in templates if t.name==template_name][0]
-    return default_tpl
-
-#def add_default_network(conn, project_id, template_id, scenario_name):
-
-    #network_name = 'Default network'
-    
-    #network = conn.call('get_network_by_name',
-                        #{'project_id':project_id,
-                         #'network_name': network_name})
-    #if 'faultstring' in network and 'not found' in network.faultstring:
-        #net = dict(
-            #name = network_name,
-            #description = 'Default network created for %s %s (%s)' \
-            #% (current_user.firstname, current_user.lastname, current_user.email),
-            #project_id = project_id
-        #)
-        
-        #network = conn.call('add_network', {'net': net})
-    
-        #conn.call('apply_template_to_network',
-                      #{'template_id': template_id,
-                       #'network_id': network.id})
-        
-        ## add scenario
-        #scen = {'name': scenario_name,
-                    #'description': 'Default OpenAgua scenario',
-                    #'time_step': 'month'}
-        #scenario = conn.call('add_scenario',
-                             #{'network_id': network.id, 'scen': scen})
-    #return network
-
 
 def activate_study(db, hydrauser_id, project_id, network_id):
     
