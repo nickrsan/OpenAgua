@@ -74,7 +74,7 @@ def home_main():
     
     return render_template('home.html')
 
-@home.route('/_load_study', methods['GET', 'POST'])
+@home.route('/_load_study', methods=['GET', 'POST'])
 @login_required
 def load_study():
     
