@@ -47,11 +47,11 @@ def account_setup():
 @home.route('/home')
 @login_required
 def home_main():
-    
-    conn = make_connection(login=True)
-    
+
     if not load_hydrauser():
         return redirect(url_for('home.account_setup'))
+    
+    conn = make_connection(login=True)    
           
     if current_user.has_role('pro_user') or current_user.has_role('superuser'):
         user_level = "pro"
