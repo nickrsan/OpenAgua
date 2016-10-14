@@ -5,11 +5,11 @@
 {% block head_master %}
 {% include 'navbar.html' %}
 
-<link rel="stylesheet" href="{{ url_for('.static', filename='css/template-manager.css') }}" media="all" type="text/css" />
-
 <!--jsoneditor-->
-<link rel="stylesheet" href="{{ url_for('static', filename='lib/jsoneditor/jsoneditor.min.css') }}" />
-<script src="{{ url_for('static', filename='lib/jsoneditor/jsoneditor.min.js') }}"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/5.5.8/jsoneditor.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/5.5.8/jsoneditor.min.js"></script>
+
+<link rel="stylesheet" href="{{ url_for('.static', filename='css/template-manager.css') }}" media="all" type="text/css" />
 
 {% endblock %}    
     

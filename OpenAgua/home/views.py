@@ -28,19 +28,19 @@ def account_setup():
                      hydra_user_username=current_user.email,
                      hydra_user_password='password') # to be set by user    
     load_hydrauser()
-    if current_user.has_role('pro_user'):
-        # user will create their own project, but we still need to create a default study
-        default_project_id = -1
-    else:
-        conn = make_connection(login=True)
+    #if current_user.has_role('pro_user'):
+        ## user will create their own project, but we still need to create a default study
+        #default_project_id = -1
+    #else:
+        #conn = make_connection(login=True)
         
-        # this probably shouldn't be here...
-        default_projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-        if default_projects:
-            default_project = default_projects[0]
-        else:
-            default_project = conn.add_default_project()
-        default_project_id = default_project.id
+        ## this probably shouldn't be here...
+        #default_projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
+        #if default_projects:
+            #default_project = default_projects[0]
+        #else:
+            #default_project = conn.add_default_project()
+        #default_project_id = default_project.id
         
     return(redirect(url_for('home.home_main')))
 
@@ -50,22 +50,9 @@ def home_main():
     
     conn = make_connection(login=True)
     
-    # first check if default template is available
-    templates = conn.call('get_templates', {})
-    default_template_id = [tpl.id for tpl in templates if tpl.name == app.config['DEFAULT_HYDRA_TEMPLATE']]
-    if not default_template_id:
-        if current_user.has_role('superuser'):
-            flash('Default template does not exist. Please upload it!', category='error')
-            return redirect(url_for('manager.manage_templates'))
-        else:
-            flash('Default template does not exist. Please contact support: admin@openagua.org', category='error')
-            return redirect('/logout')
-    else:
-        session['template_id'] = default_template_id[0]
-    
     if not load_hydrauser():
         return redirect(url_for('home.account_setup'))
-    
+          
     if current_user.has_role('pro_user') or current_user.has_role('superuser'):
         user_level = "pro"
     else:
@@ -73,21 +60,30 @@ def home_main():
 
     conn.load_active_study(load_from_hydra=False)
     session['study_name'] = None # turn this off for the home page
+    
+    # conditional actions depending on whether or not an active study exists
     if session['project_id'] is None:
         
         # the following should probably be moved to a function
         projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
         if projects:
             session['project_id'] = projects[0].id
-        else: # something went wrong, and the user has no projects
-            if user_level == "basic":
-                # create a new default project
-                default_project = conn.add_default_project()
-                session['project_id'] = default_project.id
-        # also add the default template id
-        #templates = conn.call('get_templates', {})
-        #template = [t for t in templates if t.name == 'OpenAgua'][0]
-        #session['template_id'] = template.id
+        elif user_level == "basic": # shouldn't get here
+            default_project = conn.add_default_project()
+            session['project_id'] = default_project.id
+        
+    if session['template_id'] is None:
+        templates = conn.call('get_templates', {})
+        default_template_id = [tpl.id for tpl in templates if tpl.name == app.config['DEFAULT_HYDRA_TEMPLATE']]
+        if not default_template_id:
+            if current_user.has_role('superuser'):
+                flash('Default template does not exist. Please upload it!', category='error')
+                return redirect(url_for('manager.manage_templates'))
+            else:
+                flash('Default template does not exist. Please contact support: admin@openagua.org', category='error')
+                return redirect('/logout')
+        else:
+            session['template_id'] = default_template_id[0]        
     
     return render_template('home.html', user_level=user_level)
 
@@ -226,34 +222,6 @@ def upgrade_template():
         status_code = -1
     return jsonify(status=status_code)
 
-
-@home.route('/manage/templates/_upload', methods=['GET', 'POST'])
-@login_required
-def upload_template():
-
-    if request.method == 'POST' and 'template' in request.files:
-        
-        conn = make_connection()
-        
-        template = request.files['template']
-        
-        filename = templates.save(template)
-
-        zf  = zipfile.ZipFile(template.stream)
-        
-        # load template
-        template_xml_path = zf.namelist()[0]
-        template_xml = zf.read(template_xml_path).decode('utf-8')
-        resp = conn.call('upload_template_xml',
-                                {'template_xml': template_xml}) 
-        zf.extractall(path=app.config['UPLOADED_TEMPLATES_DEST'])
-        
-        template_name = template_xml_path.split('/')[0]
-        flash('Template %s uploaded successfully' % template_name, category='info')
-    else:
-        flash('Something went wrong.')
-        
-    return redirect(url_for('manager.manage_templates'))
         
 @home.route('/_get_templates_for_network')
 @login_required
