@@ -209,7 +209,7 @@ function update_networks(active_project_id, active_network_id) {
     if ('faultcode' in resp.result) {
       $("#network_list").empty().text("No project loaded.")
     } else {
-      populate_networks(networks);
+      populate_networks(resp.result);
     }
   }); 
 }
