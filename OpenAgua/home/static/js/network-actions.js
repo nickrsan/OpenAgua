@@ -109,12 +109,8 @@ function populate_networks(networks) {
       data: JSON.stringify({ project_id: active_project_id, network_id: network_id}),
       contentType: 'application/json',
       success: function(resp) {
-<<<<<<< HEAD
-        window.location.href = "/overview";    
-=======
         window.location.href = "/overview";
       }
->>>>>>> refs/remotes/origin/master
     });
   });
 

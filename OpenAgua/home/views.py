@@ -74,11 +74,7 @@ def home_main():
     
     return render_template('home.html')
 
-<<<<<<< HEAD
-@home.route('/_load_study', methods['GET', 'POST'])
-=======
 @home.route('/_load_study', methods=['GET', 'POST'])
->>>>>>> refs/remotes/origin/master
 @login_required
 def load_study():
     
