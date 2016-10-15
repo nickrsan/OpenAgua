@@ -1,6 +1,7 @@
-var pivotOutput, filterParams = {};
+var pivotOutput, filterParams = {}, plotlyDiv = 'plotlyArea',
+  plotlyListenerBuilt = false, loadedChart = null;
 
-function loadPivot(chartRendererName='plotly', filterParams, chartWidth) {
+function loadPivot(chartRendererName, filterParams, width, height) {
 
   // Get JSON-formatted data from the server
   var chartRenderers, nCharts, opts, defaultVals;
@@ -8,18 +9,22 @@ function loadPivot(chartRendererName='plotly', filterParams, chartWidth) {
   switch(chartRendererName) {
     case 'plotly':
       chartRenderers = $.pivotUtilities.plotly_renderers;
-      opts = {width: chartWidth}
+      opts = {
+        width: width,
+        height: height,
+        divname: plotlyDiv
+      }
       nCharts = 6;
       break;
     case 'gchart':
       chartRenderers = $.pivotUtilities.gchart_renderers;
       google.charts.load("visualization", "1", {packages:["corechart", "charteditor"]});
-      opts = {gchart: {width: chartWidth}}
+      opts = {gchart: {width: width, height: height}}
       nCharts = 5;
       break;
     case 'c3':
       chartRenderers = $.pivotUtilities.c3_renderers;
-      opts = {c3: {size: {width: chartWidth}}};
+      opts = {c3: {size: {width: width, height: height}}};
       nCharts = 5;
       break;
     default:
@@ -59,13 +64,14 @@ function loadPivot(chartRendererName='plotly', filterParams, chartWidth) {
       select.append(charts);
       select.append(tables);
       prettifyPivot();
+      updateResizeListener(chartRendererName);
   });
 }
 
 function prettifyPivot() {
   // prettify the pivotUI (including with Bootstrap classes)
   $(".pvtSelect select").addClass('selectpicker')
-    .attr({'data-style': 'btn-primary', 'title': 'Chart or table...'}).selectpicker('refresh');
+    .attr({'id':'pvtSelect', 'data-style': 'btn-primary', 'title': 'Chart or table...'}).selectpicker('refresh');
   $(".pvtVals select").addClass('selectpicker')
     .attr({'data-style': 'btn-default'}).selectpicker('refresh');
   $(".pvtAttrDropdown").addClass('selectpicker').selectpicker('refresh');
@@ -73,6 +79,9 @@ function prettifyPivot() {
   $("#pivot button:contains('OK')").addClass('btn btn-primary')
     .parent().addClass('pvtSearchOk');
   $("#pivot input.pvtSearch").addClass('form-control').css('margin-top', '5px');
+  $('table tr td:nth-child(2)').css('width','100%');
+  //$("<div>").attr('id', 'plotArea').css({width: "100%", height: "100%"})
+    //.appendTo($('body'));
   //$('.pvtAttrDropdown option').first().text('[no attribute]');
 }
 
@@ -83,35 +92,23 @@ $(function() {
   // make plotly node
   //var gd = Plotly.d3.select('body').append('div').node();
   
-  loadPivot(chartRenderName='plotly',
+  chartRendererName = 'plotly';
+  
+  loadPivot(
+    chartRendererName = 'plotly',
     filterParams=filterParams,
-    chartWidth=getChartWidth());
+    width=0,
+    height=0
+  );
   
   $("#load_options").click( function() {
     pivotOutput.empty();
     loadPivot(
       chartRendererName=$("#chart_renderer").val(),
       filterParams=filterParams,
-      chartWidth=getChartWidth()
+      width=getChartWidth(),
+      height=getChartHeight()
     );
-  });
-
-  var d3 = Plotly.d3;
-
-  var HEIGHT_IN_PERCENT_OF_PARENT = 80;
-
-  var gd3 = d3.select('.pvtRendererArea')
-      .style({
-          width: getChartWidth(),  
-          height: HEIGHT_IN_PERCENT_OF_PARENT + 'vh',
-      });
-      
-  var chartNode = gd3.node();
-
-  $( window ).resize(function() {
-    var width = getChartWidth();
-    var chartNode = Plotly.d3.select('.pvtRendererArea').style('width', width).node();
-    Plotly.Plots.resize(chartNode);
   });
   
   // load feature types
@@ -164,12 +161,46 @@ $(function() {
   
 });
 
-function getChartWidth() {
-  return $("#pivot_panel").width() - 250; //$(".pvtRows").width() 
+function updateResizeListener(chartRendererName) {
+  $('#pvtSelect').off('hidden.bs.select');
+  $('#pvtSelect').on('hidden.bs.select', function() {
+    if ($(this).find('option:selected').parent().attr('label') == 'Charts') {
+      loadedChart = chartRendererName;
+      var element = $('#page-content-wrapper');
+      switch(chartRendererName) {
+        case 'plotly':
+          setTimeout(function(){ resizePlotlyChart() }, 50);
+          if (!plotlyListenerBuilt) {
+            $(window).resize(function() {
+              if (loadedChart === chartRendererName) {resizePlotlyChart()}
+            });
+            $('#menu-toggle').on('click', function() {
+              if (loadedChart === chartRendererName) {setTimeout(function(){ resizePlotlyChart() }, 500)};
+            })
+            plotlyListenerBuilt = true;
+          }
+          
+          break;
+        default:
+          break;
+      }
+    } else {
+      loadedChart = null;
+    }
+  });
 }
 
-function loadFilteredData() {
+function resizePlotlyChart() {
+  Plotly.relayout(plotlyDiv, {width: getChartWidth(), height: getChartHeight()});
+  Plotly.redraw(plotlyDiv);
+}
 
+function getChartWidth() {
+  return $('#page-content-wrapper').width() - 280;
+}
+
+function getChartHeight() {
+  return $(window).height() - 255;
 }
 
 //$('#save_as_thumbnail').click(function() {
