@@ -102,7 +102,14 @@ class connection(object):
     def add_project(self, project_data=None):
         return self.call('add_project', project_data)
     
-    def add_default_project(self, project_name, project_description):
+    def add_default_project(self):
+    
+        project_name = current_user.email
+        project_description = 'Default project created for {} {} ({})'.format(
+            current_user.firstname,
+            current_user.lastname,
+            current_user.email
+        )        
     
         # add project
         project = self.call('add_project', {'project': {'name': project_name, 'description': project_description}})
@@ -482,7 +489,9 @@ class connection(object):
                         
                 # delete this once concept of studies is fully developed
                 if not self.invalid_study:
-                    session['study_name'] = '{}'.format(self.network.name)            
+                    session['study_name'] = '{}'.format(self.network.name)
+                else:
+                    session['study_name'] = None
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

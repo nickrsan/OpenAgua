@@ -4,13 +4,12 @@
 
 {% block head_master %}
 
+{% include 'navbar.html' %}
 <link href="{{ url_for('.static', filename='css/home.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 {% endblock %}    
     
 {% block main %}
-
-{% include 'navbar.html' %}
 
 <script>
     var active_project_id = {{ session['project_id'] }};

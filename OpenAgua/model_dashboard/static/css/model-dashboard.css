@@ -1,0 +1,28 @@
+#log_output {
+    width: 100%;
+    height: 300px;
+    border-width: 1px;
+    border-color: #333333;
+    border-style: solid;
+    overflow: scroll;
+    white-space: pre;
+}
+
+#model_dashboard_top {
+    /*background-color: #dddddd;*/
+    /*margin: -15px -15px 15px -15px;*/
+}
+#progress-bars .progress-row {
+    width: 100%;
+}
+.progress {
+    width: 80%;
+    float: left;
+    height: 25px;
+}
+.progress-bar {
+    height: 25px;
+}
+.btn-scenario-log {
+    height: 25px;
+}

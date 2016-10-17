@@ -126,7 +126,7 @@ map.on('draw:created', function (e) {
 });
 
 $('button#add_node_confirm').bind('click', function() {
-    map.spin(true);
+    //map.spin(true);
     gj.properties.name = $('#node_name').val();
     gj.properties.description = $('#node_description').val();
     gj.properties.template_type_id = $("#node_type option:selected").val();
@@ -151,7 +151,7 @@ $('button#add_node_confirm').bind('click', function() {
                 refreshCurrentItems();
                 $('#node_name').val('');
                 $('#node_description').val('');
-                map.spin(false);
+                //map.spin(false);
                 notify('success', 'Success!', 'Feature added.')
                 
             }
@@ -348,3 +348,12 @@ function purgeFeature(e) {
         }
     });
 }
+
+
+//$('#save_as_thumbnail').click(function() {
+    //html2canvas($("#map"), {
+      //onrendered: function(canvas) {
+        //$("body").append(canvas);
+      //}
+    //});
+//});

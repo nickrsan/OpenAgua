@@ -33,15 +33,13 @@ def account_setup():
         default_project_id = -1
     else:
         conn = make_connection(login=True)
-
-        project_name = current_user.email
-        project_description = 'Default project created for {} {} ({})' \
-            .format(current_user.firstname, current_user.lastname, current_user.email)
         
+        # this probably shouldn't be here...
         default_projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-        default_project = default_projects[0]
-        if not default_project:
-            default_project = conn.add_default_project(project_name, project_description)
+        if default_projects:
+            default_project = default_projects[0]
+        else:
+            default_project = conn.add_default_project()
         default_project_id = default_project.id
     
     default_network_id = -1
@@ -66,17 +64,29 @@ def home_main():
     if not load_hydrauser():
         return redirect(url_for('home.account_setup'))
     
+    if current_user.has_role('pro_user') or current_user.has_role('superuser'):
+        user_level = "pro"
+    else:
+        user_level = "basic"    
+    
     conn = make_connection(login=True)
     conn.load_active_study(load_from_hydra=False)
     session['study_name'] = None # turn this off for the home page
     if session['project_id'] is None:
+        
+        # the following should probably be moved to a function
         projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-        session['project_id'] = projects[0].id
-    
-    if current_user.has_role('pro_user') or current_user.has_role('superuser'):
-        user_level = "pro"
-    else:
-        user_level = "basic"
+        if projects:
+            session['project_id'] = projects[0].id
+        else: # something went wrong, and the user has no projects
+            if user_level == "basic":
+                # create a new default project
+                default_project = conn.add_default_project()
+                session['project_id'] = default_project.id
+        # also add the default template id
+        templates = conn.call('get_templates', {})
+        template = [t for t in templates if t.name == 'OpenAgua'][0]
+        session['template_id'] = template.id
     
     return render_template('home.html', user_level=user_level)
 
@@ -90,14 +100,12 @@ def load_study():
     conn.load_active_study()
     if conn.invalid_study:
         # create a new study with the just-selected network + default scenario
-        templates = conn.call('get_templates', {})
-        template = [t for t in templates if t.name == 'OpenAgua'][0]
         add_study(db,
                        user_id = current_user.id,
                        hydrauser_id = session['hydrauser_id'],
                        project_id = session['project_id'],
                        network_id = network_id,
-                       template_id = template.id,
+                       template_id = session['template_id'],
                        active = 1
                        )
         activate_study(db, session['hydrauser_id'], session['project_id'],

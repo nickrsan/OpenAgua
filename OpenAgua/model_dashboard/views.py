@@ -99,6 +99,7 @@ def model_progress():
         result = json.loads(result.decode())
         ts_completed = result['completed']
         ts_count = result['count']
+        details = result['details']
         progress = 0 # default when starting
         status = 2 # the model is running at least
         
@@ -107,4 +108,4 @@ def model_progress():
         if progress == 100:
             status = 3
 
-    return jsonify(progress=int(progress), status=status)
+    return jsonify(progress=int(progress), status=status, details=details)

@@ -68,10 +68,10 @@
         }        
         
         opts = $.extend(true, defaults, opts);
-        if ((base = opts.plotly).width == null) {
+        if ((base = opts).width == null) {
           base.width = window.innerWidth / 1.4;
         }
-        if ((base1 = opts.plotly).height == null) {
+        if ((base1 = opts).height == null) {
           base1.height = window.innerHeight / 1.4 - 50;
         }
         rowKeys = pivotData.getRowKeys();
@@ -216,7 +216,13 @@
         layout = $.extend(true, layout, {
           title: titleText,     
           width: base.width,
-          height: base1.height
+          height: base1.height,
+          xaxis: {
+            title: hAxisTitle
+          },
+          yaxis: {
+            title: vAxisTitle
+          }
         });
         
         //$.extend(true, layout, opts.plotly);

@@ -34,7 +34,7 @@ aceEditor.setOptions({
 // initialize handsontable (time series editor)
 var hotEditor = makeHandsontable('timeseries', $("#timeseries").css("height"), unsaved)
 
-$(document).ready(function(){
+$(function(){
 
   clearPreview()
 
