@@ -175,7 +175,9 @@ function updateResizeListener(chartRendererName) {
               if (loadedChart === chartRendererName) {resizePlotlyChart()}
             });
             $('#menu-toggle').on('click', function() {
-              if (loadedChart === chartRendererName) {setTimeout(function(){ resizePlotlyChart() }, 500)};
+              if (loadedChart === chartRendererName) {
+                resized = setTimeout(function(){ resizePlotlyChart() }, 500)
+              };
             })
             plotlyListenerBuilt = true;
           }

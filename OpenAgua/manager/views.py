@@ -1,11 +1,14 @@
 from os.path import join
 import zipfile
+from boltons.iterutils import remap
 
 from flask import render_template, redirect, url_for, request, session, json, \
      jsonify, flash
 from flask_security import login_required, current_user
 
 from flask_uploads import UploadSet, configure_uploads, ARCHIVES
+
+from attrdict import AttrDict
 
 from ..connection import make_connection, activate_study
 
@@ -29,8 +32,7 @@ def manage_templates():
     # get list of all templates
     templates = conn.call('get_templates', {})
     
-    return render_template('templates_manager.html',
-                           templates=templates)
+    return render_template('templates_manager.html', templates=templates)
 
 
 @manager.route('/manage/templates/_upload', methods=['GET', 'POST'])
@@ -60,22 +62,55 @@ def upload_template():
         flash('Something went wrong.')
         
     return redirect(url_for('manager.manage_templates'))
-        
-@manager.route('/_get_templates_for_network')
+
+@manager.route('/_save_as_new_template', methods=['GET', 'POST'])
 @login_required
-def get_templates_for_network():
-    conn = make_connection()
-    network_id = request.args.get('network_id')
-    if network_id is not None:
-        network_id = int(network_id)
-        net = conn.call('get_network', {'network_id': network_id})
-        tpls = conn.call('get_templates', {})
+def save_as_new_template():
+    
+    if request.method == 'POST':
+        conn = make_connection()
+        template = AttrDict(request.json['template'])
         
-        net_tpl_ids = [t.template_id for t in net.types]
-        net_tpls = [tpl for tpl in tpls if tpl.id in net_tpl_ids]
-    else:
-        net_tpls = []
-    return jsonify(templates=net_tpls)
+        # rename template
+        if ' Vers. ' in template.name:
+            basename, version = template.name.split(' Vers. ')
+            version = int(version) + 1
+        else:
+            basename = template.name
+            version = 1
+        template.name = '{} Vers. {}'.format(basename, version)         
+        
+        # genericize the template
+        def visit(path, key, value):
+            if key in set(['cr_date']):
+                return False
+            elif key in set(['id', 'template_id', 'type_id', 'attr_id']):
+                return key, None            
+            return key, value
+        template = remap(dict(template), visit=visit)
+
+        result = conn.call('add_template', {'tmpl': template})
+        
+        return jsonify(result = json.dumps(result))
+    
+    return redirect(url_for('manager.manage_templates'))
+
+@manager.route('/_modify_template', methods=['GET', 'POST'])
+@login_required
+def modify_template():
+    
+    if request.method == 'POST':
+        conn = make_connection()
+        template = AttrDict(request.json['template'])
+        
+        result = conn.call('update_template', {'tmpl': dict(template)})    
+        
+        if 'faultcode' in result:
+            result = -1
+            
+        return jsonify(result=result)
+    
+    return redirect(url_for('manager.manage_templates'))
 
 @manager.route('/_hydra_call', methods=['GET', 'POST'])
 @login_required

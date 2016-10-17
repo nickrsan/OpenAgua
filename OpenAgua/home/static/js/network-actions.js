@@ -159,14 +159,19 @@ $(function() {
 
   if (_.includes(proj_networks, network_name)) {
     $("#add_network_error").text('Name already in use. Please try again.');
+  } else if (network_name === null || network_name === ""){
+    $("#add_network_error").text('Name cannot be blank.');
   } else {
+    $('#modal_add_network').modal('hide');
     $("#add_network_error").empty();
+    $('#network_name').empty();
     var net = {
       name: network_name,
       description: $('#network_description').val(),
       project_id: active_project_id
     }
-    var data = {proj_id: active_project_id, net: net, tpl_id: active_template_id}
+    var tpl_id = Number($('#template option:selected').val());
+    var data = {proj_id: active_project_id, net: net, tpl_id: tpl_id}
     $.ajax({
       type : "POST",
       url : '/_add_network',
@@ -175,9 +180,7 @@ $(function() {
       success: function(resp) {
 
         if ( resp.status_code == 1 ){
-          $('#modal_add_network').modal('hide');
           update_networks(active_project_id, active_network_id);
-          $('#network_name').val('');
           notify('success', 'Success!', 'Network "'+network_name+'" added.');
         } else {
           notify('danger', 'Whoops!', 'Something went wrong. Please contact support.')
@@ -238,39 +241,39 @@ $(function() {
     });
   });
 
-  // attach template
-  $(document).on('click', '.attach_template', function(e) {
-    e.preventDefault();
-    var id = Number($(this).attr('data-id'));
-    var name = $(this).attr('data-name');
-    var title = 'Select a template.'
-    bootbox.dialog({
-      message: templatesList(),
-      title: title,
-      buttons: {
-        cancel: {
-          label: "Cancel",
-          className: "btn-default",
-        },
-        main: {
-          label: "OK",
-          className: "btn-primary",
-          callback: function() {
-            var selected = $( "select#attach_template_list option:selected" )
-            var template_id = Number(selected.val())
-            var template_name = selected.text()
-            var call = 'apply_template_to_network'
-            var args = {
-              template_id: template_id,
-              network_id: active_network_id
-            }
-            result = hydra_call(call, args);
-            update_templates(active_network_id, active_template_id);
-            notify('success','Success!', 'Template "'+template_name+'" has been attached.');
-          }
-        }
-      }
-    });
-  });
+  //// attach template
+  //$(document).on('click', '.attach_template', function(e) {
+    //e.preventDefault();
+    //var id = Number($(this).attr('data-id'));
+    //var name = $(this).attr('data-name');
+    //var title = 'Select a template.'
+    //bootbox.dialog({
+      //message: templatesList(),
+      //title: title,
+      //buttons: {
+        //cancel: {
+          //label: "Cancel",
+          //className: "btn-default",
+        //},
+        //main: {
+          //label: "OK",
+          //className: "btn-primary",
+          //callback: function() {
+            //var selected = $( "select#attach_template_list option:selected" )
+            //var template_id = Number(selected.val())
+            //var template_name = selected.text()
+            //var call = 'apply_template_to_network'
+            //var args = {
+              //template_id: template_id,
+              //network_id: active_network_id
+            //}
+            //result = hydra_call(call, args);
+            //update_templates(active_network_id, active_template_id);
+            //notify('success','Success!', 'Template "'+template_name+'" has been attached.');
+          //}
+        //}
+      //}
+    //});
+  //});
 
 });

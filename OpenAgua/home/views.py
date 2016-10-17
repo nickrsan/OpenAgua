@@ -38,7 +38,19 @@ def home_main():
     if not load_hydrauser():
         return redirect(url_for('home.account_setup'))
     
-    conn = make_connection(login=True)    
+    conn = make_connection(login=True) 
+    
+    templates = conn.call('get_templates', {})
+    openagua_tpls = [tpl for tpl in templates if app.config['DEFAULT_HYDRA_TEMPLATE'] in tpl.name]
+    openagua_tpls.sort(key=lambda x: x.name, reverse=True)
+    
+    if not openagua_tpls:
+        if current_user.has_role('superuser'):
+            flash('No OpenAgua template exists. Please upload or add one!', category='error')
+            return redirect(url_for('manager.manage_templates'))
+        else:
+            flash('Default template does not exist. Please contact support: admin@openagua.org', category='error')
+            return redirect('/logout')    
           
     if current_user.has_role('pro_user') or current_user.has_role('superuser'):
         session['user_level'] = "pro" # we should move this to load_hydrauser
@@ -58,21 +70,12 @@ def home_main():
         elif session['user_level'] == "basic": # shouldn't get here
             default_project = conn.add_default_project()
             session['project_id'] = default_project.id
-        
-    if session['template_id'] is None:
-        templates = conn.call('get_templates', {})
-        default_template_id = [tpl.id for tpl in templates if tpl.name == app.config['DEFAULT_HYDRA_TEMPLATE']]
-        if not default_template_id:
-            if current_user.has_role('superuser'):
-                flash('Default template does not exist. Please upload it!', category='error')
-                return redirect(url_for('manager.manage_templates'))
-            else:
-                flash('Default template does not exist. Please contact support: admin@openagua.org', category='error')
-                return redirect('/logout')
-        else:
-            session['template_id'] = default_template_id[0]        
     
-    return render_template('home.html')
+        #else:
+            #if session['template_id'] is None:
+                #session['template_id'] = openagua_tpls[0][id]
+    
+    return render_template('home.html', templates=openagua_tpls)
 
 @home.route('/_load_study', methods=['GET', 'POST'])
 @login_required
@@ -80,10 +83,14 @@ def load_study():
     
     if request.method == 'POST':
         
+        # NEED TO UPDATE THIS ROUTINE WHEN STUDIES ARE FULLY IMPLEMENTED!!!
+        
         conn = make_connection()
         network_id = request.json['network_id']
-        project_id = request.json['project_id']
-        activate_study(db, session['hydrauser_id'], session['project_id'], network_id)
+        network = conn.get_network(network_id=network_id, include_data=False)
+        template_id = [tpl.template_id for tpl in network.types][0]
+        #project_id = request.json['project_id']
+        activate_study(db, hydrauser_id=session['hydrauser_id'], network_id=network_id, template_id=template_id)
         conn.load_active_study()
         if conn.invalid_study:
             # create a new study with the just-selected network + default scenario
@@ -100,7 +107,7 @@ def load_study():
         
         return jsonify(resp=0)
     
-    redirect(url_for('home.home_main')) 
+    redirect(url_for('home.home_main'))
 
 @home.route('/_add_project', methods=['GET', 'POST'])
 @login_required
@@ -158,7 +165,7 @@ def add_network():
                   hydrauser_id = session['hydrauser_id'],
                   project_id = session['project_id'],
                   network_id = network.id,
-                  template_id = session['template_id'],
+                  template_id = tpl_id,
                   activate = True
               )
         
@@ -211,7 +218,6 @@ def upgrade_template():
         status_code = -1
     return jsonify(status=status_code)
 
-        
 @home.route('/_get_templates_for_network')
 @login_required
 def get_templates_for_network():

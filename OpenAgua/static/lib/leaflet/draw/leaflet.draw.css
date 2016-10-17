@@ -31,7 +31,7 @@
 
 .leaflet-retina .leaflet-draw-toolbar a {
 	background-image: url('images/spritesheet-2x.png');
-	background-image: linear-gradient(transparent, transparent), url('images/spritesheet.svg');
+	/*background-image: linear-gradient(transparent, transparent), url('images/spritesheet.svg');*/
 }
 
 .leaflet-draw a {
