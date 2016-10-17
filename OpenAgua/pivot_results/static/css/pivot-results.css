@@ -1,25 +1,26 @@
 /*body { font-family: Verdana;}*/
 
-#pivot_panel {
-    padding-left: 0;
+#page-content-wrapper {
+    padding: 0px;
 }
 
-#pivot {
-    /*height: 400px;*/
-    margin-bottom: 20px;
-}
+/*#options_container {*/
+    /*padding: 0px;*/
+/*}*/
 
 #options {
-    /*margin-right: -20px;*/
     background-color: #ebf0fa;
-    border: 1px #336699 solid;
+    border-bottom: 1px #336699 solid;
     padding: 10px;
-    opacity: 0.9;
-    z-index: 2000;
 }
 
-.filter {
+#submit {
+    float: right;
+}
+
+.filters > div {
     margin-top: 5px;
+    display: inline-block;
 }
 
 /*#page-content-wrapper {*/
@@ -27,6 +28,17 @@
 /*}*/
 
 /*Pivot results*/
+
+#pivot_panel {
+    padding: 0;
+    margin: 20px;
+}
+
+#pivot {
+    /*height: 400px;*/
+    margin-bottom: 20px;
+}
+
 
 .pvtSelect {
     padding: 0 10px 5px 0px;

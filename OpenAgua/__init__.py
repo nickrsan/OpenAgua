@@ -14,6 +14,8 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.base import MenuLink
 
+from flask_babel import Babel
+
 # create the app
 app = Flask(__name__, instance_relative_config=True)
 
@@ -23,6 +25,7 @@ app.config.from_pyfile('config.py')
 # Initialize extensions
 db = SQLAlchemy(app)
 mail = Mail(app)
+babel = Babel(app)
 
 # import models and views
 from OpenAgua import models, views
@@ -45,7 +48,7 @@ from .manager import manager
 from .home import home
 from .data_editor import data_editor
 from .network_editor import net_editor
-from .main_overview import main_overview
+from .study_overview import study_overview
 from .model_dashboard import model_dashboard
 from .basic_results import basic_results
 from .pivot_results import pivot_results
@@ -54,7 +57,7 @@ from .chart_maker import chart_maker
 # register blueprints
 app.register_blueprint(home, url_prefix='')
 app.register_blueprint(manager, url_prefix='')
-app.register_blueprint(main_overview, url_prefix='')
+app.register_blueprint(study_overview, url_prefix='')
 app.register_blueprint(data_editor, url_prefix='')
 app.register_blueprint(net_editor, url_prefix='')
 app.register_blueprint(model_dashboard, url_prefix='')

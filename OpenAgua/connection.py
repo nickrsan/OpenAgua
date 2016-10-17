@@ -12,7 +12,7 @@ import logging
 
 from .utils import hydra_timeseries, empty_hydra_timeseries, eval_data, encrypt, decrypt
 from .models import User, HydraUser, HydraUrl, HydraStudy
-from . import app # delete later
+from . import app, db # delete later
 
 log = logging.getLogger(__name__)
 
@@ -24,8 +24,7 @@ def get_coords(nodes):
 
 class connection(object):
 
-    def __init__(self, url=None, session_id=None, user_id=None, app_name=None, project_id=None, project_name=None,
-                 network_id=None, network_name=None, template_id=None, template_name=None, ttypes=None):
+    def __init__(self, url=None, session_id=None, user_id=None, app_name=None):
         self.url = url
         self.app_name = app_name
         self.session_id = session_id
@@ -252,6 +251,8 @@ class connection(object):
                           'coordinates': [coords[n1_id],coords[n2_id]] },
              'properties':{'name':link.name,
                            'id':link.id,
+                           'node_1_id': n1_id,
+                           'node_2_id': n2_id,
                            'description':link.description,
                            'template_type_name':ttype.name,
                            'template_type_id':ttype.id,
@@ -259,7 +260,7 @@ class connection(object):
                            'template_name':self.template.name,
                            'color': name_to_hex(ttype.layout.colour),
                            'weight': ttype.layout.line_weight,
-                           'opacity': 0.7,
+                           'opacity': 0.7, # move to CSS?
                            'dashArray': dashArray,
                            'lineJoin': 'round'
                            }
@@ -514,8 +515,7 @@ def make_connection(login=False):
                        password=decrypt(session['hydra_password'],
                                         app.config['SECRET_ENCRYPT_KEY']))
             session['hydra_sessionid'] = conn.session_id
-            
-            # ALSO: need to add to database 
+            update_hydrauser(db=db, hydrauser_id=session['hydrauser_id'], hydra_sessionid=conn.session_id)
     
     return conn
 
@@ -626,6 +626,14 @@ def create_hydrauser(db,
     session['hydra_username'] = hydrauser.hydra_username
     session['hydra_password'] = hydrauser.hydra_password
 
+def update_hydrauser(db=None,
+                     hydrauser_id=None,
+                     **kwargs):
+    hydrauser = HydraUser.query.filter(HydraUser.id == hydrauser_id).first()
+    for kw in kwargs:
+        exec('hydrauser.{} = "{}"'.format(kw, kwargs[kw]))
+    db.session.commit()
+
 def load_hydrauser():
 
     hydrauser = HydraUser.query.filter(HydraUser.user_id==current_user.id).first()
@@ -643,62 +651,22 @@ def load_hydrauser():
         session['hydra_sessionid'] = hydrauser.hydra_sessionid
         return True
 
-
-def add_default_template(conn, template_name):
-    
-    # load / activate template
-    templates = conn.call('get_templates',{})
-    if not templates or template_name not in [t.name for t in templates]:
-        zf = zipfile.ZipFile(app.config['TEMPLATE_FILE'])
-        template_xml = zf.read('OpenAgua/template/template.xml')
-        default_tpl = conn.call('upload_template_xml', {'template_xml': template_xml.decode()})
-    else:
-        default_tpl = [t for t in templates if t.name==template_name][0]
-    return default_tpl
-
-#def add_default_network(conn, project_id, template_id, scenario_name):
-
-    #network_name = 'Default network'
-    
-    #network = conn.call('get_network_by_name',
-                        #{'project_id':project_id,
-                         #'network_name': network_name})
-    #if 'faultstring' in network and 'not found' in network.faultstring:
-        #net = dict(
-            #name = network_name,
-            #description = 'Default network created for %s %s (%s)' \
-            #% (current_user.firstname, current_user.lastname, current_user.email),
-            #project_id = project_id
-        #)
-        
-        #network = conn.call('add_network', {'net': net})
-    
-        #conn.call('apply_template_to_network',
-                      #{'template_id': template_id,
-                       #'network_id': network.id})
-        
-        ## add scenario
-        #scen = {'name': scenario_name,
-                    #'description': 'Default OpenAgua scenario',
-                    #'time_step': 'month'}
-        #scenario = conn.call('add_scenario',
-                             #{'network_id': network.id, 'scen': scen})
-    #return network
-
-
-def activate_study(db, hydrauser_id, project_id, network_id):
+def activate_study(db, **kwargs):
     
     # deactivate other studies
-    HydraStudy.query \
-        .filter(HydraStudy.user_id == current_user.id).update({'active': 0})
+    HydraStudy.query.filter(HydraStudy.user_id == current_user.id).update({'active': False})
     db.session.commit()
     
     # activate current study
-    HydraStudy.query \
-        .filter(HydraStudy.hydrauser_id == hydrauser_id) \
-        .filter(HydraStudy.project_id == project_id) \
-        .filter(HydraStudy.network_id == network_id) \
-        .update({'active': 1})        
+    if 'study_id' in kwargs:
+        study = HydraStudy.query.filter(HydraStudy.id == kwargs['study_id']).first()
+    else:
+        study = HydraStudy.query.filter(HydraStudy.hydrauser_id==kwargs['hydrauser_id']) \
+                                .filter(HydraStudy.network_id==kwargs['network_id']) \
+                                .filter(HydraStudy.template_id==kwargs['template_id']) \
+                                .first()
+    study.active = True
+        
     db.session.commit()
 
 def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_id, activate=True):
@@ -710,11 +678,8 @@ def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_
     study.project_id = project_id
     study.network_id = network_id
     study.template_id = template_id
-    if activate:
-        study.active = 1
-    else:
-        study.active = 0
+    study.active = 0
     db.session.add(study)
     db.session.commit()
     if activate:
-        activate_study(db, hydrauser_id, project_id, network_id)
+        activate_study(db, study_id = study.id)

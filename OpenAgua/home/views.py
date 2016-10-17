@@ -28,155 +28,152 @@ def account_setup():
                      hydra_user_username=current_user.email,
                      hydra_user_password='password') # to be set by user    
     load_hydrauser()
-    if current_user.has_role('pro_user'):
-        # user will create their own project, but we still need to create a default study
-        default_project_id = -1
-    else:
-        conn = make_connection(login=True)
         
-        # this probably shouldn't be here...
-        default_projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
-        if default_projects:
-            default_project = default_projects[0]
-        else:
-            default_project = conn.add_default_project()
-        default_project_id = default_project.id
-    
-    default_network_id = -1
-    templates = conn.call('get_templates', {})
-    default_template_id = [tpl.id for tpl in templates if tpl.name == app.config['DEFAULT_HYDRA_TEMPLATE']][0]
-        
-    add_study(db=db,
-              name='Default study for {}'.format(current_user.email),
-              user_id=current_user.id,
-              hydrauser_id=session['hydrauser_id'],
-              project_id=default_project_id,
-              network_id=default_network_id,
-              template_id=default_template_id,
-              activate=True)
-        
-    #flash('Account created!')
     return(redirect(url_for('home.home_main')))
 
 @home.route('/home')
 @login_required
 def home_main():
+
     if not load_hydrauser():
         return redirect(url_for('home.account_setup'))
     
-    if current_user.has_role('pro_user') or current_user.has_role('superuser'):
-        user_level = "pro"
-    else:
-        user_level = "basic"    
+    conn = make_connection(login=True) 
     
-    conn = make_connection(login=True)
+    templates = conn.call('get_templates', {})
+    openagua_tpls = [tpl for tpl in templates if app.config['DEFAULT_HYDRA_TEMPLATE'] in tpl.name]
+    openagua_tpls.sort(key=lambda x: x.name, reverse=True)
+    
+    if not openagua_tpls:
+        if current_user.has_role('superuser'):
+            flash('No OpenAgua template exists. Please upload or add one!', category='error')
+            return redirect(url_for('manager.manage_templates'))
+        else:
+            flash('Default template does not exist. Please contact support: admin@openagua.org', category='error')
+            return redirect('/logout')    
+          
+    if current_user.has_role('pro_user') or current_user.has_role('superuser'):
+        session['user_level'] = "pro" # we should move this to load_hydrauser
+    else:
+        session['user_level'] = "basic"    
+
     conn.load_active_study(load_from_hydra=False)
     session['study_name'] = None # turn this off for the home page
+    
+    # conditional actions depending on whether or not an active study exists
     if session['project_id'] is None:
         
         # the following should probably be moved to a function
         projects = conn.call('get_projects', {'user_id': session['hydra_userid']})
         if projects:
             session['project_id'] = projects[0].id
-        else: # something went wrong, and the user has no projects
-            if user_level == "basic":
-                # create a new default project
-                default_project = conn.add_default_project()
-                session['project_id'] = default_project.id
-        # also add the default template id
-        templates = conn.call('get_templates', {})
-        template = [t for t in templates if t.name == 'OpenAgua'][0]
-        session['template_id'] = template.id
+        elif session['user_level'] == "basic": # shouldn't get here
+            default_project = conn.add_default_project()
+            session['project_id'] = default_project.id
     
-    return render_template('home.html', user_level=user_level)
+        #else:
+            #if session['template_id'] is None:
+                #session['template_id'] = openagua_tpls[0][id]
+    
+    return render_template('home.html', templates=openagua_tpls)
 
-@home.route('/_load_study')
+@home.route('/_load_study', methods=['GET', 'POST'])
 @login_required
 def load_study():
-    conn = make_connection()
-    network_id = int(request.args.get('network_id'))
-    activate_study(db, session['hydrauser_id'], session['project_id'],
-                   network_id)
-    conn.load_active_study()
-    if conn.invalid_study:
-        # create a new study with the just-selected network + default scenario
-        add_study(db,
-                       user_id = current_user.id,
-                       hydrauser_id = session['hydrauser_id'],
-                       project_id = session['project_id'],
-                       network_id = network_id,
-                       template_id = session['template_id'],
-                       active = 1
-                       )
-        activate_study(db, session['hydrauser_id'], session['project_id'],
-                       network_id)
-        conn.load_active_study()    
     
-    return jsonify(resp=0)
+    if request.method == 'POST':
+        
+        # NEED TO UPDATE THIS ROUTINE WHEN STUDIES ARE FULLY IMPLEMENTED!!!
+        
+        conn = make_connection()
+        network_id = request.json['network_id']
+        network = conn.get_network(network_id=network_id, include_data=False)
+        template_id = [tpl.template_id for tpl in network.types][0]
+        #project_id = request.json['project_id']
+        activate_study(db, hydrauser_id=session['hydrauser_id'], network_id=network_id, template_id=template_id)
+        conn.load_active_study()
+        if conn.invalid_study:
+            # create a new study with the just-selected network + default scenario
+            network = conn.get_network(network_id=network_id)
+            add_study(db,
+                      name = 'Base study for {}'.format(network.name),
+                      user_id = current_user.id,
+                      hydrauser_id = session['hydrauser_id'],
+                      project_id = project_id,
+                      network_id = network_id,
+                      template_id = session['template_id'],
+                      activate = True)
+            conn.load_active_study()    
+        
+        return jsonify(resp=0)
+    
+    redirect(url_for('home.home_main'))
 
-@home.route('/_add_project')
+@home.route('/_add_project', methods=['GET', 'POST'])
 @login_required
 def add_project():
-    conn = make_connection()
     
-    projects = conn.call('get_projects', {'user_id':session['hydra_userid']})
-    project_names = [project.name for project in projects]
-    activate = request.args.get('activate')
-    proj = request.args.get('proj')
-    proj = json.loads(proj)
-    if proj['name'] in project_names:
-        status_code = -1 # name already exists
-    else:
-        project = conn.call('add_project', {'project':proj})
-        status_code = 1
+    if request.method == 'POST':
+        conn = make_connection()
+        
+        projects = conn.call('get_projects', {'user_id':session['hydra_userid']})
+        project_names = [project.name for project in projects]
+        proj = request.json['proj']
+        if proj['name'] in project_names:
+            status_code = -1 # name already exists
+            project_id = None
+        else:
+            project = conn.call('add_project', {'project':proj})
+            status_code = 1
+            project_id = project.id
+        
+        return jsonify(status_code=status_code, new_project_id=project_id)
     
-    return jsonify(status_code=status_code)
+    redirect(url_for('home.home_main')) 
 
 
 @home.route('/_add_network', methods=['GET', 'POST'])
 @login_required
 def add_network():
-    conn = make_connection()
-
-    networks = conn.call('get_networks',
-                         {'project_id': session['project_id'],
-                          'include_data': 'N'})
-    network_names = [network.name for network in networks]
     
-    # add network
-    new_net = request.args.get('net')
-    new_net = json.loads(new_net)
-    tpl_id = int(request.args.get('tpl_id'))
-    if new_net['name'] in network_names:
-        return jsonify(status_code -1)
+    if request.method == 'POST':
     
-    network = conn.call('add_network', {'net':new_net})
-
-    # add the template
-    conn.call('apply_template_to_network', {'template_id': tpl_id, 'network_id': network.id})
-    
-    # add a default scenario (similar to Hydra Modeller)
-    scenario = dict(
-        name = 'Baseline',
-        description = 'Default OpenAgua scenario'
-    )
-
-    result = conn.call('add_scenario', {'network_id': network.id, 'scen': scenario})
-    
-    # create a default study consisting of the project, network, and scenario
-    add_study(db = db,
-              name = 'Base study for {}'.format(network.name),
-              user_id = current_user.id,
-              hydrauser_id = session['hydrauser_id'],
-              project_id = session['project_id'],
-              network_id = network.id,
-              template_id = session['template_id'],
-              activate = True
-          )
-    
-    conn.load_active_study()
+        conn = make_connection()
         
-    return jsonify(status_code=1)
+        # add network
+        proj_id = request.json['proj_id']
+        new_net = request.json['net']
+        tpl_id = request.json['tpl_id']
+        
+        network = conn.call('add_network', {'net':new_net})
+    
+        # add the template
+        conn.call('apply_template_to_network', {'template_id': tpl_id, 'network_id': network.id})
+        
+        # add a default scenario (similar to Hydra Modeller)
+        scenario = dict(
+            name = 'Baseline',
+            description = 'Default OpenAgua scenario'
+        )
+    
+        result = conn.call('add_scenario', {'network_id': network.id, 'scen': scenario})
+        
+        # create a default study consisting of the project, network, and scenario
+        add_study(db = db,
+                  name = 'Base study for {}'.format(network.name),
+                  user_id = current_user.id,
+                  hydrauser_id = session['hydrauser_id'],
+                  project_id = session['project_id'],
+                  network_id = network.id,
+                  template_id = tpl_id,
+                  activate = True
+              )
+        
+        conn.load_active_study()
+            
+        return jsonify(status_code=1)
+    
+    redirect(url_for('home.home_main'))
 
 
 @home.route('/_purge_project')
@@ -221,35 +218,6 @@ def upgrade_template():
         status_code = -1
     return jsonify(status=status_code)
 
-
-@home.route('/manage/templates/_upload', methods=['GET', 'POST'])
-@login_required
-def upload_template():
-
-    if request.method == 'POST' and 'template' in request.files:
-        
-        conn = make_connection()
-        
-        template = request.files['template']
-        
-        filename = templates.save(template)
-
-        zf  = zipfile.ZipFile(template.stream)
-        
-        # load template
-        template_xml_path = zf.namelist()[0]
-        template_xml = zf.read(template_xml_path).decode('utf-8')
-        resp = conn.call('upload_template_xml',
-                                {'template_xml': template_xml}) 
-        zf.extractall(path=app.config['UPLOADED_TEMPLATES_DEST'])
-        
-        template_name = template_xml_path.split('/')[0]
-        flash('Template %s uploaded successfully' % template_name, category='info')
-    else:
-        flash('Something went wrong.')
-        
-    return redirect(url_for('home.manage_templates'))
-        
 @home.route('/_get_templates_for_network')
 @login_required
 def get_templates_for_network():

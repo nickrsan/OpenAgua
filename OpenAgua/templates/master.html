@@ -1,4 +1,4 @@
-{% extends "layout.html" %}    
+{% extends "layout.html" %}
 
 {% block head_master %}
 
@@ -7,7 +7,7 @@
 
 {% endblock %}
 
-{% block main %}
+{% block body %}
 
 <div id="wrapper">   
 
@@ -20,6 +20,13 @@
     <div id="page-content-wrapper">
         {{ macros.messages()}}
         {% block content %}{% endblock %}
+
+    <footer class="footer hide-fullscreen">
+      <div class="container">
+        {% include "footer.html" %}
+      </div>
+    </footer>        
+        
     </div>
 
 </div>

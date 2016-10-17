@@ -3,22 +3,22 @@
 </script>
 
 <!--jQuery-->
-<script src="{{ url_for('static', filename='lib/jquery/jquery-1.9.1.min.js') }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 
 <!--Bootstrap-->
-<link href="{{ url_for('static', filename='lib/bootstrap-3.3.6/css/bootstrap.min.css') }}" media="all" rel="stylesheet" type="text/css" />
-<script src="{{ url_for('static', filename='lib/bootstrap-3.3.6/js/bootstrap.min.js') }}"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" media="all" rel="stylesheet" type="text/css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
 <!-- fileinput -->
 <link href="{{ url_for('static', filename='lib/fileinput/css/fileinput.min.css') }}" media="all" rel="stylesheet" type="text/css" />
 <script src="{{ url_for('static', filename='lib/fileinput/js/fileinput.min.js') }}"></script>
 
 <!--bootstrap-select-->
-<link rel="stylesheet" href="{{ url_for('static', filename='lib/select/css/bootstrap-select.min.css') }}" />
-<script src="{{ url_for('static', filename='lib/select/js/bootstrap-select.min.js') }}"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/css/bootstrap-select.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js"></script>
 
 <!--Font Awesome-->
-<link rel="stylesheet" href="{{ url_for('static', filename='lib/font-awesome-4.6.3/css/font-awesome.min.css') }}" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" />
 
 <!--spin-->
 <script src="{{ url_for('static', filename='lib/spin/spin.min.js') }}"></script>
@@ -39,10 +39,32 @@
 <script src="{{ url_for('static', filename='lib/select2/js/select2.full.min.js') }}"></script>
 
 <!--Ace code editor-->
-<script src="{{ url_for('static', filename='lib/ace/ace.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.5/ace.js" type="text/javascript" charset="utf-8"></script>
 
 <!--jQuery redirect-->
 <script src="{{ url_for('static', filename='lib/redirect/jquery.redirect.js') }}" type="text/javascript" charset="utf-8"></script>
+
+<!--moment-->
+<script src="{{ url_for('static', filename='lib/moment/moment.min.js') }}"></script>
+
+<!--html2canvas-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.svg.min.js"></script>
+
+<!--datepicker-->
+<link rel="stylesheet" href="{{ url_for('static', filename='lib/datepicker/bootstrap-datetimepicker.min.css') }}" />
+<script src="{{ url_for('static', filename='lib/datepicker/bootstrap-datetimepicker.min.js') }}"></script>
+
+<!--lodash (for working with arrays, etc.)-->
+<script src="https://cdn.jsdelivr.net/lodash/4.15.0/lodash.min.js"></script>
+
+<!--Handsontable-->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.28.4/handsontable.full.min.css" type="text/css" media="all" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.28.4/handsontable.full.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!--ResizeSensor-->
+<script src="{{ url_for('static', filename='lib/resizesensor/ResizeSensor.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/resizesensor/ElementQueries.js') }}"></script>
 
 <!--OpenAgua customizations-->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }}" />
