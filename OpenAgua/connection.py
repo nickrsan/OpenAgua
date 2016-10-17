@@ -251,6 +251,8 @@ class connection(object):
                           'coordinates': [coords[n1_id],coords[n2_id]] },
              'properties':{'name':link.name,
                            'id':link.id,
+                           'node_1_id': n1_id,
+                           'node_2_id': n2_id,
                            'description':link.description,
                            'template_type_name':ttype.name,
                            'template_type_id':ttype.id,
@@ -258,7 +260,7 @@ class connection(object):
                            'template_name':self.template.name,
                            'color': name_to_hex(ttype.layout.colour),
                            'weight': ttype.layout.line_weight,
-                           'opacity': 0.7,
+                           'opacity': 0.7, # move to CSS?
                            'dashArray': dashArray,
                            'lineJoin': 'round'
                            }
@@ -657,7 +659,7 @@ def activate_study(db, **kwargs):
     
     # activate current study
     if 'study_id' in kwargs:
-        study = HydraStudy.query.filter(HydraStudy.id == study_id).first()
+        study = HydraStudy.query.filter(HydraStudy.id == kwargs['study_id']).first()
     else:
         study = HydraStudy.query.filter(HydraStudy.hydrauser_id==kwargs['hydrauser_id']) \
                                 .filter(HydraStudy.network_id==kwargs['network_id']) \

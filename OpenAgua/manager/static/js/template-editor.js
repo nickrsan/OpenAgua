@@ -1,10 +1,5 @@
-// create the editor
-var container = $("#json_editor")[0];
-var options = {
-    modes: ['view', 'form', 'tree', 'code'],
-    ace: ace
-};
-var jsoneditor = new JSONEditor(container, options);
+var jsonEditorDiv = $('#json_editor');
+var jsoneditor, options;
 
 // template actions for template manager
 var template_all_actions =
@@ -12,7 +7,7 @@ var template_all_actions =
         .append($('<li>').html('<a href="#" data-toggle="tooltip" title="Share template with another OpenAgua user.">Share</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
         .append(menu_item('edit_template_jsoneditor', 'View/edit (JSON)', 'Edit this template using JSON Editor.'))
-        .append(menu_item('edit_template_jsonform', 'View/edit (form)', 'Edit this template using JSON Editor.'))
+        //.append(menu_item('edit_template_jsonform', 'View/edit (form)', 'Edit this template using JSON Editor.'))
         .append($('<li>').html('<a href="#">Duplicate</a>'))
         .append($('<li>').html('<a href="#">Export</a>'))
         .append($('<li>').attr('role','separator').addClass('divider'))
@@ -60,7 +55,17 @@ function update_templates() {
 $(document).on('click', '.edit_template_jsoneditor', function(e) {
     e.preventDefault();
     
-    $('#json_editor_wrapper').show()    
+    // create the editor
+    jsonEditorDiv.empty();
+    options = {
+        modes: ['view', 'form', 'tree', 'code'],
+        ace: ace
+    };
+    jsoneditor = new JSONEditor(jsonEditorDiv[0], options);
+    jsoneditor.setMode('view');
+    //jsoneditor.setSchema(schema);
+    
+    $('#json_editor_wrapper').show()
     
     var id = Number($(this).attr('data-id'));
     var name = $(this).attr('data-name');

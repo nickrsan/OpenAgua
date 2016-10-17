@@ -103,6 +103,15 @@ def modify_template():
         conn = make_connection()
         template = AttrDict(request.json['template'])
         
+        # QC the template
+        def visit(path, key, value):
+            if key in set(['cr_date']):
+                return False
+            #elif key in set(['id', 'template_id', 'type_id', 'attr_id']):
+                #return key, None
+            return key, value
+        template = remap(dict(template), visit=visit)        
+        
         result = conn.call('update_template', {'tmpl': dict(template)})    
         
         if 'faultcode' in result:

@@ -34,6 +34,18 @@ var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/
 // the layer containing the features        
 var currentItems = new L.geoJson();
 
+// add search
+var controlSearch = new L.Control.Search({
+        position:'topright',	
+        layer: currentItems,
+        propertyName: 'name',
+        //circleLocation: false,
+        //initial: false,
+        zoom: 8,
+        marker: false
+});
+map.addControl( controlSearch );
+
 // add zoom buttons
 L.control.zoom({position:'topright'}).addTo(map);
 
@@ -159,33 +171,8 @@ $(function() {
     });
     
     map.on('draw:deleted', function(e) {
-        var layers = e.layers, gj, points = [], polylines = [];
-        layers.eachLayer(function(layer) {
-            gj = layer.toGeoJSON();
-            if (gj.geometry.type == 'Point') {
-                points.push(gj);
-            } else {
-                polylines.push(gj);
-            }
-        });
-        $.ajax({
-            type : "POST",
-            url : $SCRIPT_ROOT + '/_delete_layers',
-            data: JSON.stringify({points: points, polylines: polylines}),
-            contentType: 'application/json',
-            success: function(resp) {
-                if (resp.statuscode == 1) {
-                    currentItems.addData(resp.new_gj); // in case any are sent back
-                    refreshCurrentItems();
-                    notify('success','Success!','Edits saved.');
-                } else {
-                    currentItems.addData(polylines); // add back the deleted layers
-                    currentItems.addData(points);
-                    refreshCurrentItems();
-                    notify('danger','Failure!','Something went wrong. Edits not saved.');
-                }
-            }
-        });
+        var layers = e.layers;
+        deleteLayers(layers);
     });
 
     $('button#add_node_confirm').on('click', function() {
@@ -276,18 +263,7 @@ $(function() {
         $('#link_name').val('');
         $('#link_description').val('');
     });
-        
-    $('button#delete_feature_confirm').on('click', function() {
-        deleted_json = JSON.stringify(deleted_feature);
-        $.getJSON($SCRIPT_ROOT+'/_delete_feature', {deleted: deleted_json}, function(data) {
-            status_code = data.result.status_code;
-            if ( status_code == 1 ) { // there should be only success
-                currentItems.removeLayer(deleted_layer);
-                $("#delete_feature_name").text(""); // probably not necessary...
-                $("#modal_delete_feature").modal("hide");
-            };
-        });
-    });
+    
 });
 
 
@@ -304,7 +280,8 @@ function refreshCurrentItems() {
         });
         layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu
         if (layer.feature.geometry.type == 'Point') {
-            var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/template/" + prop.image;
+            //var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/template/" + prop.image;
+            var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/openagua/template/" + prop.image;
             var icon = new nodeIcon({
                 iconUrl: iconUrl
             });
@@ -355,13 +332,13 @@ function getContextmenuOptions(featureName) {
             index: 2,
             callback: editName
         }, {
-            text: 'Edit data in Data Editor',
+            text: 'Quick edit data here',
             index: 3,
-            callback: editData
-        }, {
-            text: 'Edit data here',
-            index: 4,
             callback: editDataHere
+        }, {
+            text: 'Edit data in Data Editor',
+            index: 4,
+            callback: editData
         }, {
             text: 'Delete',
             index: 5,
@@ -388,7 +365,9 @@ function getContextmenuOptions(featureName) {
 function editName(e) {}
 
 // edit data in data editor
-function editData(e) {}
+function editData(e) {
+    
+}
 
 // edit data here
 function editDataHere(e) {}
@@ -400,17 +379,66 @@ function centerMap(e) {
 
 // show the coordinates of the selected point
 function showCoordinates(e) {
-    $("p#coords").text(e.latlng);
-    $("#modal_coords").modal("show");
+    var lat = e.latlng.lat;
+    var lon = e.latlng.lng
+    if (e.relatedTarget !== undefined) {
+        var gj = e.relatedTarget.toGeoJSON()
+        if (gj.geometry.type === 'Point') {
+            lon = gj.geometry.coordinates[0];
+            lat = gj.geometry.coordinates[1];
+        }
+    }
+    bootbox.alert("Latitude: " + lat.toFixed(3) + ", Longitude: " + lon.toFixed(3));
 }
 
-// delete a feature (need to rename to 'deactivate')
-function deleteFeature(e) {
-    deleted_layer = e.relatedTarget;
-    deleted_feature = e.relatedTarget.feature;
-    var name = deleted_feature.properties.name;
-    $("#delete_feature_name").text("Delete \"" + name + "\"");
-    $('#modal_delete_feature').modal('show');
+// delete multiple layers
+
+function deleteLayers(layers) {
+    var gj, points = [], nodes = [], polylines = [], links = [];
+    
+    layers.eachLayer(function(layer) {
+        gj = layer.toGeoJSON();
+        if (gj.geometry.type == 'Point') {
+            points.push(gj)
+            nodes.push(gj.properties);
+        } else {
+            polylines.push(gj)
+            links.push(gj.properties);
+        }
+    });
+    
+    bootbox.confirm('Permanently delete these features? This cannot be undone.', function(confirm) {
+    
+        if (confirm) {
+        
+            map.spin(true);
+            
+            $.ajax({
+                type : "POST",
+                url : $SCRIPT_ROOT + '/_delete_layers',
+                data: JSON.stringify({nodes: nodes, links: links}),
+                contentType: 'application/json',
+                success: function(resp) {
+                    if (resp.status_code == 1) {
+                        //currentItems.addData(resp.new_gj); // in case any are sent back
+                        refreshCurrentItems();
+                        notify('success','Success!','Features deleted.');
+                    } else {
+                        currentItems.addData(polylines); // add back the deleted layers
+                        currentItems.addData(points);
+                        refreshCurrentItems();
+                        notify('danger','Failure!','Something went wrong. Edits not saved.');
+                    }
+                }
+            });
+        } else {
+            currentItems.addData(polylines); // add back the deleted layers
+            currentItems.addData(points);
+            refreshCurrentItems();
+            notify('info','','Deletion cancelled.');
+        }
+        map.spin(false);
+    });
 }
 
 // purge a feature
@@ -420,22 +448,28 @@ function purgeFeature(e) {
     bootbox.confirm(msg, function(confirm) {
         if (confirm) {
             map.spin(true);
-            var purged_json = JSON.stringify(feature);
-            $.getJSON($SCRIPT_ROOT+'/_purge_replace_feature', {purged: purged_json}, function(resp) {
+            
+            $.ajax({
+                type : "POST",
+                url : $SCRIPT_ROOT + '/_purge_replace_feature',
+                data: JSON.stringify(feature),
+                contentType: 'application/json',
+                success: function(resp) {  
                 
-                // remove deleted node
-                currentItems.removeLayer(pointLeafletId[feature.properties.id])
-                
-                // remove adjacent links?
-                $.each(resp.del_links, function( i, link_id ) {
-                    currentItems.removeLayer(linkLeafletId[link_id]);
-                });
-                
-                // add new node
-                currentItems.addData(resp.new_gj)
-                refreshCurrentItems()
-                map.spin(false);
-                notify('success','Success!', 'Network updated.');
+                    // remove deleted node
+                    currentItems.removeLayer(pointLeafletId[feature.properties.id])
+                    
+                    // remove adjacent links?
+                    $.each(resp.del_links, function( i, link_id ) {
+                        currentItems.removeLayer(linkLeafletId[link_id]);
+                    });
+                    
+                    // add new node
+                    currentItems.addData(resp.new_gj)
+                    refreshCurrentItems()
+                    map.spin(false);
+                    notify('success','Success!', 'Feature deleted.');
+                }
             });
         }
     });

@@ -160,54 +160,62 @@ def edit_geometries():
     
     return redirect(url_for('net_editor.network_editor'))
 
-@net_editor.route('/_delete_feature')
-@login_required
-def delete_feature():
-    conn = make_connection()
-    
-    deleted_feature = request.args.get('deleted')
-    gj = json.loads(deleted_feature)
-
-    status_code = -1
-    if gj['geometry']['type'] == 'Point':
-        conn.call('delete_node', {'node_id': gj['properties']['id']})
-        status_code = 1
-    else:
-        conn.call('delete_link', {'link_id': gj['properties']['id']})
-        status_code = 1
-    return jsonify(result=dict(status_code=status_code))
-
 @net_editor.route('/_delete_layers', methods=['GET', 'POST'])
 @login_required
 def delete_layers():
     
     if request.method == 'POST':
         
-        return jsonify(status_code = -1)
+        conn = make_connection()
+        conn.load_active_study(load_from_hydra=False)        
+        
+        status_code = 1
+        features = AttrDict(request.json)
+        node_ids = []
+        for node in features.nodes:
+            node_ids.append(node.id)
+            result = conn.call('purge_node', {'node_id': node.id, 'purge_data': 'Y'})
+            if 'faultcode' in result:
+                status_code = -1
+                break
+        if status_code == 1:
+            for link in features.links:
+                if link.node_1_id in node_ids or link.node_2_id in node_ids:
+                    continue # link was already purged
+                result = conn.call('purge_link', {'link_id': link.id, 'purge_data': 'Y'})
+                if 'faultcode' in result:
+                    status_code = -1
+                    break
+        
+        return jsonify(status_code=status_code)
 
     return redirect(url_for('net_editor.network_editor'))
 
-@net_editor.route('/_purge_replace_feature')
+@net_editor.route('/_purge_replace_feature', methods=['GET', 'POST'])
 @login_required
 def purge_replace_feature():
-    conn = make_connection()
-    conn.load_active_study()
     
-    purged_feature = request.args.get('purged')
-    gj = json.loads(purged_feature)
-
-    status_code = -1
-    new_gj = []
-    if gj['geometry']['type'] == 'Point':
-        new_node, del_links = conn.purge_replace_node(gj)
-        if new_node:
-            new_gj.append(conn.make_geojson_from_node(new_node))
-            status_code = 1
+    if request.method == 'POST':
+        
+        conn = make_connection()
+        conn.load_active_study()
+        
+        gj = request.json
+    
+        status_code = -1
+        new_gj = []
+        if gj['geometry']['type'] == 'Point':
+            new_node, del_links = conn.purge_replace_node(gj)
+            if new_node:
+                new_gj.append(conn.make_geojson_from_node(new_node))
+                status_code = 1
+            else:
+                status_code = 0
         else:
-            status_code = 0
-    else:
-        link_id = gj['properties']['id']
-        conn.call('purge_link', {'link_id': link_id, 'purge_data':'Y'})
-        del_links = [link_id]
-        status_code = 1
-    return jsonify(new_gj=new_gj, del_links=del_links, status_code=status_code)
+            link_id = gj['properties']['id']
+            conn.call('purge_link', {'link_id': link_id, 'purge_data':'Y'})
+            del_links = [link_id]
+            status_code = 1
+        return jsonify(new_gj=new_gj, del_links=del_links, status_code=status_code)
+    
+    return redirect(url_for('net_editor.network_editor'))

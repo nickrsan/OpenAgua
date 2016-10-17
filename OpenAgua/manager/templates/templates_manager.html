@@ -5,9 +5,14 @@
 {% block head_master %}
 {% include 'navbar.html' %}
 
-<!--jsoneditor-->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/5.5.8/jsoneditor.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/5.5.8/jsoneditor.min.js"></script>
+<!--jsoneditor for direct json viewer/editor - https://github.com/josdejong/jsoneditor-->
+<!--<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/5.5.8/jsoneditor.min.css" />-->
+<!--<script src="https://cdnjs.cloudflare.com/ajax/libs/jsoneditor/5.5.8/jsoneditor.min.js"></script>-->
+
+<!--json-editor for form-based json viewer/editor https://github.com/jdorn/json-editor-->
+<script src="{{ url_for('static', filename='lib/json-editor/jsoneditor.min.js') }}"></script>
+
+<script src="{{ url_for('.static', filename='js/template-schema.js') }}"></script>
 
 <link rel="stylesheet" href="{{ url_for('.static', filename='css/template-manager.css') }}" media="all" type="text/css" />
 
@@ -49,7 +54,7 @@
         
         <div class="col sm-6 col-md-8">
           <div id="json_editor_wrapper">
-            <div id='json_editor'></div>
+            <div id='json_editor' class='editor'></div>
             <div id="editor_buttons">
               <input id='modify_template' class="btn btn-primary" type="button" value="Apply changes">
               <input id='save_as_new_template' class="btn btn-default" type="button" value="Save as new">
