@@ -1,6 +1,6 @@
 <!-- add project -->
-<div class="modal" id="modal_add_project" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
-  <div class="modal-dialog modal-sm" role="document">
+<div class="modal" id="modal_add_project" role="dialog" data-backdrop="false">
+  <div class="modal-dialog modal-md" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title" id="myModalLabel">Add project</h4>
@@ -13,10 +13,7 @@
             </div>
             <div class="form-group">
               <label for="project_description">Description:</label>
-              <input type="comment" class="form-control" rows="3" id="project_description">
-            </div>
-            <div class="checkbox">
-              <label><input id="activate_project" type="checkbox" value="">Activate</label>
+              <textarea class="form-control" rows="3" id="project_description"></textarea>
             </div>
         </form>
         <div id="add_project_error"></div>
@@ -30,8 +27,8 @@
 </div>
 
 <!-- add network -->
-<div class="modal" id="modal_add_network" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
-  <div class="modal-dialog modal-sm" role="document">
+<div class="modal" id="modal_add_network" role="dialog" data-backdrop="false">
+  <div class="modal-dialog modal-md" role="document">
     <div class="modal-content">
       <div class="modal-header">
         <h4 class="modal-title" id="myModalLabel">Add network</h4>
@@ -44,7 +41,20 @@
             </div>
             <div class="form-group">
               <label for="network_description">Description:</label>
-              <input type="comment" class="form-control" rows="3" id="network_description">
+              <textarea class="form-control" rows="3" id="network_description"></textarea>
+            </div>
+            <div class="form-group">
+              <label for="template">Template version:</label>
+              <select id="template">
+                {% for template in templates %}
+                  {% if loop.index == 0 %}
+                    <option value="{{ template.id }}" selected>{{ template.name }}</option>
+                  {% else %}
+                    <option value="{{ template.id }}">{{ template.name }}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+              <div><strong>Use with caution!</strong> We always recommend selecting the latest version. See <a href="/version_history" target="_blank">template version history</a>.</div>
             </div>
         </form>
         <div id="add_network_error"></div>
@@ -52,24 +62,6 @@
       <div class="modal-footer">
         <button id="add_network_cancel" type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button id="add_network_confirm" type="button" class="btn btn-primary">Add</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- modal_purge_project -->
-<div class="modal" id="modal_purge_project" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
-  <div class="modal-dialog modal-sm" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h4 class="modal-title" id="delete_purged_name"></h4>
-      </div>
-      <div class="modal-body">
-        <p>Are you sure you want to delete this project from the database? WARNING: This cannot be undone!</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button id="purge_project_confirm" type="button" class="btn btn-danger">Delete</button>
       </div>
     </div>
   </div>

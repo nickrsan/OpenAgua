@@ -251,6 +251,8 @@ class connection(object):
                           'coordinates': [coords[n1_id],coords[n2_id]] },
              'properties':{'name':link.name,
                            'id':link.id,
+                           'node_1_id': n1_id,
+                           'node_2_id': n2_id,
                            'description':link.description,
                            'template_type_name':ttype.name,
                            'template_type_id':ttype.id,
@@ -258,7 +260,7 @@ class connection(object):
                            'template_name':self.template.name,
                            'color': name_to_hex(ttype.layout.colour),
                            'weight': ttype.layout.line_weight,
-                           'opacity': 0.7,
+                           'opacity': 0.7, # move to CSS?
                            'dashArray': dashArray,
                            'lineJoin': 'round'
                            }
@@ -649,19 +651,22 @@ def load_hydrauser():
         session['hydra_sessionid'] = hydrauser.hydra_sessionid
         return True
 
-def activate_study(db, hydrauser_id, project_id, network_id):
+def activate_study(db, **kwargs):
     
     # deactivate other studies
-    HydraStudy.query \
-        .filter(HydraStudy.user_id == current_user.id).update({'active': 0})
+    HydraStudy.query.filter(HydraStudy.user_id == current_user.id).update({'active': False})
     db.session.commit()
     
     # activate current study
-    HydraStudy.query \
-        .filter(HydraStudy.hydrauser_id == hydrauser_id) \
-        .filter(HydraStudy.project_id == project_id) \
-        .filter(HydraStudy.network_id == network_id) \
-        .update({'active': 1})        
+    if 'study_id' in kwargs:
+        study = HydraStudy.query.filter(HydraStudy.id == kwargs['study_id']).first()
+    else:
+        study = HydraStudy.query.filter(HydraStudy.hydrauser_id==kwargs['hydrauser_id']) \
+                                .filter(HydraStudy.network_id==kwargs['network_id']) \
+                                .filter(HydraStudy.template_id==kwargs['template_id']) \
+                                .first()
+    study.active = True
+        
     db.session.commit()
 
 def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_id, activate=True):
@@ -673,11 +678,8 @@ def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_
     study.project_id = project_id
     study.network_id = network_id
     study.template_id = template_id
-    if activate:
-        study.active = 1
-    else:
-        study.active = 0
+    study.active = 0
     db.session.add(study)
     db.session.commit()
     if activate:
-        activate_study(db, hydrauser_id, project_id, network_id)
+        activate_study(db, study_id = study.id)

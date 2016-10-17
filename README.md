@@ -27,6 +27,7 @@ __All platforms__:
 All platforms require the following Python modules (version numbers are for reference based on existing setup; other versions may work too):
 ```
 attrdict (2.0.0)
+boltons (16.5.0)
 cryptography (1.5)
 flask (0.11.1)
 flask_admin (1.4.2)

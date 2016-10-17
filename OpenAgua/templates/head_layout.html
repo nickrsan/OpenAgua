@@ -47,6 +47,10 @@
 <!--moment-->
 <script src="{{ url_for('static', filename='lib/moment/moment.min.js') }}"></script>
 
+<!--html2canvas-->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.svg.min.js"></script>
+
 <!--datepicker-->
 <link rel="stylesheet" href="{{ url_for('static', filename='lib/datepicker/bootstrap-datetimepicker.min.css') }}" />
 <script src="{{ url_for('static', filename='lib/datepicker/bootstrap-datetimepicker.min.js') }}"></script>
@@ -55,8 +59,12 @@
 <script src="https://cdn.jsdelivr.net/lodash/4.15.0/lodash.min.js"></script>
 
 <!--Handsontable-->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.26.1/handsontable.full.min.css" type="text/css" media="all" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.26.1/handsontable.full.min.js" type="text/javascript" charset="utf-8"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.28.4/handsontable.full.min.css" type="text/css" media="all" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/handsontable/0.28.4/handsontable.full.min.js" type="text/javascript" charset="utf-8"></script>
+
+<!--ResizeSensor-->
+<script src="{{ url_for('static', filename='lib/resizesensor/ResizeSensor.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/resizesensor/ElementQueries.js') }}"></script>
 
 <!--OpenAgua customizations-->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }}" />

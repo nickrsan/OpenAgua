@@ -18,7 +18,7 @@
         chartOpts = {};
       }
       return function(pivotData, opts) {
-        var agg, attrs, base, base1, base2, base3, base4, base5, colKey, colKeys, columns, dataColumns, defaults, defaultTrace, fullAggName, groupByTitle, h, hAxisTitle, headers, hx, i, j, k, l, layout, len, len1, len2, len3, len4, m, numCharsInHAxis, numSeries, params, ref, ref1, ref2, ref3, renderArea, result, rotationAngle, row, rowHeader, rowKey, rowKeys, s, scatterData, series, stackedArea, title, titleText, trace, traces, traceName, vAxisTitle, val, vals, x, xs, y;
+        var agg, attrs, base, base1, base2, base3, base4, base5, colKey, colKeys, defaults, defaultTrace, divname, fullAggName, groupByTitle, h, hAxisTitle, headers, hx, i, j, k, l, layout, len, len1, len2, numSeries, ref, ref1, ref2, ref3, renderArea, result, rotationAngle, row, rowHeader, rowKey, rowKeys, s, scatterData, series, stackedArea, title, titleText, trace, traces, traceName, vAxisTitle, val, vals, x, y;
         defaults = {
           localeStrings: {
             vs: "vs",
@@ -262,13 +262,14 @@
           //];
         }
 
-        if ($("#plot").length) {
-          Plotly.purge('plot');
-          result = $("#plot").empty();
+        divname = opts.divname;
+        if ($("#"+divname).length) {
+          Plotly.purge(divname);
+          result = $("#"+divname).empty();
         } else {
           result = $("<div>")
             .css({width: "100%", height: "100%"})
-            .attr('id', 'plot')
+            .attr('id', divname)
             .appendTo($("body"));
         }
         Plotly.plot(result[0], traces, layout, {showLink: false}); // create plot here

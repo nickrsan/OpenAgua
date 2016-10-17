@@ -8,3 +8,7 @@
 #editor_buttons {
   margin-top: 5px;    
 }
+
+.jsoneditor-schema-error, div.jsoneditor td, div.jsoneditor textarea, div.jsoneditor th, div.jsoneditor-field, div.jsoneditor-value {
+  font-size: large;
+}
