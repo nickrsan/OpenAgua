@@ -60,7 +60,7 @@ var ttypes = {{ ttypes|tojson|safe }};
                 </div>
                 <div id="res_type_filter_container" class='filter form-group' style="display:none">
                     <!--<label for="res_type_filter">Feature type</label>-->
-                    <select id='res_type_filter' class='selectpicker' data-width='auto' multiple title='Select a feature type...' data-selected-text-format="count > 2" data-actions-box="true">
+                    <select id='res_type_filter' class='selectpicker' data-width='auto' multiple title='Select a feature type...' data-actions-box="true">
                         {% for ttid in ttypes %}
                             <option data-id="{{ ttid }}">{{ ttypes[ttid].name }}</option>
                         {% endfor %}

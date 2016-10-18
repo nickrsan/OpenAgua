@@ -1,7 +1,7 @@
 var pivotOutput, filterParams = {}, plotlyDiv = 'plotlyArea',
   plotlyListenerBuilt = false, loadedChart = null;
 
-function loadPivot(chartRendererName, filterParams, width, height) {
+function loadPivot(chartRendererName, width, height) {
 
   // Get JSON-formatted data from the server
   var chartRenderers, nCharts, opts, defaultVals;
@@ -31,7 +31,8 @@ function loadPivot(chartRendererName, filterParams, width, height) {
       break;      
   }
   
-  if (filterParams === {}) {
+  var defaultVals
+  if (Object.keys(filterParams).length === 0) {
     defaultVals = ['value']
   } else {
     defaultVals = []
@@ -96,7 +97,7 @@ $(function() {
   
   loadPivot(
     chartRendererName = 'plotly',
-    filterParams=filterParams,
+    //filterParams=filterParams,
     width=0,
     height=0
   );
@@ -105,7 +106,7 @@ $(function() {
     pivotOutput.empty();
     loadPivot(
       chartRendererName=$("#chart_renderer").val(),
-      filterParams=filterParams,
+      //filterParams=filterParams,
       width=getChartWidth(),
       height=getChartHeight()
     );
@@ -115,7 +116,7 @@ $(function() {
   $('#filterby').on('changed.bs.select', function (e) {
     var selected = $('#filterby option:selected');
     if (selected.length) {
-      $('.filters').hide();
+      $('.filter').hide();
       filterby = selected.val();
       if (filterby !== 'none' && filterby !== null) {
         $('#'+filterby+'_filter_container').show();
@@ -133,21 +134,26 @@ $(function() {
     var idx, ttype_id, type_attrs, attr_id;
     var type_attrs = [];
     filterParams.ttype_ids = [];
-    $('#res_type_filter option:selected').each(function() {
-      ttype_id = Number($(this).attr('data-id'));
-      if (type_attrs.length) {
-        type_attrs = _.intersectionBy(type_attrs, ttypes[ttype_id].typeattrs, 'attr_id');
-      } else {
-        type_attrs = ttypes[ttype_id].typeattrs;
-      }
-      filterParams.ttype_ids.push(ttype_id);
-    });
-    var select = $('#secondary_filter').attr('title', 'Variables').empty();
-    $.each(type_attrs, function(i, ta) {
-      select.append($('<option>').val(ta.attr_id).text(ta.attr_name));
-    });
-    select.selectpicker('refresh');
-    $('#secondary_filter_container').show();
+    var selected = $('#res_type_filter option:selected');
+    
+    if (selected.length) {
+      $.each(selected, function() {
+        ttype_id = Number(selected.attr('data-id'));
+        if (type_attrs.length) {
+          type_attrs = _.intersectionBy(type_attrs, ttypes[ttype_id].typeattrs, 'attr_id');
+        } else {
+          type_attrs = ttypes[ttype_id].typeattrs;
+        }
+        filterParams.ttype_ids.push(ttype_id);
+      });
+      
+      var select = $('#secondary_filter').attr('title', 'Variables').empty();
+      $.each(type_attrs, function(i, ta) {
+        select.append($('<option>').val(ta.attr_id).text(ta.attr_name));
+      });
+      select.selectpicker('refresh');
+      $('#secondary_filter_container').show();
+    }
   });
   
   $('#secondary_filter').on('hidden.bs.select', function(e) {
@@ -177,8 +183,8 @@ function updateResizeListener(chartRendererName) {
             $('#menu-toggle').on('click', function() {
               if (loadedChart === chartRendererName) {
                 resized = setTimeout(function(){ resizePlotlyChart() }, 500)
-              };
-            })
+              }
+            });
             plotlyListenerBuilt = true;
           }
           

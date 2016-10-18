@@ -39,10 +39,16 @@
     margin-bottom: 20px;
 }
 
-
 .pvtSelect {
     padding: 0 10px 5px 0px;
     background-color: #ffffff;
+}
+
+.pvtSelect>.bootstrap-select>.dropdown-toggle.bs-placeholder,
+.pvtSelect>.bootstrap-select>.dropdown-toggle.bs-placeholder:active,
+.pvtSelect>.bootstrap-select>.dropdown-toggle.bs-placeholder:focus,
+.pvtSelect>.bootstrap-select>.dropdown-toggle.bs-placeholder:hover {
+    color: #ffffff;
 }
 
 .pvtVals {

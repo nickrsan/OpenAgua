@@ -39,12 +39,15 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         exec('model.{} = Set(within=model.Links, initialize={})'.format(k, v))
     
     # create set for non-storage nodes
-    model.Non_reservoir = model.Nodes - model.Reservoir
+    if 'Reservoir' in model:
+        model.Non_reservoir = model.Nodes - model.Reservoir
     
     # variables
-    
-    model.S = Var(model.Reservoir * model.TS, domain=NonNegativeReals) # storage
-    model.D = Var(model.Non_reservoir * model.TS, domain=NonNegativeReals) # delivery
+    if 'Reservoir' in model:
+        model.S = Var(model.Reservoir * model.TS, domain=NonNegativeReals) # storage
+        model.D = Var(model.Non_reservoir * model.TS, domain=NonNegativeReals) # delivery
+    else:
+        model.D = Var(model.Nodes * model.TS, domain=NonNegativeReals) # delivery
     model.G = Var(model.Nodes * model.TS, domain=NonNegativeReals) # gain (local inflow)
     model.L = Var(model.Nodes * model.TS, domain=NonNegativeReals) # loss (local outflow)
     model.Q = Var(model.Links * model.TS, domain=NonNegativeReals) # flow in links
@@ -56,7 +59,8 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     
     def InitialStorage(model, j):
         return p.node['Initial_Storage'][j]
-    model.Si = Param(model.Reservoir, rule=InitialStorage)
+    if 'Reservoir' in model:
+        model.Si = Param(model.Reservoir, rule=InitialStorage)
     
     def NodePriority_rule(model, j, t):
         priority = -1 # default 
@@ -65,8 +69,11 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         elif j in model.Outflow:
             priority = 0
         return priority
-    model.Demand_Priority = Param(model.Non_reservoir, model.TS, rule=NodePriority_rule)
-    model.Storage_Priority = Param(model.Reservoir, model.TS, rule=NodePriority_rule)
+    if 'Reservoir' in model:
+        model.Demand_Priority = Param(model.Non_reservoir, model.TS, rule=NodePriority_rule)
+        model.Storage_Priority = Param(model.Reservoir, model.TS, rule=NodePriority_rule)
+    else:
+        model.Demand_Priority = Param(model.Nodes, model.TS, rule=NodePriority_rule)
     
     def LinkPriority_rule(model, i, j, t):
         priority = 0
@@ -97,12 +104,18 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     def NonStorageMassBalance_rule(model, j, t):
         return model.G[j, t] + model.I[j,t] \
                - model.L[j, t] - model.O[j,t] == 0
-    model.StorageMassBalance = Constraint(model.Reservoir, model.TS, rule=StorageMassBalance_rule)
-    model.NoneStorageMassBalance = Constraint(model.Non_reservoir, model.TS, rule=NonStorageMassBalance_rule)
+    if 'Reservoir' in model:
+        model.StorageMassBalance = Constraint(model.Reservoir, model.TS, rule=StorageMassBalance_rule)
+        model.NonStorageMassBalance = Constraint(model.Non_reservoir, model.TS, rule=NonStorageMassBalance_rule)
+    else:
+        model.NonStorageMassBalance = Constraint(model.Nodes, model.TS, rule=NonStorageMassBalance_rule)
         
     def Delivery_rule(model, j, t): # this is redundant with inflow, but more explicit
         return model.D[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
-    model.Delivery = Constraint(model.Non_reservoir, model.TS, rule=Delivery_rule)
+    if 'Reservoir' in model:
+        model.Delivery = Constraint(model.Non_reservoir, model.TS, rule=Delivery_rule)
+    else:
+        model.Delivery = Constraint(model.Nodes, model.TS, rule=Delivery_rule)
     
     def ChannelCap_rule(model, i, j, t):
         if (i,j) in model.River or (i,j) in model.Return_Flow:
@@ -124,7 +137,8 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     
     def StorageBounds_rule(model, j, t):
         return (p.node['Inactive_Pool'][(j,t)], model.S[j,t], p.node['Storage_Capacity'][(j,t)])
-    model.StorageBounds = Constraint(model.Reservoir, model.TS, rule=StorageBounds_rule)
+    if 'Reservoir' in model:
+        model.StorageBounds = Constraint(model.Reservoir, model.TS, rule=StorageBounds_rule)
     
     # boundary conditions
     
@@ -140,19 +154,26 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     def LocalLoss_rule(model, j, t):
         if j in model.Outflow:
             return Constraint.Skip
-        elif 'Consumptive_Loss' in p.node.keys() and (j,t) in p.node['Consumptive_Loss']:
-            return model.L[j,t] == model.D[j,t] * p.node['Consumptive_Loss'][(j,t)] / 100
+        elif 'Consumption' in p.node.keys() and (j,t) in p.node['Consumption']:
+            return model.L[j,t] == model.D[j,t] * p.node['Consumption'][(j,t)] / 100
         else:
             return model.L[j,t] == 0 # this should be specified as a default
     model.Local_Loss = Constraint(model.Nodes, model.TS, rule=LocalLoss_rule)
     
     # objective function
     
-    def Objective_fn(model):
+    def Objective_fn_storage(model):
         return summation(model.Demand_Priority, model.D) \
             + summation(model.Storage_Priority, model.S) \
             + summation(model.Flow_Priority, model.Q)
-    model.Ojective = Objective(rule=Objective_fn, sense=maximize)
+    def Objective_fn_nostorage(model):
+        return summation(model.Demand_Priority, model.D) \
+            + summation(model.Storage_Priority, model.S) \
+            + summation(model.Flow_Priority, model.Q)
+    if 'Reservoir' in model:
+        model.Ojective = Objective(rule=Objective_fn_storage, sense=maximize)
+    else:
+        model.Ojective = Objective(rule=Objective_fn_nostorage, sense=maximize)
     
     return model
 
