@@ -2,7 +2,6 @@
 {% block title %} - Network Editor{% endblock %}
 {% block head_main %}
 
-<link href="{{ url_for('.static', filename='css/network-editor.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 <!--Leaflet-->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
@@ -41,7 +40,9 @@
 <!--<script src='//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-image/v0.0.4/leaflet-image.js'></script>-->
 
 <!--openagua-->
-<link rel="stylesheet" href="{{ url_for('.static', filename='css/openagua-leaflet.css') }}" />
+<!--<link rel="stylesheet" href="{{ url_for('.static', filename='css/openagua-leaflet.css') }}" />-->
+
+<link href="{{ url_for('.static', filename='css/network-editor.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 {% endblock %}
 

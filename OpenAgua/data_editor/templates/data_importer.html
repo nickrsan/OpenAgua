@@ -1,0 +1,31 @@
+{% extends "master.html" %}
+{% block title %} - Data Importer{% endblock %}
+{% block head_main %}
+
+<link href="{{ url_for('.static', filename='css/data_editor.css') }}" media="all" rel="stylesheet" type="text/css" />
+
+<script>
+  var template_id = {{session['template_id']}}
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<script>
+  var dateFormat = "{{ session['amchart_date_format'] }}" // need to get this from the model setup
+</script>
+
+<div class="container-fluid">
+
+</div>
+
+{% endblock %}
+
+{% block endscript %}
+
+<script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/data-importer.js') }}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}

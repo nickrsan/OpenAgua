@@ -1,7 +1,8 @@
+
 var node_names;
 
 $('.modal').on('shown.bs.modal', function() {
-  $(this).find('[autofocus]').focus();
+    $(this).find('[autofocus]').focus();
 });
 
 // VARIABLES
@@ -24,18 +25,25 @@ var mapContextmenuOptions = {
 };
 
 // CREATE BASIC MAP
-var map = L.map('map', mapContextmenuOptions);
+var map, tileLayer, currentItems, controlSearch, locateControl, drawControl, guideLayers;
 
-var tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
-    maxZoom: 18,
-});
+$(function() {
+    
+    // set map div height
+    $('#map').height($(window).height() - 120);
 
-// the layer containing the features        
-var currentItems = new L.geoJson();
-
-// add search
-var controlSearch = new L.Control.Search({
+    map = L.map('map', mapContextmenuOptions);
+    
+    tileLayer = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>',
+        maxZoom: 18,
+    });
+    
+    // the layer containing the features        
+    currentItems = new L.geoJson();
+    
+    // add search
+    controlSearch = new L.Control.Search({
         position:'topright',	
         layer: currentItems,
         propertyName: 'name',
@@ -43,50 +51,52 @@ var controlSearch = new L.Control.Search({
         //initial: false,
         zoom: 8,
         marker: false
-});
-map.addControl( controlSearch );
-
-// add zoom buttons
-L.control.zoom({position:'topright'}).addTo(map);
-
-// add locate button
-var locateControl = new L.control.locate(options={
-    position: 'topright',
-    drawCircle: false,
-    drawMarker: false,
-    icon: 'fa fa-location-arrow',
-    keepCurrentZoomLevel: true,
-    setView: 'once',
-    strings: {title: "Go to my location"}
-});
-map.addControl(locateControl);
-
-var drawControl = new L.Control.Draw({
-    draw: {
-        position: 'topleft',
-        polygon: false,
-        circle: false,
-        rectangle: false,
-    },
-    edit: {
-        featureGroup: currentItems,
-        //edit: false,
-        //remove: false,
-    }
-});
-
-// snapping
-var guideLayers = new Array();
-
-drawControl.setDrawingOptions({
-    marker: { guideLayers: guideLayers, snapDistance: 25 },
-    polyline: { guideLayers: guideLayers, snapDistance: 25 },
-});
-
-map.addControl(drawControl);
+    });
+    map.addControl( controlSearch );
+    
+    // add zoom buttons
+    L.control.zoom({position:'topright'}).addTo(map);
+    
+    // add locate button
+    locateControl = new L.control.locate(options={
+        position: 'topright',
+        drawCircle: false,
+        drawMarker: false,
+        icon: 'fa fa-location-arrow',
+        keepCurrentZoomLevel: true,
+        setView: 'once',
+        strings: {title: "Go to my location"}
+    });
+    map.addControl(locateControl);
+    
+    drawControl = new L.Control.Draw({
+        draw: {
+            position: 'topleft',
+            polygon: false,
+            circle: false,
+            rectangle: false,
+        },
+        edit: {
+            featureGroup: currentItems,
+            //edit: false,
+            //remove: false,
+        }
+    });
+    
+    // snapping
+    guideLayers = new Array();
+    
+    drawControl.setDrawingOptions({
+        marker: { guideLayers: guideLayers, snapDistance: 25 },
+        polyline: { guideLayers: guideLayers, snapDistance: 25 },
+    });
+    
+    map.addControl(drawControl);
+    
+    map.spin(true);
+})
 
 // load existing network
-map.spin(true);
 $(function() {
     $.getJSON($SCRIPT_ROOT + '/_load_network', function(resp) {
         tileLayer.addTo(map); // add the tiles
@@ -121,7 +131,7 @@ $(function() {
     var gj;
     var newItems = new L.FeatureGroup();
     map.addLayer(newItems);
-    
+
     // add new features   
     map.on('draw:created', function (e) {
         var type = e.layerType,
@@ -134,7 +144,7 @@ $(function() {
             $('#modal_add_link').modal('show');            
         }
     });
-    
+
     // edit features
     map.on('draw:edited', function (e) {
         map.spin(true);
@@ -169,7 +179,7 @@ $(function() {
             }
         });
     });
-    
+
     map.on('draw:deleted', function(e) {
         var layers = e.layers;
         deleteLayers(layers);
@@ -184,20 +194,20 @@ $(function() {
         } else {
             $('#modal_add_node').modal('hide');
             $(".modal input").empty();
-            
+
             map.spin(true);
             gj.properties.name = node_name;
             gj.properties.description = $('#node_description').val();
             gj.properties.template_type_id = $("#node_type option:selected").val();
             gj.properties.template_type_name = $("#node_type option:selected").text();    
-            
+
             $.ajax({
                 type : "POST",
                 url : $SCRIPT_ROOT + '/_add_node',
                 data: JSON.stringify(gj),
                 contentType: 'application/json',
                 success: function(resp) {    
-            
+
                     status_code = resp.status_code;
                     if ( status_code == -1 ) {
                         notify('danger', 'Oops!', 'Something went wrong.')
@@ -207,15 +217,15 @@ $(function() {
                         currentItems.addData(resp.new_gj);
                         refreshCurrentItems();
                         notify('success', 'Success!', 'Feature added.')
-                        
+
                     }
                     map.spin(false);
                 }
-            
+
             });
         }
     });
-    
+
     $('button#add_link_confirm').on('click', function() {
         //map.spin(true);
         gj.properties.name = $('#link_name').val();
@@ -249,21 +259,21 @@ $(function() {
             }
         });
     });
-    
+
     $('button#add_node_cancel').on('click', function() {
         var status_code = 1;
         newItems.clearLayers();
         $('#node_name').val('');
         $('#node_description').val('');
     });
-    
+
     $('button#add_link_cancel').on('click', function() {
         var status_code = 1;
         newItems.clearLayers();
         $('#link_name').val('');
         $('#link_description').val('');
     });
-    
+
 });
 
 
@@ -298,7 +308,7 @@ function refreshCurrentItems() {
             });
             linkLeafletId[prop.id] = layer._leaflet_id
         }
-        
+
     });
 };
 
@@ -306,7 +316,7 @@ function refreshCurrentItems() {
 function getJson(items) {
     var shapes = [];
     var layerJson;
-    
+
     items.eachLayer(function(layer) {
         layerJson = layer.toGeoJSON();
         shapes.push(layerJson);
@@ -366,7 +376,7 @@ function editName(e) {}
 
 // edit data in data editor
 function editData(e) {
-    
+
 }
 
 // edit data here
@@ -395,7 +405,7 @@ function showCoordinates(e) {
 
 function deleteLayers(layers) {
     var gj, points = [], nodes = [], polylines = [], links = [];
-    
+
     layers.eachLayer(function(layer) {
         gj = layer.toGeoJSON();
         if (gj.geometry.type == 'Point') {
@@ -406,13 +416,13 @@ function deleteLayers(layers) {
             links.push(gj.properties);
         }
     });
-    
+
     bootbox.confirm('Permanently delete these features? This cannot be undone.', function(confirm) {
-    
+
         if (confirm) {
-        
+
             map.spin(true);
-            
+
             $.ajax({
                 type : "POST",
                 url : $SCRIPT_ROOT + '/_delete_layers',
@@ -448,22 +458,22 @@ function purgeFeature(e) {
     bootbox.confirm(msg, function(confirm) {
         if (confirm) {
             map.spin(true);
-            
+
             $.ajax({
                 type : "POST",
                 url : $SCRIPT_ROOT + '/_purge_replace_feature',
                 data: JSON.stringify(feature),
                 contentType: 'application/json',
                 success: function(resp) {  
-                
+
                     // remove deleted node
                     currentItems.removeLayer(pointLeafletId[feature.properties.id])
-                    
+
                     // remove adjacent links?
                     $.each(resp.del_links, function( i, link_id ) {
                         currentItems.removeLayer(linkLeafletId[link_id]);
                     });
-                    
+
                     // add new node
                     currentItems.addData(resp.new_gj)
                     refreshCurrentItems()
@@ -477,10 +487,10 @@ function purgeFeature(e) {
 
 //$('#save_as_thumbnail').click(function() {
     //html2canvas($("#map"), {
-      //onrendered: function(canvas) {
-        //$("body").append(canvas);
-      //},
-      //allowTaint: true,
-      //useCORS: true
+        //onrendered: function(canvas) {
+            //$("body").append(canvas);
+        //},
+        //allowTaint: true,
+        //useCORS: true
     //});
 //});
