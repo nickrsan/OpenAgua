@@ -1,5 +1,5 @@
 <!-- add node -->
-<div class="modal" id="modal_add_node" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
+<div class="modal fade" id="modal_add_node" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
   <div class="modal-dialog modal-sm" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -9,7 +9,7 @@
           <form role="form">
             <div class="form-group">
               <label for="node_type">Type:</label>
-              <select id="node_type">
+              <select id="node_type" class="selectpicker">
                 {% for ntype in ntypes %}
                   <option value="{{ ntype.id }}">{{ ntype.name }}</option>
                 {% endfor %}
@@ -33,7 +33,7 @@
 </div>
 
 <!-- add link -->
-<div class="modal" id="modal_add_link" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
+<div class="modal fade" id="modal_add_link" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
   <div class="modal-dialog modal-sm" role="document">
     <div class="modal-content">
       <div class="modal-header">
@@ -43,7 +43,7 @@
           <form role="form">
             <div class="form-group">
               <label for="link_type">Type:</label>
-              <select id="link_type">
+              <select id="link_type" class="selectpicker">
                 {% for ltype in ltypes %}
                   <option value="{{ ltype.id }}">{{ ltype.name }}</option>
                 {% endfor %}

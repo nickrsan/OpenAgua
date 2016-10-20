@@ -52,12 +52,12 @@ def add_node():
         conn = make_connection()
         conn.load_active_study()
     
-        gj = request.json['gj']
+        gj = AttrDict(request.json['gj'])
         parent_link_id = request.json['parent_link_id']
         
         # check if the node already exists in the network
         # NB: need to check if there can be duplicate names by 
-        if gj['properties']['name'] in [f.name for f in conn.network.nodes]:
+        if gj.properties.name in [f.name for f in conn.network.nodes]:
             status_code = -1
             old_node_id = None,
             new_gj = None

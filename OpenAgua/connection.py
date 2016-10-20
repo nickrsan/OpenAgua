@@ -212,62 +212,70 @@ class connection(object):
         
     
     def make_geojson_from_node(self, node=None):
+        if 'geojson' in node.layout:
+            gj = node.layout.geojson
+        else:
+            gj = {'type':'Feature',
+                  'geometry':{'type':'Point',
+                              'coordinates':[node.x, node.y]}}
+            
+        # make sure properties are up-to-date
         type_id = [t.id for t in node.types \
                    if t.template_id==self.template.id][0]
-        ttype = self.ttypes[type_id]
-        gj = {'type':'Feature',
-              'geometry':{'type':'Point',
-                          'coordinates':[node.x, node.y]},
-              'properties':{'name':node.name,
+        ttype = self.ttypes[type_id]        
+        gj['properties'] = {'name':node.name,
                             'id':node.id,
                             'description':node.description,
                             'template_type_name':ttype.name,
                             'template_type_id':ttype.id,
                             'image':ttype.layout.image,
-                            'template_name':self.template.name}}
+                            'template_name':self.template.name}
         return gj
 
     def make_geojson_from_link(self, link=None):
         
-        coords = get_coords(self.network.nodes)
-        
-        type_id = [t.id for t in link.types \
-                   if t.template_id==self.template.id][0]
-        ttype = self.ttypes[type_id]
-
-        n1_id = link.node_1_id
-        n2_id = link.node_2_id
-        
-        # for dash arrays, see:
-        # https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
-        symbol = ttype.layout.symbol
-        if symbol=='solid':
-            dashArray = '1,0'
-        elif symbol=='dashed':
-            dashArray = '5,5'
-        
-        if n1_id in coords and n2_id in coords:
-            gj = {'type':'Feature',
-                 'geometry':{ 'type': 'LineString',
-                              'coordinates': [coords[n1_id], coords[n2_id]] },
-                 'properties':{'name':link.name,
-                               'id':link.id,
-                               'node_1_id': n1_id,
-                               'node_2_id': n2_id,
-                               'description':link.description,
-                               'template_type_name':ttype.name,
-                               'template_type_id':ttype.id,
-                               'image':ttype.layout.image,
-                               'template_name':self.template.name,
-                               'color': name_to_hex(ttype.layout.colour),
-                               'weight': ttype.layout.line_weight,
-                               'opacity': 0.7, # move to CSS?
-                               'dashArray': dashArray,
-                               'lineJoin': 'round'
-                               }
-                 }
-        else:
-            gj = None
+        if 'geojson' in link.layout:
+            gj = node.layout.geojson
+        else:         
+            coords = get_coords(self.network.nodes)
+            
+            type_id = [t.id for t in link.types \
+                       if t.template_id==self.template.id][0]
+            ttype = self.ttypes[type_id]
+    
+            n1_id = link.node_1_id
+            n2_id = link.node_2_id
+            
+            # for dash arrays, see:
+            # https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
+            symbol = ttype.layout.symbol
+            if symbol=='solid':
+                dashArray = '1,0'
+            elif symbol=='dashed':
+                dashArray = '5,5'
+            
+            if n1_id in coords and n2_id in coords:
+                gj = {'type':'Feature',
+                     'geometry':{ 'type': 'LineString',
+                                  'coordinates': [coords[n1_id], coords[n2_id]] },
+                     'properties':{'name':link.name,
+                                   'id':link.id,
+                                   'node_1_id': n1_id,
+                                   'node_2_id': n2_id,
+                                   'description':link.description,
+                                   'template_type_name':ttype.name,
+                                   'template_type_id':ttype.id,
+                                   'image':ttype.layout.image,
+                                   'template_name':self.template.name,
+                                   'color': name_to_hex(ttype.layout.colour),
+                                   'weight': ttype.layout.line_weight,
+                                   'opacity': 0.7, # move to CSS?
+                                   'dashArray': dashArray,
+                                   'lineJoin': 'round'
+                                   }
+                     }
+            else:
+                gj = None
         return gj
         
     # make geojson features
@@ -288,9 +296,9 @@ class connection(object):
     
     # convert geoJson node to Hydra node
     def add_node_from_geojson(self, gj=None, existing_node_id=None):
-        x, y = gj['geometry']['coordinates']
-        ttype_name = gj['properties']['template_type_name']
-        ttype_id = int(gj['properties']['template_type_id'])
+        x, y = gj.geometry.coordinates
+        ttype_name = gj.properties.template_type_name
+        ttype_id = int(gj.properties.template_type_id)       
         
         typesummary = dict(
             name = ttype_name,
@@ -300,11 +308,12 @@ class connection(object):
         )
         node = dict(
             id = -1,
-            name = gj['properties']['name'],
-            description = gj['properties']['description'],
+            name = gj.properties.name,
+            description = gj.properties.description,
             x = str(x),
             y = str(y),
-            types = [typesummary]
+            types = [typesummary],
+            layout = {'geojson': dict(gj)}
         )
         
         # delete old node
