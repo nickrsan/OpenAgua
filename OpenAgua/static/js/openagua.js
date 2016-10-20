@@ -9,8 +9,8 @@ function notify(type, title, message) {
                 // settings
                 type: type,
                 placement: {
-                        from: "top",
-                        align: "center"
+                        from: "bottom",
+                        align: "right"
                 }
         });
 };

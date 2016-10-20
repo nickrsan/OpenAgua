@@ -50,7 +50,8 @@ def add_node():
         conn = make_connection()
         conn.load_active_study()
     
-        gj = request.json
+        gj = request.json['gj']
+        parent_link_id = request.json['parent_link_id']
         
         # check if the node already exists in the network
         # NB: need to check if there can be duplicate names by 
@@ -63,6 +64,27 @@ def add_node():
         else:
             new_node, old_node_id = conn.add_node_from_geojson(gj)
             new_gj = [conn.make_geojson_from_node(new_node)]
+            
+            if parent_link_id:
+                old_link = [l for l in conn.network.links if l.id == parent_link_id][0]
+                
+                # update old link, now ending at new node
+                up_link = AttrDict(old_link.copy())
+                up_link.node_2_id = new_node.id
+                up_link.name = old_link.name + ' 01'
+                up_link = conn.call('update_link', {'link': up_link})
+                
+                # create new downstream link
+                down_link = AttrDict(old_link.copy())
+                down_link.id = None
+                down_link.name = old_link.name + ' 02'
+                down_link.node_1_id = new_node.id
+                down_link = conn.call('add_link', {'network_id': conn.network.id, 'link': down_link})
+
+                conn.load_active_study() # reload the network
+                for link in [up_link, down_link]:
+                    new_gj.append(conn.make_geojson_from_link(link))
+            
             status_code = 1
         return jsonify(new_gj=new_gj, old_node_id=old_node_id, status_code=status_code)
     

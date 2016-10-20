@@ -277,7 +277,7 @@ class connection(object):
             [self.make_geojson_from_link(link) \
              for link in self.network.links]
 
-        features = nodes_gj + links_gj
+        features = links_gj + nodes_gj
     
         return features
     
