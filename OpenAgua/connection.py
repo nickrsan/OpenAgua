@@ -3,7 +3,7 @@ from webcolors import name_to_hex
 import sys
 import requests
 import json
-from flask import session
+from flask import session, flash
 from flask_security import current_user
 import zipfile
 from attrdict import AttrDict
@@ -235,8 +235,8 @@ class connection(object):
                    if t.template_id==self.template.id][0]
         ttype = self.ttypes[type_id]
 
-        n1_id = link['node_1_id']
-        n2_id = link['node_2_id']
+        n1_id = link.node_1_id
+        n2_id = link.node_2_id
         
         # for dash arrays, see:
         # https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
@@ -245,41 +245,46 @@ class connection(object):
             dashArray = '1,0'
         elif symbol=='dashed':
             dashArray = '5,5'
-            
-        gj = {'type':'Feature',
-             'geometry':{ 'type': 'LineString',
-                          'coordinates': [coords[n1_id],coords[n2_id]] },
-             'properties':{'name':link.name,
-                           'id':link.id,
-                           'node_1_id': n1_id,
-                           'node_2_id': n2_id,
-                           'description':link.description,
-                           'template_type_name':ttype.name,
-                           'template_type_id':ttype.id,
-                           'image':ttype.layout.image,
-                           'template_name':self.template.name,
-                           'color': name_to_hex(ttype.layout.colour),
-                           'weight': ttype.layout.line_weight,
-                           'opacity': 0.7, # move to CSS?
-                           'dashArray': dashArray,
-                           'lineJoin': 'round'
-                           }
-             }
+        
+        if n1_id in coords and n2_id in coords:
+            gj = {'type':'Feature',
+                 'geometry':{ 'type': 'LineString',
+                              'coordinates': [coords[n1_id], coords[n2_id]] },
+                 'properties':{'name':link.name,
+                               'id':link.id,
+                               'node_1_id': n1_id,
+                               'node_2_id': n2_id,
+                               'description':link.description,
+                               'template_type_name':ttype.name,
+                               'template_type_id':ttype.id,
+                               'image':ttype.layout.image,
+                               'template_name':self.template.name,
+                               'color': name_to_hex(ttype.layout.colour),
+                               'weight': ttype.layout.line_weight,
+                               'opacity': 0.7, # move to CSS?
+                               'dashArray': dashArray,
+                               'lineJoin': 'round'
+                               }
+                 }
+        else:
+            gj = None
         return gj
         
     # make geojson features
-    def make_geojson_features(self):
-        
-        nodes_gj = \
-            [self.make_geojson_from_node(node) for node in self.network.nodes]
-        
-        links_gj = \
-            [self.make_geojson_from_link(link) \
-             for link in self.network.links]
+    def make_geojson_nodes(self):
+        return [self.make_geojson_from_node(node) for node in self.network.nodes]
 
-        features = links_gj + nodes_gj
-    
-        return features
+    # make geojson features
+    def make_geojson_links(self):
+        lines = []
+        for link in self.network.links:
+            line = self.make_geojson_from_link(link)
+            if line is not None:
+                lines.append(line)
+            else:
+                flash('Warning! "Link {}" appears to be invalid and was deleted.'.format(link.name), 'error')
+                self.call('purge_link', {'link_id': link.id, 'purge_data': 'Y'})
+        return lines
     
     # convert geoJson node to Hydra node
     def add_node_from_geojson(self, gj=None, existing_node_id=None):

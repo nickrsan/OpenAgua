@@ -137,7 +137,6 @@ $(function() {
 // load existing network
 $(function() {
     $.getJSON($SCRIPT_ROOT + '/_load_network', function(resp) {
-        //tileLayer.addTo(map); // add the tiles
         var featuresGJ = JSON.parse(resp.features);
         currentItems.addData(featuresGJ);
         guideLayers.push(currentItems);
@@ -170,13 +169,38 @@ $(function() {
     var newItems = new L.FeatureGroup();
     map.addLayer(newItems);
 
-    // add new features   
+    // add new features
+    var parent_link_id = null;
     map.on('draw:created', function (e) {
         var type = e.layerType, layer = e.layer;
         newItems.addLayer(layer);
         gj = layer.toGeoJSON();
         if (type=='marker') {
-            $('#modal_add_node').modal('show');
+            // check if we are adding on a link
+            var can_continue = true;
+            parent_link_id = null, parent_node_id = null;
+            var coords = gj.geometry.coordinates.slice().reverse();
+            //var latlng = L.coordsToLatLng(gj.geometry.coordinates, reverse=true);
+            var closest = L.GeometryUtil.closestLayerSnap(map, guideLayers, L.latLng(coords.reverse()), 1, false);
+            var closest = L.GeometryUtil.layersWithin(map, guideLayers, L.latLng(coords.reverse()), 1);
+            var closest_point = null;
+            $.each(closest, function(i, close_one) {
+                if (close_one.layer.geometry.type == 'Point') { closest_point = close_one}
+            });
+            if (closest_point !== null && closest_point.layer.feature.properties.template_type_name !== 'Junction') {
+                bootbox.confirm('Are you sure you want to replace ' + closest.layer.feature.properties.template_type_name + ' "' + closest.layer.feature.properties.name + '" with another point? This cannot be undone.', function(confirm) {
+                    if(confirm) {
+                        $('#modal_add_node').modal('show');
+                    } else {
+                        newItems.removeLayer(layer);
+                    }
+                });
+            } else {
+                if (closest.length) {
+                    parent_link_id = closest[0].layer.feature.properties.id;
+                }
+                $('#modal_add_node').modal('show');
+            }                
         } else {
             $('#modal_add_link').modal('show');            
         }
@@ -193,7 +217,7 @@ $(function() {
     });
 
     $('button#add_node_confirm').on('click', function() {
-        var parent_link_id = null;
+    
         var node_name = $('#node_name').val();
         if ( $('#node_name').val() == "" ) {
             $("#add_node_error").text('Name cannot be blank.');
@@ -208,13 +232,6 @@ $(function() {
             gj.properties.description = $('#node_description').val();
             gj.properties.template_type_id = $("#node_type option:selected").val();
             gj.properties.template_type_name = $("#node_type option:selected").text();    
-
-            // check if we are adding on a link
-            var coords = gj.geometry.coordinates.slice();
-            var closest = L.GeometryUtil.closestLayerSnap(map, guideLayers, L.latLng(coords.reverse()), 1, false);
-            if ( closest !== null && closest.layer.feature.geometry.type !== 'Point') {
-                parent_link_id = closest.layer.feature.properties.id;
-            }
 
             $.ajax({
                 type : "POST",

@@ -75,7 +75,7 @@ $( function() {
       } else {
       var stitle = 'Select a scenario'
       $('button[data-id="scenarios"]')
-        .attr('title',stitle).children('.filter-option').text(stitle)
+        .attr('title',stitle).children('.filter-option').text(stitle);
       }
     }
   });
@@ -274,13 +274,10 @@ function loadVariableData() {
     res_attr_data = resp.res_attr_data;
     var eval_value = resp.eval_value;
     if (res_attr_data != null) {
-      //data_type = res_attr_data.value.type;
       metadata = JSON.parse(res_attr_data.value.metadata)
       if (metadata.hasOwnProperty('function')) {
         if (metadata.function.length) {
           orig_input_data_type = 'function';
-        //} else {
-          //orig_input_data_type = data_type
         }
       }
   

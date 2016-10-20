@@ -34,7 +34,9 @@ def load_network():
     conn = make_connection()
     conn.load_active_study()
     
-    features = conn.make_geojson_features()
+    points = conn.make_geojson_nodes()
+    lines = conn.make_geojson_links()
+    features = points + lines
     features = json.dumps(features)
     
     status_code = 1
