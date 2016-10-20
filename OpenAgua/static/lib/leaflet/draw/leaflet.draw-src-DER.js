@@ -1134,8 +1134,6 @@ L.Draw.Marker = L.Draw.Feature.extend({
 
 L.Edit = L.Edit || {};
 
-var closestLayerSnap = L.GeometryUtil.closestLayerSnap; // DER
-
 L.Edit.Marker = L.Handler.extend({
 	initialize: function (marker, options) {
 		this._marker = marker;
@@ -1146,8 +1144,7 @@ L.Edit.Marker = L.Handler.extend({
 		var marker = this._marker;
 
 		marker.dragging.enable();
-		marker.on('dragstart', this._onDragStart, marker); // DER
-		marker.on('drag', this._onDrag, marker); // DER
+		marker.on('dragstart', this._onDragStart, marker);
 		marker.on('dragend', this._onDragEnd, marker);
 		this._toggleMarkerHighlight();
 	},
@@ -1156,26 +1153,11 @@ L.Edit.Marker = L.Handler.extend({
 		var marker = this._marker;
 
 		marker.dragging.disable();
-		marker.off('dragstart', this._onDragStart, marker); // DER
-		marker.off('drag', this._onDrag, marker); // DER
 		marker.off('dragend', this._onDragEnd, marker);
 		this._toggleMarkerHighlight();
 	},
 
-	// DER
 	_onDragStart: function (e) {
-		var attachedLayers = [];
-		currentItems.eachLayer( function(layer) { // currentItems should be passed in as an option
-			if ("node_1_id" in layer.feature.properties && layer.feature.properties.node_1_id === e.target.feature.properties.id) {
-				attachedLayers.push(layer);
-				//layer.fire('editstart');
-			}
-		});
-		
-	},
-	
-	// DER
-	_onDrag: function (e) {
 		var layer = e.target;
 	},
 

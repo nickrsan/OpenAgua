@@ -2,7 +2,7 @@
 {% block title %} - Data Editor{% endblock %}
 {% block head_main %}
 
-<link href="{{ url_for('.static', filename='css/data_editor.css') }}" media="all" rel="stylesheet" type="text/css" />
+<link href="{{ url_for('.static', filename='css/data-editor.css') }}" media="all" rel="stylesheet" type="text/css" />
 
 <script>
   var template_id = {{session['template_id']}}
@@ -130,7 +130,6 @@
 
 {% block endscript %}
 
-<script src="{{ url_for('.static', filename='js/handsontable.js') }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
 <script src="{{ url_for('.static', filename='js/data-editor.js') }}" type="text/javascript" charset="utf-8"></script>
 

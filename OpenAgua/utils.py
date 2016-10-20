@@ -30,7 +30,7 @@ def get_dates(formatted=True):
     return dates            
             
 def empty_timeseries():
-    return [{'date': date, 'value': ''} for date in get_dates()]
+    return [{'date': date, 'value': None} for date in get_dates()]
 
 def hydra_timeseries(data):
     timeseries = {}
