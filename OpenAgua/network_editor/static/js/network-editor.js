@@ -52,6 +52,11 @@ $(function() {
     var Hydda_Full = L.tileLayer('http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png', {
         attribution: 'Tiles courtesy of <a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     });
+    var Stamen_Terrain = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
+        attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+        subdomains: 'abcd',
+        ext: 'png'
+    });
     var Esri_WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
         attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
     });
@@ -59,10 +64,11 @@ $(function() {
         attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ, TomTom, Intermap, iPC, USGS, FAO, NPS, NRCAN, GeoBase, Kadaster NL, Ordnance Survey, Esri Japan, METI, Esri China (Hong Kong), and the GIS User Community'
     });
     var baseMaps = {
-        "OSM Grayscale": greyscaleTiles,
-        "OSM Color": colorTiles,
-        "ESRI World Topo Map": Esri_WorldTopoMap,
-        "ESRI World Imagery": Esri_WorldImagery,
+        "CartoDB Positron": greyscaleTiles,
+        "OpenStreetMap": colorTiles,
+        "Stamen Terrain": Stamen_Terrain,
+        "Esri World Topo Map": Esri_WorldTopoMap,
+        "Esri World Imagery": Esri_WorldImagery,
         "Hydda Full": Hydda_Full
     };
     
@@ -177,18 +183,25 @@ $(function() {
         gj = layer.toGeoJSON();
         if (type=='marker') {
             // check if we are adding on a link
-            var can_continue = true;
             parent_link_id = null, parent_node_id = null;
             var coords = gj.geometry.coordinates.slice().reverse();
-            //var latlng = L.coordsToLatLng(gj.geometry.coordinates, reverse=true);
-            var closest = L.GeometryUtil.closestLayerSnap(map, guideLayers, L.latLng(coords.reverse()), 1, false);
-            var closest = L.GeometryUtil.layersWithin(map, guideLayers, L.latLng(coords.reverse()), 1);
-            var closest_point = null;
-            $.each(closest, function(i, close_one) {
-                if (close_one.layer.geometry.type == 'Point') { closest_point = close_one}
+            var close_point = null;
+            var points = [], lines = [];
+            currentItems.eachLayer(function(layer) {
+                if (layer.feature.geometry.type == 'Point') {
+                    points.push(layer);
+                }
             });
-            if (closest_point !== null && closest_point.layer.feature.properties.template_type_name !== 'Junction') {
-                bootbox.confirm('Are you sure you want to replace ' + closest.layer.feature.properties.template_type_name + ' "' + closest.layer.feature.properties.name + '" with another point? This cannot be undone.', function(confirm) {
+            currentItems.eachLayer(function(layer) {
+                if (layer.feature.geometry.type == 'LineString') {
+                    lines.push(layer);
+                }
+            });
+            var close_line = L.GeometryUtil.closestLayerSnap(map, lines, L.latLng(coords), 1, false);
+            var close_points = L.GeometryUtil.layersWithin(map, points, L.latLng(coords), 1);
+            if (close_points.length) close_point = close_points[0].layer.feature
+            if (close_point !== null && close_point.properties.template_type_name !== 'Junction') {
+                bootbox.confirm('Are you sure you want to replace ' + close_point.properties.template_type_name + ' "' + close_point.properties.name + '" with another point? This cannot be undone.', function(confirm) {
                     if(confirm) {
                         $('#modal_add_node').modal('show');
                     } else {
@@ -196,8 +209,8 @@ $(function() {
                     }
                 });
             } else {
-                if (closest.length) {
-                    parent_link_id = closest[0].layer.feature.properties.id;
+                if (close_line !== null && close_point == null) {
+                    parent_link_id = close_line.layer.feature.properties.id;
                 }
                 $('#modal_add_node').modal('show');
             }                
@@ -376,7 +389,7 @@ function getContextmenuOptions(featureName) {
         }, {
             text: 'Edit name/description',
             index: 2,
-            callback: editName
+            callback: editNameDescription
         }, {
             text: 'Quick edit data here',
             index: 3,
@@ -408,7 +421,30 @@ function getContextmenuOptions(featureName) {
 // RIGHT-CLICK CALLBACKS
 
 // edit name & description
-function editName(e) {}
+function editNameDescription(e) {
+    var feature = e.relatedTarget.feature;
+    bootbox.dialog({
+        message: '<form>'+
+            '<div class="form-group">'+
+                '<label for="name">Name</label>'+
+                '<input id="name" class="form-control" type="text" name="name" value="'+feature.properties.name+'"/>'+
+            '</div>'+
+            '<div class="form-group">'+
+                '<label for="name">Description</label>'+
+                '<textarea id="description" class="form-control" rows="3" type="description" name="name" value="'+feature.properties.description+'"></textarea>'+
+            '</div>'+
+        '</form>',
+        buttons: {
+            success: {
+                label: 'OK',
+                className: 'btn-primary',
+                callback: function () {
+                    alert($("#name").val());
+                }
+            }
+        }
+    });
+}
 
 // edit data in data editor
 function editData(e) {
