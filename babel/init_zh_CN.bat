@@ -1,0 +1,1 @@
+pybabel init -i messages.pot -d ../OpenAgua/translations -l zh_CN
