@@ -4,6 +4,8 @@
 
 {% include 'navbar_index.html' %} 
 
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
 {% endblock %}
 
 {% block body %}
@@ -19,9 +21,8 @@
   <div class="container-fluid">
     <div class="row">   
       <div class="col-sm-12 col-md-8">
+        <h3>{{ _('OpenAgua is a next-generation decision support system for water resources planning.') }}</h3>
         <p style="background-color:yellow;"><strong>PLEASE READ!</strong> Thank you for checking out this site. Please be aware that it is currently in a testing phase. Though we will try to keep user records, your user account and data may be deleted without warning at any time. Furthermore, we request that you don't share this site, as we are not set up for much website traffic (we're using a free tier AWS micro t2). If you weren't invited by the developers, please send an email to admin at openagua dot org and indicate you're interest.</p>
-        <h1>Welcome to OpenAgua!</h1>
-        <p>{{ _('OpenAgua is a next-generation decision support system for water resources planning.') }}</p>
         <p>{{_('Planned features include:')}}</p>
         <ul>
           <li>{{_('Optimization-based simulation modeling of water resources systems.')}} (<a href="#">{{_('learn more')}}</a>)</li>
