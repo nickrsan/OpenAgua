@@ -60,5 +60,17 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 # Flask-Babel options
 LANGUAGES = {
     'en': 'English',
-    'es': 'Español'
+    'es': 'Español',
+    'zh_CN': '中文（简体）',
+    'zh_TW': '中文（繁體）',
+    'fr': 'Français',
+    'de': 'Deutsch',
+    'ru': 'русский',
+    'it': 'Italiano',
+    'hi': 'हिंदी',
+    'ar': 'العربية',
+    'pt': 'Português',
+    'fa': 'فارسی',
+    'ja': '日本語',
+    'am': 'አማርኛ',
 }
