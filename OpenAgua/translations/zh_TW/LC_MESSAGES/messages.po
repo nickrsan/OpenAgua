@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-20 21:44-0500\n"
-"PO-Revision-Date: 2016-10-20 20:21-0500\n"
+"POT-Creation-Date: 2016-10-20 21:52-0500\n"
+"PO-Revision-Date: 2016-10-20 21:51-0500\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language: zh_Hant_TW\n"
 "Language-Team: zh_Hant_TW <LL@li.org>\n"
@@ -81,7 +81,4 @@ msgstr ""
 #: ../OpenAgua/templates/index.html:34
 msgid "Secure everything."
 msgstr ""
-
-#~ msgid "Standardized data organization based on"
-#~ msgstr ""
 

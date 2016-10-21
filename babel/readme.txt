@@ -1,7 +1,8 @@
 General steps for internationalization:
 1. To (re)extract translations from website: babel_extract.bat
 2a. To create initial language-specific .po file:
-	babel_init_xx.bat (where xx is the language)
+	pybabel init -i messages.pot -d ../OpenAgua/translations -l xx (xx or xx_XX is the locale code)
+	Note: this should not be in a .bat, since it is just run once, and it is dangerous if it can be run accidentally.
 2b. To update .po files:
 	babel_update.bat
 3. To compile .po files to .mo files for use in website:
