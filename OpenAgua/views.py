@@ -21,7 +21,7 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('home.home_main'))
     else:
-        if '_fresh' not in session:
+        if '_fresh' not in session or 'language' not in session:
             session['language'] = request.accept_languages.best_match(LANGUAGES.keys())
         languages = OrderedDict(sorted(LANGUAGES.items()))
         return render_template('index.html', languages=languages)

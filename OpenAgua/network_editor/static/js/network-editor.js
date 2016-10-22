@@ -150,7 +150,7 @@ $(function() {
         var n = currentItems.getLayers().length;
         var status_message;
         if (n > 0 ) {
-            map.fitBounds(currentItems.getBounds(), {padding: [50,50]});
+            map.fitBounds(currentItems.getBounds(), {padding: [0, 0]});
             notify('info', 'Network loaded!', 'Your network has ' + n + ' features.');
         } else {
             map.setView([0, 0], 2);
@@ -176,14 +176,16 @@ $(function() {
     map.addLayer(newItems);
 
     // add new features
-    var parent_link_id = null;
+    var parent_line_id, parent_link_id = null, existing_node_id = null;
     map.on('draw:created', function (e) {
         var type = e.layerType, layer = e.layer;
         newItems.addLayer(layer);
         gj = layer.toGeoJSON();
         if (type=='marker') {
             // check if we are adding on a link
-            parent_link_id = null, parent_node_id = null;
+            parent_line_id = null;
+            parent_link_id = null;
+            parent_node_id = null;
             var coords = gj.geometry.coordinates.slice().reverse();
             var close_point = null;
             var points = [], lines = [];
@@ -197,25 +199,27 @@ $(function() {
                     lines.push(layer);
                 }
             });
-            var close_line = L.GeometryUtil.closestLayerSnap(map, lines, L.latLng(coords), 1, false);
+            var parent_line = L.GeometryUtil.closestLayerSnap(map, lines, L.latLng(coords), 1, false);
             var close_points = L.GeometryUtil.layersWithin(map, points, L.latLng(coords), 1);
             if (close_points.length) close_point = close_points[0].layer.feature
             if (close_point !== null && close_point.properties.template_type_name !== 'Junction') {
                 bootbox.confirm('Are you sure you want to replace ' + close_point.properties.template_type_name + ' "' + close_point.properties.name + '" with another point? This cannot be undone.', function(confirm) {
                     if(confirm) {
-                        $('#modal_add_node').modal('show');
+                        existing_node_id = close_point.properties.id;
+                        showAddNode();
                     } else {
                         newItems.removeLayer(layer);
                     }
                 });
             } else {
-                if (close_line !== null && close_point == null) {
-                    parent_link_id = close_line.layer.feature.properties.id;
+                if (parent_line !== null && close_point == null) {
+                    parent_line_id = parent_line.layer._leaflet_id;
+                    parent_link_id = parent_line.layer.feature.properties.id;
                 }
-                $('#modal_add_node').modal('show');
+                showAddNode();
             }                
         } else {
-            $('#modal_add_link').modal('show');            
+            showAddLink();
         }
     });
 
@@ -244,12 +248,12 @@ $(function() {
             gj.properties.name = node_name;
             gj.properties.description = $('#node_description').val();
             gj.properties.template_type_id = $("#node_type option:selected").val();
-            gj.properties.template_type_name = $("#node_type option:selected").text();    
+            gj.properties.template_type_name = $("#node_type option:selected").text();
 
             $.ajax({
                 type : "POST",
                 url : $SCRIPT_ROOT + '/_add_node',
-                data: JSON.stringify({gj: gj, parent_link_id: parent_link_id}),
+                data: JSON.stringify({gj: gj, parent_link_id: parent_link_id, existing_node_id: existing_node_id}),
                 contentType: 'application/json',
                 success: function(resp) {    
 
@@ -259,8 +263,8 @@ $(function() {
                     } else {
                         newItems.clearLayers();
                         currentItems.removeLayer(pointLeafletId[resp.old_node_id]);
-                        if (parent_link_id !== null) {
-                            currentItems.removeLayer(closest.layer._leaflet_id)
+                        if (parent_line_id !== null) {
+                            currentItems.removeLayer(parent_line_id)
                         }
                         currentItems.addData(resp.new_gj);
                         refreshCurrentItems();
@@ -328,15 +332,25 @@ $(function() {
 
 // FUNCTIONS
 
+function showAddNode() {
+    $('#modal_add_node').modal('show');
+}
+
+function showAddLink() {
+    $('#modal_add_link').modal('show');
+}
+
 function refreshCurrentItems() {
     node_names = [];
     currentItems.eachLayer(function(layer) {
         var prop = layer.feature.properties;
         node_names.push(prop.name);
-        layer.bindTooltip(prop.name, {
-            noHide: false,
-            offset: [20,-15]
-        });
+        if (prop.name.indexOf('Junction') == -1 || layer.feature.geometry.type == 'LineString') {
+            layer.bindTooltip(prop.name, {
+                noHide: false,
+                //offset: [10,-15]
+            });        
+        }
         layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu
         if (layer.feature.geometry.type == 'Point') {
             //var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/template/" + prop.image;
@@ -422,8 +436,9 @@ function getContextmenuOptions(featureName) {
 
 // edit name & description
 function editNameDescription(e) {
+    var layer = e.layer;
     var feature = e.relatedTarget.feature;
-    bootbox.dialog({
+    bootbox.confirm({
         message: '<form>'+
             '<div class="form-group">'+
                 '<label for="name">Name</label>'+
@@ -434,13 +449,33 @@ function editNameDescription(e) {
                 '<textarea id="description" class="form-control" rows="3" type="description" name="name" value="'+feature.properties.description+'"></textarea>'+
             '</div>'+
         '</form>',
-        buttons: {
-            success: {
-                label: 'OK',
-                className: 'btn-primary',
-                callback: function () {
-                    alert($("#name").val());
-                }
+        onEscape: true,
+        size: 'small',
+        callback: function (result) {
+            if (result) {
+                var new_name = $('#name').val();
+                var new_description = $('#description').val();
+                $.ajax({
+                    type : "POST",
+                    url : $SCRIPT_ROOT + '/_change_name_description',
+                    data: JSON.stringify({
+                        type: feature.geometry.type,
+                        id: feature.properties.id,
+                        name: new_name,
+                        description: new_description
+                    }),
+                    contentType: 'application/json',
+                    success: function(resp) {
+                        if (resp.status_code == 1) {
+                            notify('success','Success!','Feature updated.');
+                            feature.properties.name = new_name;
+                            feature.properties.description = new_description;
+                            layer.bindTooltip(new_name);
+                        } else {
+                            notify('warning', 'Uh-oh.', 'Something went wrong. Feature not updated.')
+                        }
+                    }
+                });
             }
         }
     });

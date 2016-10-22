@@ -61,8 +61,8 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 LANGUAGES = {
     'en': 'English',
     'es': 'Español',
-    'zh_CN': '中文（简体）',
-    'zh_TW': '中文（繁體）',
+    'zh_Hans': '中文（简体）',
+    'zh_Hant': '中文（繁體）',
     'fr': 'Français',
     'de': 'Deutsch',
     'ru': 'русский',

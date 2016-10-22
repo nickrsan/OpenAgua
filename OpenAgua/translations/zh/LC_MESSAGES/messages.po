@@ -1,4 +1,4 @@
-# Chinese (Traditional, Taiwan) translations for PROJECT.
+# Chinese translations for PROJECT.
 # Copyright (C) 2016 ORGANIZATION
 # This file is distributed under the same license as the PROJECT project.
 # FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
@@ -8,22 +8,22 @@ msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
 "POT-Creation-Date: 2016-10-20 21:59-0500\n"
-"PO-Revision-Date: 2016-10-20 22:32-0500\n"
-"Language: zh_TW\n"
-"Language-Team: zh_Hant_TW <LL@li.org>\n"
+"PO-Revision-Date: 2016-10-21 18:48-0500\n"
+"Language: zh\n"
+"Language-Team: zh <LL@li.org>\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.3.4\n"
 "Last-Translator: \n"
-"X-Generator: Poedit 1.8.9\n"
+"X-Generator: Poedit 1.8.11\n"
 
 #: ../OpenAgua/templates/index.html:24
 msgid ""
 "OpenAgua is a next-generation decision support system for water resources "
 "planning."
-msgstr "OpenAgua是水資源規劃的下一代決策支持系統。"
+msgstr "OpenAgua是水资源规划的下一代决策支持系统。"
 
 #: ../OpenAgua/templates/index.html:25
 msgid "Planned features include:"
@@ -38,7 +38,7 @@ msgstr ""
 #: ../OpenAgua/templates/index.html:31 ../OpenAgua/templates/index.html:32
 #: ../OpenAgua/templates/index.html:33 ../OpenAgua/templates/index.html:34
 msgid "learn more"
-msgstr "了解更多"
+msgstr ""
 
 #: ../OpenAgua/templates/index.html:28
 msgid ""
