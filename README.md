@@ -117,10 +117,9 @@ The setup process can be broken down into the following steps:
   f. Create and configure a wsgi.py file to serve the application
   g. Create and configure a uWSGI configuration file
   g. Create and configure an application service
-  h. Run the application service
 3. Configure nginx
-4. Start nginx
-5. Restart each application service at a later date as needed, without restarting nginx
+4. Start (restart) each application service
+5. Start (restart) nginx
 
 ## Setup for www.openagua.org
 
@@ -199,9 +198,31 @@ ExecStart=/home/ubuntu/Env/hydraserver/bin/uwsgi --ini hydraserver.ini
 WantedBy=multi-user.target
 ```
 
-i. Run the application service.
+i. Create/configure the nginx site:
+
+Create:
 ```
-sudo systemctl start hydraserver.service
+sudo nano /etc/nginx/sites-available/hydraplatform
+```
+
+Configure contents:
+```
+server {
+    listen 80;
+    listen [::]80;
+    server_name hydra.openagua.org;
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:/home/ubuntu/HydraServer/hydraserver.sock;
+    }
+}
+
+```
+
+Enable site with a symbolic link:
+```
+sudo ln -s /etc/nginx/sites-available/hydraplatform /etc/nginx/sites-enabled/hydraplatform
 ```
 
 #### OpenAgua
@@ -283,12 +304,58 @@ ExecStart=/home/ubuntu/Env/openagua/bin/uwsgi --ini openagua.ini
 WantedBy=multi-user.target
 ```
 
-i. Run:
+i. nginx site:
 
+Create:
+```
+sudo nano /etc/nginx/sites-available/openagua
+```
+
+Configure:
+```
+server {
+    listen 80;
+    listen [::]80;
+    server_name test.openagua.org;
+
+    location / {
+        include uwsgi_params;
+        uwsgi_pass unix:/home/ubuntu/OpenAgua/openagua.sock;
+    }
+}
+```
+
+Enable:
+```
+sudo ln -s /etc/nginx/sites-available/openagua /etc/nginx/sites-enabled/openagua
+```
+
+3. Start (restart) the application services:
+
+Hydra Platform:
+```
+sudo systemctl start hydraserver.service
+```
+
+OpenAgua:
 ```
 sudo systemctl start openagua.service
 ```
 
+4. Start (restart) nginx:
+
+[TO BE DOCUMENTED]
+
+5. Update the website & services as needed.
+
+a. GitHub contents can be easily updated. From within OpenAgua: `git pull`
+
+b. The web applications can also be easily restarted: E.g.:
+```
+sudo systemctl restart openagua.service
+```
+
+There is no need to restart nginx.
 
 # Settings
 
