@@ -237,10 +237,13 @@ def purge_replace_feature():
         status_code = -1
         new_gj = []
         if gj.geometry.type == 'Point':
-            new_node, del_links = conn.purge_replace_node(gj)
+            new_node, new_link, del_links = conn.purge_replace_node(gj)
             if new_node:
                 new_gj.append(conn.make_geojson_from_node(new_node))
                 status_code = 1
+            if new_link:
+                new_gj.append(conn.make_geojson_from_link(new_link))
+                #status_code = 0
             else:
                 status_code = 0
         else:
@@ -263,14 +266,15 @@ def change_name_description():
         feature = AttrDict(request.json)
         if feature.type == 'Point':
             node = conn.get_node(feature.id)
-            node.name = feature.name
-            node.description = feature.description
-            node.attributes = None
+            node['name'] = feature.name
+            node['description'] = feature.description
+            node['attributes'] = None
             result = conn.call('update_node', {'node': node})
         else:
             link = conn.get_link(feature.id)
-            link.name = feature.name
-            link.description = feature.description
+            link['name'] = feature.name
+            link['description'] = feature.description
+            link['attributes'] = None
             result = conn.call('update_link', {'link': link})
         if 'faultcode' in result:
             status_code = -1
