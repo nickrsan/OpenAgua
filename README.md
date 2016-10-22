@@ -116,10 +116,11 @@ The setup process can be broken down into the following steps:
   e. Configure the application
   f. Create and configure a wsgi.py file to serve the application
   g. Create and configure a uWSGI configuration file
-  g. Create and configure an application service
-3. Configure nginx
-4. Start (restart) each application service
-5. Start (restart) nginx
+  h. Create and configure an application service
+  i. Create, configure and enable nginx site
+3. Start each application service
+4. Start nginx
+5. Update the site and restart services as needed
 
 ## Setup for www.openagua.org
 
@@ -328,7 +329,7 @@ Enable:
 sudo ln -s /etc/nginx/sites-available/openagua /etc/nginx/sites-enabled/openagua
 ```
 
-3. Start (restart) the application services:
+3. Start the application services:
 
 Hydra Platform:
 ```
