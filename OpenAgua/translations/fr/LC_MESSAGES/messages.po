@@ -7,79 +7,84 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
 "Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-20 21:59-0500\n"
+"POT-Creation-Date: 2016-10-22 14:55-0500\n"
 "PO-Revision-Date: 2016-10-20 22:39-0500\n"
+"Last-Translator: \n"
 "Language: fr\n"
 "Language-Team: fr <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=(n > 1)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.3.4\n"
-"Last-Translator: \n"
-"X-Generator: Poedit 1.8.9\n"
 
 #: ../OpenAgua/templates/index.html:24
 msgid ""
-"OpenAgua is a next-generation decision support system for water resources "
-"planning."
+"OpenAgua is a next-generation decision support system for water resources"
+" planning."
 msgstr ""
 "OpenAgua est un système d'aide à la décision de la prochaine génération "
 "pour la planification des ressources en eau."
 
-#: ../OpenAgua/templates/index.html:25
+#: ../OpenAgua/templates/index.html:26
 msgid "Planned features include:"
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:27
+#: ../OpenAgua/templates/index.html:28
 msgid "Optimization-based simulation modeling of water resources systems."
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:27 ../OpenAgua/templates/index.html:28
-#: ../OpenAgua/templates/index.html:29 ../OpenAgua/templates/index.html:30
-#: ../OpenAgua/templates/index.html:31 ../OpenAgua/templates/index.html:32
-#: ../OpenAgua/templates/index.html:33 ../OpenAgua/templates/index.html:34
+#: ../OpenAgua/templates/index.html:28 ../OpenAgua/templates/index.html:29
+#: ../OpenAgua/templates/index.html:30 ../OpenAgua/templates/index.html:31
+#: ../OpenAgua/templates/index.html:32 ../OpenAgua/templates/index.html:33
+#: ../OpenAgua/templates/index.html:34 ../OpenAgua/templates/index.html:35
 msgid "learn more"
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:28
+#: ../OpenAgua/templates/index.html:29
 msgid ""
-"Standardized data organization based on <a href=\"http://www."
-"hydraplatform.org\">Hydra Platform</a>."
+"Standardized data organization based on <a "
+"href=\"http://www.hydraplatform.org\">Hydra Platform</a>."
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:29
+#: ../OpenAgua/templates/index.html:30
 msgid ""
 "Easy and flexible sharing for collaboration between experts, decision-"
 "makers, and stakeholders."
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:30
+#: ../OpenAgua/templates/index.html:31
 msgid ""
 "Advanced scenario builder to rapidly explore a wide range of management "
 "alternatives and social, economic and environmental scenarios."
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:31
+#: ../OpenAgua/templates/index.html:32
 msgid "Flexible computing options, leveraging the power of cloud computing."
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:32
+#: ../OpenAgua/templates/index.html:33
 msgid ""
 "Advanced visualization tools, including popular third-party graphing "
 "options (e.g., Tableau and Plotly)."
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:33
+#: ../OpenAgua/templates/index.html:34
 msgid "Open source, with a BSD license."
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:33
+#: ../OpenAgua/templates/index.html:34
 msgid ""
 "Feel free to <a href=\"https://github.com/CentroDelAgua/OpenAgua\">fork "
-"from GitHub</a> and help improve OpenAgua, or host from your own computer."
+"from GitHub</a> and help improve OpenAgua, or host from your own "
+"computer."
 msgstr ""
 
-#: ../OpenAgua/templates/index.html:34
+#: ../OpenAgua/templates/index.html:35
 msgid "Secure everything."
 msgstr ""
+
+#: ../OpenAgua/templates/index.html:45
+msgid "Institutional partners"
+msgstr ""
+
