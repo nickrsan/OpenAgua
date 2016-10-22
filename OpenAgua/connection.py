@@ -130,6 +130,9 @@ class connection(object):
     def get_node(self, node_id=None):
         return self.call('get_node',{'node_id':node_id})
     
+    def get_link(self, link_id=None):
+        return self.call('get_link',{'link_id':link_id})
+    
     def purge_replace_node(self, gj=None):
         
         node_id = gj['properties']['id']
@@ -215,21 +218,19 @@ class connection(object):
         if 'geojson' in node.layout:
             gj = node.layout.geojson
         else:
-            gj = {'type':'Feature',
-                  'geometry':{'type':'Point',
-                              'coordinates':[node.x, node.y]}}
+            gj = {'type':'Feature', 'geometry': {'type': 'Point', 'coordinates': [node.x, node.y]}}
             
         # make sure properties are up-to-date
         type_id = [t.id for t in node.types \
                    if t.template_id==self.template.id][0]
         ttype = self.ttypes[type_id]        
-        gj['properties'] = {'name':node.name,
-                            'id':node.id,
-                            'description':node.description,
-                            'template_type_name':ttype.name,
-                            'template_type_id':ttype.id,
-                            'image':ttype.layout.image,
-                            'template_name':self.template.name}
+        gj['properties'] = {'name': node.name,
+                            'id': node.id,
+                            'description': node.description,
+                            'template_type_name': ttype.name,
+                            'template_type_id': ttype.id,
+                            'image': ttype.layout.image,
+                            'template_name': self.template.name}
         return gj
 
     def make_geojson_from_link(self, link=None):
@@ -316,24 +317,25 @@ class connection(object):
             layout = {'geojson': dict(gj)}
         )
         
-        # delete old node
-        # will be faster to get this client side from Leaflet Snap
-        old_node_id = None
-        for n in self.network.nodes:
-            if (x,y) == (float(n.x), float(n.y)):
-                old_node_id = n.id
-                break
+        ## delete old node
+        ## will be faster to get this client side from Leaflet Snap
+        #old_node_id = None
+        #for n in self.network.nodes:
+            #if (x,y) == (float(n.x), float(n.y)):
+                #old_node_id = n.id
+                #break
         
         # add new node
         new_node = self.call('add_node', {'network_id': session['network_id'], 'node': node})
         
         # update existing adjacent links, if any, with new node id
         # it would be best if we could get the attached links clientside
-        if old_node_id is not None:
-            self.update_links(old_node_id, new_node.id)
-            self.call('purge_node', {'node_id': old_node_id})
+        #if old_node_id is not None:
+            #self.update_links(old_node_id, new_node.id)
+            #self.call('purge_node', {'node_id': old_node_id})
         
-        return new_node, old_node_id
+        #return new_node, old_node_id
+        return new_node
     
     def make_generic_node(self, ttype_name, node_name, x, y):
         typesummary = dict(
