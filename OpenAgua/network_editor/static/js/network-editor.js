@@ -436,6 +436,7 @@ function getContextmenuOptions(featureName) {
 
 // edit name & description
 function editNameDescription(e) {
+    var layer = e.layer;
     var feature = e.relatedTarget.feature;
     bootbox.confirm({
         message: '<form>'+
@@ -452,19 +453,24 @@ function editNameDescription(e) {
         size: 'small',
         callback: function (result) {
             if (result) {
+                var new_name = $('#name').val();
+                var new_description = $('#description').val();
                 $.ajax({
                     type : "POST",
                     url : $SCRIPT_ROOT + '/_change_name_description',
                     data: JSON.stringify({
                         type: feature.geometry.type,
                         id: feature.properties.id,
-                        name: $('#name').val(),
-                        description: $('#description').val()
+                        name: new_name,
+                        description: new_description
                     }),
                     contentType: 'application/json',
                     success: function(resp) {
                         if (resp.status_code == 1) {
-                            notify('success','Success!','Feature updated.');                        
+                            notify('success','Success!','Feature updated.');
+                            feature.properties.name = new_name;
+                            feature.properties.description = new_description;
+                            layer.bindTooltip(new_name);
                         } else {
                             notify('warning', 'Uh-oh.', 'Something went wrong. Feature not updated.')
                         }
