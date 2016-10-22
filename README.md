@@ -227,8 +227,6 @@ sudo ln -s /etc/nginx/sites-available/hydraplatform /etc/nginx/sites-enabled/hyd
 
 #### OpenAgua
 
-[OBSOLETE - TO BE UPDATED]
-
 a. Install OpenAgua using git: From /var/www type `sudo git clone https://github.com/CentroDelAgua/OpenAgua.git`
 
 b. Set up virtual environment
@@ -237,11 +235,11 @@ c. Install packages
 
 d. Install uwsgi
 
-e. Configure the application:
+e. Configure the application [OBSOLETE - TO BE UPDATED]:
 * Set up /instance/config.py. In addition to the settings as described above, make sure to add:
         * HYDRA_URL (e.g., `HYDRA_URL = 'http://hydra-server.mysite.com/json'`)
         * SECRET_KEY
-        
+
 f. wsgi.py:
 
 Create:
