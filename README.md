@@ -102,47 +102,194 @@ To create an admin user, from the main OpenAgua directory execute `python manage
 
 # Setup/serve as web server
 
-This assumes Hydra Platform and OpenAgua are run from the same Ubuntu Linux machine, and where OpenAgua is served to the world by uwsgi+nginx.
+This assumes Hydra Platform and OpenAgua are run from the same Ubuntu Linux machine, and where OpenAgua is served to the world by uwsgi+nginx. The general setup process is described, followed by configurations as used on www.openagua.org.
 
-## Hydra Platform
+## General process
+The setup process can be broken down into the following steps:
 
-1. Install Hydra Platform and dependencies as described at https://github.com/UMWRG/HydraPlatform#hydraplatform. Some pointers for installing on Ubuntu:
+1. Install nginx
+2. Set up each respective base application (i.e., Hydra Platform and OpenAgua). For each application:
+  a. Download the application
+  b. Set up a virtual environment
+  c. Install required Python packages within the virtual environment
+  d. Install uwsgi from within the virtual environment
+  e. Configure the application
+  f. Create and configure a wsgi.py file to serve the application
+  g. Create and configure a uWSGI configuration file
+  g. Create and configure an application service
+  h. Run the application service
+3. Configure nginx
+4. Start nginx
+5. Restart each application service at a later date as needed, without restarting nginx
+
+## Setup for www.openagua.org
+
+### 1. [Nginx notes forthcoming]
+
+### 2. Set up each respective application.
+
+#### Hydra Platform
+
+a. Download Hydra Platform from GitHub as described above.
+
+b. For the virtual environment, `virtuanenvwrapper` works well.
+
+c. In the virtual environment for Hydra Platform, install dependencies (using `pip`) as described at https://github.com/UMWRG/HydraPlatform#hydraplatform. Some pointers for installing on Ubuntu:
 * For mysql-connector-python: `sudo apt-get install python-mysql.connector`
 * For bcrypt, make sure to install python-dev first: `sudo apt-get install python-dev`
-2. Specify the database that Hydra Platform will use in /HydraPlatform/config/hydra.ini. By default this is a local SQLite database, but any SQL database can be used, such as MySQL, which is what OpenAguaDSS.org uses.
-3. Decide on hosting configuration. Hydra Platform comes with its own web interface, so can be configured either as a server available only to the local machine (which OpenAgua can still access), or as a public web server with the built-in user interface exposed to the world.
-a. If a non-public server is used, follow step 4. on https://github.com/UMWRG/HydraPlatform#installation to run the server: `chmod +x run_server.sh i(i. ./run_server.sh`.
-b. If a public server is used, Apache2 needs to be configured as described below.
 
-## OpenAgua
+d. Install uwsgi. From within the virtual environment: `pip install uwsgi'
 
-1. Install OpenAgua using git: From /var/www type `sudo git clone https://github.com/CentroDelAgua/OpenAgua.git`
-2. Set up /instance/config.py. In addition to the settings as described above, make sure to add:
-  * HYDRA_URL (e.g., `HYDRA_URL = 'http://hydra-server.mysite.com/json'`)
-  * SECRET_KEY
-3. Change the owner of the instance folder to allow the web server to create/modify the user database (users.sqlite). From the main OpenAguaDSS folder, type `sudo chown www-data:www-data instance`. www-data is the Apache2 user, and would be different for other web servers.
-4. Set up Apache2, as described below.
+e. Configure Hydra Platform:
+* Specify the database that Hydra Platform will use in /HydraPlatform/config/hydra.ini.
+* Create a new HydraServer folder next to HydraPlatform. This will hold the local configurations for running Hydra Server without affecting the original Hydra Platform.
 
-## uwsgi + nginx
+f. In the case of Hydra Platform wsgi.py can just create a symbolic link directly to Hydra Server. From within the new HydraServer directory:
+```
+ln -s wsgi.py ../HydraPlatform/HydraServer/server.py
+```
 
-[To be completed]
+g. Create and configure uWSGI configuration file:
+
+Create:
+```
+sudo nano /home/ubuntu/HydraServer/hydraserver.ini
+```
+
+Configure contents:
+```
+[uwsgi]
+wsgi-file = wsgi.py
+
+master = true
+processes = 1
+
+socket = hydraserver.sock
+chmod-socket = 660
+vacuum = true
+
+die-on-term = true
+
+logto = error.log
+```
+**IMPORTANT**: Processes should increase in the future once Hydra Server supports this. 
+
+h. Create/configure the application service:
+
+Create:
+```
+sudo nano /etc/systemd/system/hydraserver.service
+```
+
+Configure contents:
+```
+[Unit]
+Description=uWSGI instance to serve HydraServer
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/HydraServer
+Environment="PATH=/home/ubuntu/Env/hydraserver/bin"
+Environment="PYTHONPATH=${PYTHONPATH}:/home/ubuntu/HydraPlatform/HydraLib/python:/home/ubuntu/HydraPlatform/HydraServer/python"
+ExecStart=/home/ubuntu/Env/hydraserver/bin/uwsgi --ini hydraserver.ini
+
+[Install]
+WantedBy=multi-user.target
+```
+
+i. Run the application service.
+```
+sudo systemctl start hydraserver.service
+```
+
+#### OpenAgua
+
+[OBSOLETE - TO BE UPDATED]
+
+a. Install OpenAgua using git: From /var/www type `sudo git clone https://github.com/CentroDelAgua/OpenAgua.git`
+
+b. Set up virtual environment
+
+c. Install packages
+
+d. Install uwsgi
+
+e. Configure the application:
+* Set up /instance/config.py. In addition to the settings as described above, make sure to add:
+        * HYDRA_URL (e.g., `HYDRA_URL = 'http://hydra-server.mysite.com/json'`)
+        * SECRET_KEY
+        
+f. wsgi.py:
+
+Create:
+```
+nano /home/ubuntu/OpenAgua/wsgi.py
+```
+
+Configure:
+```
+from OpenAgua import app
+
+if __name__ == "__main__":
+    app.run()
+```
+
+g. wsgi service configuration:
+
+Create:
+```
+nano /home/ubuntu/OpenAgua/openagua.ini
+```
+
+Configure:
+```
+[uwsgi]
+module = wsgi:app
+
+master = true
+processes = 5
+
+socket = openagua.sock
+chmod-socket = 660
+vacuum = true
+
+die-on-term = true
+
+logto = instance/error.log
+```
+
+h. System service:
+
+Create:
+```
+sudo nano /etc/systemd/system/openagua.service
+```
+Configure:
+```
+[Unit]
+Description=uWSGI instance to serve OpenAgua
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/OpenAgua
+Environment="PATH=/home/ubuntu/Env/openagua/bin"
+ExecStart=/home/ubuntu/Env/openagua/bin/uwsgi --ini openagua.ini
+
+[Install]
+WantedBy=multi-user.target
+```
+
+i. Run:
+
+```
+sudo systemctl start openagua.service
+```
+
 
 # Settings
 
 [To be completed]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
