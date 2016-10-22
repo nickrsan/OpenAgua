@@ -63,7 +63,6 @@ LANGUAGES = {
     'es': 'Español',
     'zh_Hans': '中文（简体）',
     'zh_Hant': '中文（繁體）',
-    #'zh': '中文',
     'fr': 'Français',
     'de': 'Deutsch',
     'ru': 'русский',
