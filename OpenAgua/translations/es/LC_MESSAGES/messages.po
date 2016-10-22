@@ -1,85 +1,60 @@
-# Spanish translations for PROJECT.
-# Copyright (C) 2016 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-20 21:59-0500\n"
-"PO-Revision-Date: 2016-10-20 22:01-0500\n"
-"Language: es\n"
-"Language-Team: es <LL@li.org>\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.3.4\n"
-"Last-Translator: \n"
-"X-Generator: Poedit 1.8.9\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: OpenAgua\n"
+"Language: es\n"
 
 #: ../OpenAgua/templates/index.html:24
-msgid ""
-"OpenAgua is a next-generation decision support system for water resources "
-"planning."
-msgstr ""
-"OpenAgua es un sistema de ayuda a la decisión de próxima generación para "
-"la planificación de los recursos hídricos."
+msgid "OpenAgua is a next-generation decision support system for water resources planning."
+msgstr "OpenAgua es un sistema de ayuda a la decisión de próxima generación para la planificación de los recursos hídricos."
 
 #: ../OpenAgua/templates/index.html:25
 msgid "Planned features include:"
-msgstr ""
+msgstr "Características planeadas incluyen:"
 
 #: ../OpenAgua/templates/index.html:27
 msgid "Optimization-based simulation modeling of water resources systems."
-msgstr ""
+msgstr "Modelos de simulación basados en la optimización de los sistemas de recursos hídricos."
 
 #: ../OpenAgua/templates/index.html:27 ../OpenAgua/templates/index.html:28
 #: ../OpenAgua/templates/index.html:29 ../OpenAgua/templates/index.html:30
 #: ../OpenAgua/templates/index.html:31 ../OpenAgua/templates/index.html:32
 #: ../OpenAgua/templates/index.html:33 ../OpenAgua/templates/index.html:34
 msgid "learn more"
-msgstr ""
+msgstr "aprende más"
 
 #: ../OpenAgua/templates/index.html:28
-msgid ""
-"Standardized data organization based on <a href=\"http://www."
-"hydraplatform.org\">Hydra Platform</a>."
-msgstr ""
+msgid "Standardized data organization based on <a href=\"http://www.hydraplatform.org\">Hydra Platform</a>."
+msgstr "Organización de datos estandarizado basado en <a href=\"http://www.hydraplatform.org\">Hydra Platform</a>. "
 
 #: ../OpenAgua/templates/index.html:29
-msgid ""
-"Easy and flexible sharing for collaboration between experts, decision-"
-"makers, and stakeholders."
-msgstr ""
+msgid "Easy and flexible sharing for collaboration between experts, decision-makers, and stakeholders."
+msgstr "Compartir de forma sencilla y flexible para la colaboración entre los expertos, tomadores de decisiones, y las partes interesadas."
 
 #: ../OpenAgua/templates/index.html:30
-msgid ""
-"Advanced scenario builder to rapidly explore a wide range of management "
-"alternatives and social, economic and environmental scenarios."
-msgstr ""
+msgid "Advanced scenario builder to rapidly explore a wide range of management alternatives and social, economic and environmental scenarios."
+msgstr "Constructor escenario avanzado para explorar rápidamente una amplia gama de alternativas de manejo y escenarios sociales, económicos y ambientales."
 
 #: ../OpenAgua/templates/index.html:31
 msgid "Flexible computing options, leveraging the power of cloud computing."
-msgstr ""
+msgstr "Opciones flexibles de computación, aprovechando el poder de la computación en la nube."
 
 #: ../OpenAgua/templates/index.html:32
-msgid ""
-"Advanced visualization tools, including popular third-party graphing "
-"options (e.g., Tableau and Plotly)."
-msgstr ""
+msgid "Advanced visualization tools, including popular third-party graphing options (e.g., Tableau and Plotly)."
+msgstr "Herramientas de visualización avanzadas, incluyendo opciones de gráficos externos y conocidos (por ejemplo, Tableau y Plotly)."
 
 #: ../OpenAgua/templates/index.html:33
 msgid "Open source, with a BSD license."
-msgstr ""
+msgstr "De código abierto, con una licencia BSD."
 
 #: ../OpenAgua/templates/index.html:33
-msgid ""
-"Feel free to <a href=\"https://github.com/CentroDelAgua/OpenAgua\">fork "
-"from GitHub</a> and help improve OpenAgua, or host from your own computer."
-msgstr ""
+msgid "Feel free to <a href=\"https://github.com/CentroDelAgua/OpenAgua\">fork from GitHub</a> and help improve OpenAgua, or host from your own computer."
+msgstr "No dude en <a href=\"https://github.com/CentroDelAgua/OpenAgua\"> tenedor de GitHub </a> y ayudar a mejorar OpenAgua, o el anfitrión de su propio ordenador."
 
 #: ../OpenAgua/templates/index.html:34
 msgid "Secure everything."
-msgstr ""
+msgstr "Todo es seguro."
+
