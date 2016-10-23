@@ -1,4 +1,5 @@
-from os.path import join
+import os
+import shutil
 import zipfile
 from boltons.iterutils import remap
 
@@ -78,7 +79,18 @@ def save_as_new_template():
         else:
             basename = template.name
             version = 1
-        template.name = '{} Vers. {}'.format(basename, version)         
+        
+        new_tpl = template.copy()
+        new_tpl['name'] = '{} Vers. {}'.format(basename, version)
+        
+        # copy old template directory
+        tpl_dir = app.config['UPLOADED_TEMPLATES_DEST']
+        src = os.path.join(tpl_dir, template.name)
+        dst = os.path.join(tpl_dir, new_tpl['name'])
+        shutil.copytree(src, dst)
+        old_tpl = os.path.join(tpl_dir, 'template', 'template.xml')
+        if os.path.exists(old_tpl):
+            os.remove(old_tpl) # old xml is obsolete (need to figure out how to expore templates from json)
         
         # genericize the template
         def visit(path, key, value):
@@ -87,9 +99,9 @@ def save_as_new_template():
             elif key in set(['id', 'template_id', 'type_id', 'attr_id']):
                 return key, None            
             return key, value
-        template = remap(dict(template), visit=visit)
+        new_tpl = remap(dict(new_tpl), visit=visit)
 
-        result = conn.call('add_template', {'tmpl': template})
+        result = conn.call('add_template', {'tmpl': new_tpl})
         
         return jsonify(result = json.dumps(result))
     
@@ -118,6 +130,27 @@ def modify_template():
             result = -1
             
         return jsonify(result=result)
+    
+    return redirect(url_for('manager.manage_templates'))
+
+@manager.route('/_delete_template', methods=['GET', 'POST'])
+@login_required
+def delete_template():
+    
+    if request.method == 'POST':
+        
+        conn = make_connection()
+        template = request.json
+        
+        result = conn.call('delete_template', {'template_id': template['id']})
+        
+        if 'faultcode' in result:
+            return_code = -1
+        else:
+            return_code = 1
+            shutil.rmtree(os.path.join(app.config['UPLOADED_TEMPLATES_DEST'], template['name']), ignore_errors=True)
+
+        return jsonify(return_code=return_code)
     
     return redirect(url_for('manager.manage_templates'))
 

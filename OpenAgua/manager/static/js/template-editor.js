@@ -88,10 +88,19 @@ $(document).on('click', '.delete_template', function(e) {
     var msg = 'Permanently delete template "'+name+'?"<br><b>WARNING: This cannot be undone!<b>'
     bootbox.confirm(msg, function(confirm) {
         if (confirm) {
-            result = hydra_call('delete_template', {template_id: id});
-            update_templates();
-            notify('success','Success!', 'Template "'+name+'" has been permanently deleted.');
-        };
+            $.ajax({
+                type : "POST",
+                url : '/_delete_template',
+                data: JSON.stringify({id: id, name: name}),
+                contentType: 'application/json',
+                success: function(resp) {            
+                    if (resp.return_code === 1) {
+                        notify('success','Success!', 'Template "'+name+'" has been permanently deleted.');
+                        update_templates();
+                    }
+                }
+            });
+        }
     });
 });
 
@@ -108,6 +117,7 @@ $(document).on('click', '#save_as_new_template', function(e) {
             } else {
                 notify('success', 'Success!', 'New template created.');
                 jsoneditor.set(result);
+                update_templates();
             }
         }
     });

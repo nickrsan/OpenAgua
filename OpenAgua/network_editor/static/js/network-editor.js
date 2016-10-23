@@ -353,8 +353,8 @@ function refreshCurrentItems() {
         }
         layer.bindContextMenu(getContextmenuOptions(prop.name)); // add context menu
         if (layer.feature.geometry.type == 'Point') {
-            //var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/template/" + prop.image;
-            var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/openagua/template/" + prop.image;
+            var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/" + prop.template_name + "/template/" + prop.image;
+            //var iconUrl = $SCRIPT_ROOT + "/static/hydra/templates/OpenAgua Vers. 4/template/" + prop.image;
             var icon = new nodeIcon({
                 iconUrl: iconUrl
             });
