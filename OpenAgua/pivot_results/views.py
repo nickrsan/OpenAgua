@@ -47,7 +47,9 @@ def load_pivot_data():
             
             if rs.value.type != 'timeseries':
                 continue
-            if 'function' in json.loads(rs.value.metadata):
+            
+            metadata = json.loads(rs.value.metadata)
+            if 'function' in metadata and len(metadata['function']):
                 continue # for now - need to fix
             
             # add filters here

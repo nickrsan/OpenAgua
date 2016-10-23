@@ -28,30 +28,35 @@ var mapContextmenuOptions = {
 var map, tileLayer, currentItems, controlSearch, locateControl, drawControl, guideLayers;
 
 $(function() {
-    
+
     // set map div height
-    $('#map').height($(window).height() - 120);
+    $('#map').height(getMapHeight());
+
+    $( window ).resize(function() {
+        $('#map').height(getMapHeight());
+        map._onResize()
+    });
 
     map = L.map('map', mapContextmenuOptions);
-    
+
     $(document).on('click', '#menu-toggle', function() {
         setTimeout(map._onResize, 500);
     });    
-    
+
     tileOptions = {
         maxZoom: 18,
         crossOrigin: true
     }
-    
+
     greyscaleTiles = new L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
     });
     colorTiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
     });
-    var Hydda_Full = L.tileLayer('http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png', {
-        attribution: 'Tiles courtesy of <a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    });
+    //var Hydda_Full = L.tileLayer('http://{s}.tile.openstreetmap.se/hydda/full/{z}/{x}/{y}.png', {
+        //attribution: 'Tiles courtesy of <a href="http://openstreetmap.se/" target="_blank">OpenStreetMap Sweden</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    //});
     var Stamen_Terrain = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
         attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
         subdomains: 'abcd',
@@ -69,15 +74,15 @@ $(function() {
         "Stamen Terrain": Stamen_Terrain,
         "Esri World Topo Map": Esri_WorldTopoMap,
         "Esri World Imagery": Esri_WorldImagery,
-        "Hydda Full": Hydda_Full
+        //"Hydda Full": Hydda_Full
     };
-    
+
 
     greyscaleTiles.addTo(map); // add the tiles
-    
+
     // the layer containing the features        
     currentItems = new L.geoJson();
-    
+
     // add Leaflet.Draw
     drawControl = new L.Control.Draw({
         draw: {
@@ -92,17 +97,17 @@ $(function() {
             //remove: false,
         }
     });
-    
+
     // snapping
     guideLayers = new Array();
-    
+
     drawControl.setDrawingOptions({
         marker: { guideLayers: guideLayers, snapDistance: 25 },
         polyline: { guideLayers: guideLayers, snapDistance: 25 },
     });
-    
+
     map.addControl(drawControl);
-    
+
     // add search (not very refined!)
     //controlSearch = new L.Control.Search({
         //position:'topright',	
@@ -114,10 +119,10 @@ $(function() {
         //marker: false
     //});
     //map.addControl( controlSearch );
-    
+
     // add zoom buttons
     L.control.zoom({position:'topright'}).addTo(map);
-    
+
     // add locate button
     locateControl = new L.control.locate(options={
         position: 'topright',
@@ -129,14 +134,14 @@ $(function() {
         strings: {title: "Go to my location"}
     });
     map.addControl(locateControl);
-    
+
     // add layer control
     var overlayMaps = {
         "Layers": currentItems
     };
-    
+
     L.control.layers(baseMaps).addTo(map);
-    
+
     map.spin(true);
 })
 
@@ -234,7 +239,7 @@ $(function() {
     });
 
     $('button#add_node_confirm').on('click', function() {
-    
+
         var node_name = $('#node_name').val();
         if ( $('#node_name').val() == "" ) {
             $("#add_node_error").text('Name cannot be blank.');
@@ -637,3 +642,7 @@ function purgeFeature(e) {
         //useCORS: true
     //});
 //});
+
+function getMapHeight() {
+    return $(window).height() - $('#toprow').height() - $('#navbar').height() - 30;
+}

@@ -147,7 +147,7 @@ $('#check, #save').click(function() {
       break;
       
     case "timeseries":
-      new_data = _.map(hotEditor.getData(), function(row, index) {
+      new_data = _.map(hotTable.getData(), function(row, index) {
         return {date: row[0], value: row[1]}      
       })
       unchanged = _.isEqual(original_data, new_data)

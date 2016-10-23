@@ -38,12 +38,16 @@ function loadPivot(chartRendererName, width, height) {
     defaultVals = []
   }
   
+  opts.onEditValues = function (changes) { $(".changesOutput").html(JSON.stringify(changes)) }
+  opts.onDrawTable = function (htTable) { $(".changesOutput").empty() }
+  
   $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
       var pivotData = resp.data;
       var pivotOptions = {
           vals: defaultVals,
           aggregatorName: "Average",
-          renderers: $.extend(chartRenderers, $.pivotUtilities.renderers),
+          renderers: $.extend({}, chartRenderers, $.pivotUtilities.renderers),
+          //renderers: $.extend({}, chartRenderers, $.pivotUtilities.novix_renderers, $.pivotUtilities.renderers),
           rendererOptions: opts,
       };
       pivotOutput.pivotUI( pivotData, pivotOptions, true );

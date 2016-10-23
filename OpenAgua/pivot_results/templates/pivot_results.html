@@ -22,9 +22,14 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.1.0/pivot.min.css" type="text/css" media="all" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.1.0/pivot.min.js" type="text/javascript" charset="utf-8"></script>
 
-<!--Chart renderers-->
+<!--Table & chart renderers-->
+<!--handsontable-->
+<script src="{{ url_for('static', filename='lib/pivottable/novix.pivot.renderer.js') }}" type="text/javascript" charset="utf-8"></script>
+<!--c3-->
 <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.1.0/c3_renderers.min.js" type="text/javascript" charset="utf-8"></script>-->
+<!--gchart-->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pivottable/2.1.0/gchart_renderers.min.js" type="text/javascript" charset="utf-8"></script>
+<!--plotly-->
 <script src="{{ url_for('.static', filename='js/plotly_renderers.js') }}" type="text/javascript" charset="utf-8"></script>
 
 <!--OpenAgua-->
@@ -41,7 +46,7 @@ var ttypes = {{ ttypes|tojson|safe }};
 <div id="options_container" class="container-fluid">
     <div class="row">
         <div id="options" class="col col-sm-12 col-md-12 col-lg-12">
-            <div id="filters" class='form-inline'>
+            <form id="filters" class='form-inline'>
                 <div class="form-group">
                     <label for="chart_renderer">Renderer</label>
                     <select id='chart_renderer' class='selectpicker' data-width='auto'>
@@ -81,7 +86,7 @@ var ttypes = {{ ttypes|tojson|safe }};
                 <div id='submit' class="form-group">
                     <button id='load_options' class='btn btn-primary'>Load</button>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -90,10 +95,11 @@ var ttypes = {{ ttypes|tojson|safe }};
     <div class="row">
         <div class="col col-sm-12 col-md-12 col-lg-12">
             <div id="spinner"></div>
-            <div id="pivot" style="width:100%"></div>
+            <div id="pivot" class="pane" style="width:100%"></div>
             <!--<div>-->
                 <!--<button id="save_as_thumbnail" class="btn btn-default">Set as icon</button>-->
             <!--</div>-->
+            <span class="changesOutput" ></span>
         </div>    
     </div>
 </div>
