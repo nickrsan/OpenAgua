@@ -28,7 +28,7 @@ msgstr "了解更多"
 
 #: ../OpenAgua/templates/index.html:29
 msgid "Standardized data organization based on <a href=\"http://www.hydraplatform.org\">Hydra Platform</a>."
-msgstr "基于 Hydra 平台的标准化数据管理"
+msgstr "基于 <a href=\"http://hydraplatform.org\" target=\"_blank\">Hydra Platform</a> 的标准化数据管理"
 
 #: ../OpenAgua/templates/index.html:30
 msgid "Easy and flexible sharing for collaboration between experts, decision-makers, and stakeholders."
