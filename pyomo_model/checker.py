@@ -6,10 +6,20 @@ from utils import create_logger
 
 #import wingdbstub
 
-def get_completed(scen_log_dir):
+def get_completed(main_log_dir, scen_log_dir):
     completed = 0
     count = 0
     
+    main_log = None
+    main_log_path = os.path.join(main_log_dir, 'log.txt')
+    if os.path.exists(main_log_path):
+        with open(main_log_path, 'r') as f:
+            main_log = f.read()
+    
+    if main_log is None:
+        main_log = 'Main log not created yet.'
+    
+    scen_log = None
     if os.path.exists(scen_log_dir):
         
         logfiles = [lf for lf in os.listdir(scen_log_dir) if 'progress' in lf]
@@ -27,14 +37,18 @@ def get_completed(scen_log_dir):
         
         logfiles = [lf for lf in os.listdir(scen_log_dir) if 'details' in lf]
         if logfiles:
-            lfpath = os.path.join(scen_log_dir, logfiles[0])
+            lfpath = os.path.join(scen_log_dir, logfiles[0]) # UPDATE FOR DIFFERENT SCENARIOS!!!
             with open(lfpath, 'r') as f:
-                details = f.read()#.replace('\n','<br/>')
-        else:
-            details = 'Detailed log not created yet.'
+                scen_log = f.read()
+
+    if scen_log is None:
+        scen_log = 'Scenario log not created yet.'
+        
     result = dumps({'completed': completed,
                     'count': count,
-                    'details': details})
+                    'main_log': main_log,
+                    'scen_log': scen_log})
+    
     print(result)
 
 def commandline_parser():
@@ -60,6 +74,7 @@ if __name__=='__main__':
     
     here = os.path.abspath(os.path.dirname(__file__))
     
-    scen_log_dir = os.path.join(here, 'logs', args.log_dir, 'scenario_logs')
+    main_log_dir = os.path.join(here, 'logs', args.log_dir)
+    scen_log_dir = os.path.join(main_log_dir, 'scenario_logs')
     
-    completed = get_completed(scen_log_dir)
+    completed = get_completed(main_log_dir, scen_log_dir)

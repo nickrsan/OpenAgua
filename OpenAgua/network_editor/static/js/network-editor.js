@@ -455,7 +455,6 @@ function editNameDescription(e) {
             '</div>'+
         '</form>',
         onEscape: true,
-        size: 'small',
         callback: function (result) {
             if (result) {
                 var new_name = $('#name').val();

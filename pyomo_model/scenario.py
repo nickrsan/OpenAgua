@@ -1,10 +1,13 @@
+from io import StringIO
+import sys
+
 from os.path import join
 from datetime import datetime
 import json
 from collections import OrderedDict
 from attrdict import AttrDict
 
-from pyomo.opt import SolverFactory
+from pyomo.opt import SolverFactory, SolverStatus, TerminationCondition
 from pyomo.environ import Var
 from dateutil import rrule
 #from dateutil.parser import parse
@@ -20,7 +23,7 @@ def run_scenario(scenario_id, args=None):
     
     logd = create_logger(appname='{} - {} - details'.format(args.app_name, scenario_id),
                          logfile=join(args.scenario_log_dir,'scenario_{}_details.txt'.format(scenario_id)),
-                         msg_format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                         msg_format='%(asctime)s - %(message)s')
     logp = create_logger(appname='{} - {} - progress'.format(args.app_name, scenario_id),
                          logfile=join(args.scenario_log_dir, 'scenario_{}_progress.txt'.format(scenario_id)),
                          msg_format='%(asctime)s - %(message)s')
@@ -36,12 +39,12 @@ def run_scenario(scenario_id, args=None):
     dates = [date for date in rrule.rrule(rrule.MONTHLY, dtstart=ti, until=tf)]
     
     timestep_dict = OrderedDict()
-    OAtHPt = {}
+    conn.OAtHPt = {}
     for date in dates:
         oat = date.strftime(args.timestep_format)
         hpt = date.strftime(args.hydra_timestep_format)
         timestep_dict[date] = [hpt, oat]
-        OAtHPt[oat] = hpt
+        conn.OAtHPt[oat] = hpt
         
     template_attributes = conn.call('get_template_attributes', {'template_id': conn.template.id})
     attr_names = {}
@@ -57,87 +60,35 @@ def run_scenario(scenario_id, args=None):
     
     logd.info('model created')
     opt = SolverFactory(args.solver)
-    results = opt.solve(instance)
-    logd.info('model solved')
-    
-    # save results by updating the scenario
-    res_scens = {}
-    updated_res_scens = []
-    for rs in conn.network.scenarios[0].resourcescenarios:
-        res_scens[rs.resource_attr_id] = rs
-        
-    update_scenario = False
-    
-    outputnames = {'S': 'storage', 'I': 'inflow', 'O': 'outflow'}
-    
-    # loop through all the model variables
-    for i, v in enumerate(instance.component_objects(Var, active=True)):
-        varname = str(v)
-        
-        # continue if we aren't interested in this variable (intermediaries...)
-        if varname not in outputnames.keys():
-            continue
-        
-        fullname = outputnames[varname]
-        
-        # the variable object
-        varobject = getattr(instance, varname)
-        timeseries = {}
-        
-        # loop through all indices - including all nodes/links and timesteps
-        for index in varobject:
-            if len(index) == 2:
-                idx = (index[0], fullname)
-            else:
-                idx = (index[0], index[1], fullname)
-            if idx not in timeseries.keys():
-                timeseries[idx] = {}
-            timeseries[idx][OAtHPt[index[1]]] = varobject[index].value
-    
-        # save variable data to database
-        for idx in timeseries.keys():
-            
-            ra_id = conn.res_attrs.node[idx]
-            attr_id = conn.attr_ids[ra_id]
-            attr = conn.attrs.node[attr_id]
-            res_name = conn.res_names[ra_id]
-            dataset_name = '{} for {}'.format(fullname, res_name)
-            
-            dataset_value = json.dumps({'0': timeseries[idx]})
-            #dataset_value = {'0': timeseries[idx]}
-            
-            #if ra_id not in res_scens.keys():
-                ## create a new dataset
-            dataset = {
-                'type': attr.dtype,
-                'name': dataset_name,
-                'unit': attr.unit,
-                'dimension': attr.dim,
-                'value': dataset_value
-            }
-            conn.call('add_data_to_attribute',
-                      {'scenario_id': scenario_id, 'resource_attr_id': ra_id, 'dataset': dataset})
-            #else:
-                ## just update the existing resourcedata
-                #rs = res_scens[ra_id]
-                ##dataset = res_scens[ra_id].value
-                #rs.value.name = dataset_name
-                #rs.value.value = dataset_value
-                ##updated_res_scen = {
-                    ##'resource_attr_id': ra_id,
-                    ##'attr_id': attr_id,
-                    ##'value': dataset
-                ##}
-                #updated_res_scens.append(rs)
+    results = opt.solve(instance, tee=False)
+    #logd.info('model solved')
 
-    #if updated_res_scens:
-        #update = conn.call('update_resourcedata',
-                           #{'scenario_id': scenario_id, 'resource_scenarios': updated_res_scens})
+    old_stdout = sys.stdout
+    sys.stdout = summary = StringIO()
+    results.write()
+    sys.stdout = old_stdout
     
-    logd.info('model results saved')
+    logd.info('model solved\n' + summary.getvalue())
     
+    if (results.solver.status == SolverStatus.ok) and (results.solver.termination_condition == TerminationCondition.optimal):
+        # this is feasible and optimal
+        logd.info('Optimal feasible solution found.')
+        #outputnames = {'S': 'storage', 'I': 'inflow', 'O': 'outflow'}
+        outputnames = {'Q': 'flow'}
+        conn.save_results(instance, outputnames)
+        logd.info('Results saved.')
+    elif results.solver.termination_condition == TerminationCondition.infeasible:
+        logd.info('WARNING! Problem is infeasible. Check detailed results.')
+        # do something about it? or exit?
+    else:
+        # something else is wrong
+        logd.info('WARNING! Something went wrong. Likely the model was not built correctly.')    
+    
+    # Still we will report that the model is complete...
     if args.foresight == 'perfect':
-        logp.info('completed timesteps {} - {} | 1/1'.format(ti, tf))
+        msg = 'completed timesteps {} - {} | 1/1'.format(ti, tf)
+        logd.info(msg)
+        logp.info(msg)
     
     # ===========================
     # start the per timestep loop

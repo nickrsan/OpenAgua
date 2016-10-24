@@ -5,6 +5,8 @@ import json
 import logging
 from attrdict import AttrDict
 
+from pyomo.environ import Var
+
 import wingdbstub
 
 def create_logger(appname, logfile, msg_format):
@@ -88,7 +90,7 @@ class connection(object):
                 self.res_names[ra.id] = l.name
 
     def call(self, func, args):
-        self.log.info("Calling: %s" % (func))
+        self.log.debug("Calling: %s" % (func))
         headers = {'Content-Type': 'application/json',
                    'sessionid': self.session_id,
                    'appname': self.app_name}
@@ -113,7 +115,7 @@ class connection(object):
 
             # need to figure out how to raise errors
         
-        self.log.info('Finished communicating with Hydra Platform.')
+        self.log.debug('Finished communicating with Hydra Platform.')
 
         resp = json.loads(response.content.decode(), object_hook=JSONObject)
         return resp
@@ -127,6 +129,80 @@ class connection(object):
         self.user_id = response.userid
         self.log.info("Session ID: %s", self.session_id)
         return self.session_id
+    
+    def save_results(self, instance, outputnames):
+        res_scens = {}
+        updated_res_scens = []
+        for rs in self.network.scenarios[0].resourcescenarios:
+            res_scens[rs.resource_attr_id] = rs
+    
+        # loop through all the model variables
+        for i, v in enumerate(instance.component_objects(Var, active=True)):
+            varname = str(v)
+            
+            # continue if we aren't interested in this variable (intermediaries...)
+            if varname not in outputnames.keys():
+                continue
+            
+            fullname = outputnames[varname]
+            
+            # the variable object
+            varobject = getattr(instance, varname)
+            timeseries = {}
+            
+            # loop through all indices - including all nodes/links and timesteps
+            for index in varobject:
+                if len(index) == 2:
+                    idx = (index[0], fullname)
+                    timekey = 1
+                else:
+                    idx = (index[0], index[1], fullname)
+                    timekey = 2
+                if idx not in timeseries.keys():
+                    timeseries[idx] = {}
+                timeseries[idx][self.OAtHPt[index[timekey]]] = varobject[index].value
+        
+            # save variable data to database
+            for idx in timeseries.keys():
+                
+                ra_id = self.res_attrs.node[idx]
+                attr_id = self.attr_ids[ra_id]
+                attr = self.attrs.node[attr_id]
+                res_name = self.res_names[ra_id]
+                dataset_name = '{} for {}'.format(fullname, res_name)
+                
+                dataset_value = json.dumps({'0': timeseries[idx]})
+                #dataset_value = {'0': timeseries[idx]}
+                
+                #if ra_id not in res_scens.keys():
+                    ## create a new dataset
+                dataset = {
+                    'type': attr.dtype,
+                    'name': dataset_name,
+                    'unit': attr.unit,
+                    'dimension': attr.dim,
+                    'value': dataset_value
+                }
+                self.call('add_data_to_attribute',
+                          {'scenario_id': scenario_id, 'resource_attr_id': ra_id, 'dataset': dataset})
+                #else:
+                    ## just update the existing resourcedata
+                    #rs = res_scens[ra_id]
+                    ##dataset = res_scens[ra_id].value
+                    #rs.value.name = dataset_name
+                    #rs.value.value = dataset_value
+                    ##updated_res_scen = {
+                        ##'resource_attr_id': ra_id,
+                        ##'attr_id': attr_id,
+                        ##'value': dataset
+                    ##}
+                    #updated_res_scens.append(rs)
+    
+        #if updated_res_scens:
+            #update = conn.call('update_resourcedata',
+                               #{'scenario_id': scenario_id, 'resource_scenarios': updated_res_scens}) 
+                               
+        #return result
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

@@ -1,67 +1,72 @@
 var scenarioLog,
   showScenarioDetails,
   myInterval,
-  interval = 2500;
+  interval = 2500,
+  scen_log = '';
 
 $(function() {
   $("#progress_bars").on('click', '.btn-scenario-log', function() {
+    loadScenarioLog(scen_log);
     showScenarioDetails = true;
   });
-});
 
-$('button#run_model').click(function() {
-
-  var scids = [];
-  $("#scenarios option:selected").each(function() {
-    scids.push(Number($(this).val()))
-  });
-
-  if (scids.length) {
-
-    $(this).button('loading');
-    $('button#stop_model').show();
-    $('button#view_run_log').show();
-    update_progress_bar(0);
-
-    // collect run parameters here
-    var commandData = {
-      scids: scids,
-      sol: 'glpk'
-    }
-
-    $.ajax({
-      type: "POST",
-      contentType: "application/json; charset=utf-8",
-      url: $SCRIPT_ROOT+'/_run_model',
-      data: JSON.stringify(commandData),
-      success: function (resp) {
-        update_status(1, 0);
-      },
-      dataType: "json"
+  $('button#run_model').click(function() {
+  
+    $('.log').empty();
+    scen_log = '';
+  
+    var scids = [];
+    $("#scenarios option:selected").each(function() {
+      scids.push(Number($(this).val()))
     });
-  } else {
-    notify('danger', 'Error!', 'No scenarios selected. Please try again.')    
-  }
-
-});
-
-//$( document ).ready(update_model_progress());
-
-// stop the model
-$('button#stop_model').click(function() {
-  bootbox.confirm({
-    message: 'Are you sure you want to stop this model run? Model results may not be complete.', 
-    callback: function(result) {
-      if (result) {
-        clearInterval(myInterval);
-        $("#status_message").text("Model stopped");
-        $("button#run_model").button('reset');
-        $("button#stop_model").hide();
-
-        notify('success', 'Success!', 'Model stopped.');
+  
+    if (scids.length) {
+  
+      $(this).button('loading');
+      $('button#stop_model').show();
+      //$('button#view_run_log').show();
+      update_progress_bar(0);
+  
+      // collect run parameters here
+      var commandData = {
+        scids: scids,
+        sol: 'glpk'
       }
+  
+      $.ajax({
+        type: "POST",
+        contentType: "application/json; charset=utf-8",
+        url: $SCRIPT_ROOT+'/_run_model',
+        data: JSON.stringify(commandData),
+        success: function (resp) {
+          update_status(1, 0);
+        },
+        dataType: "json"
+      });
+    } else {
+      notify('danger', 'Error!', 'No scenarios selected. Please try again.')    
     }
-    });
+  
+  });
+  
+  //$( document ).ready(update_model_progress());
+  
+  // stop the model
+  $('button#stop_model').click(function() {
+    bootbox.confirm({
+      message: 'Are you sure you want to stop this model run? Model results may not be complete.', 
+      callback: function(result) {
+        if (result) {
+          clearInterval(myInterval);
+          $("#status_message").text("Model stopped");
+          $("button#run_model").button('reset');
+          $("button#stop_model").hide();
+  
+          notify('success', 'Success!', 'Model stopped.');
+        }
+      }
+      });
+  });
 });
 
 // FUNCTIONS
@@ -88,10 +93,10 @@ function interval(func, wait, times){
 
 function check_progress() {
   $.getJSON($SCRIPT_ROOT+'/_model_progress', function(resp) {
-    scenarioLog = resp.details;
+    $('#main_log').text(resp.main_log).animate({scrollTop:$('#main_log')[0].scrollHeight}, 1000)
+    scen_log = resp.scen_log;
     if (showScenarioDetails) {
-      $("#log_output").text(scenarioLog)
-        .animate({scrollTop:$("#log_output")[0].scrollHeight}, 1000);
+      loadScenarioLog(scen_log);
     }
     update_status(resp.status, resp.progress);
   });
@@ -151,4 +156,9 @@ function update_progress_bar(progress) {
   width = "width:"+progress+"%";
   $('#model_run_progress').attr('style',width);
   $("#model_run_progress").text(progress+"%");
+}
+
+function loadScenarioLog(scen_log) {
+  $("#scen_log").text(scen_log)
+    .animate({scrollTop:$("#scen_log")[0].scrollHeight}, 1000);
 }

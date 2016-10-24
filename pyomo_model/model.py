@@ -84,13 +84,13 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     
     # constraints
     
-    def Inflow_rule(model, j, t): # not to be confused with Inflow resources
-        return model.I[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
-    model.Inflow_definition = Constraint(model.Nodes, model.TS, rule=Inflow_rule)
+    #def Inflow_rule(model, j, t): # not to be confused with Inflow resources
+        #return model.I[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
+    #model.Inflow_definition = Constraint(model.Nodes, model.TS, rule=Inflow_rule)
     
-    def Outflow_rule(model, j, t): # not to be confused with Outflow resources
-        return model.O[j,t] == sum(model.Q[j,k,t] for k in model.NodesOut[j])
-    model.Outflow_definition = Constraint(model.Nodes, model.TS, rule=Outflow_rule)
+    #def Outflow_rule(model, j, t): # not to be confused with Outflow resources
+        #return model.O[j,t] == sum(model.Q[j,k,t] for k in model.NodesOut[j])
+    #model.Outflow_definition = Constraint(model.Nodes, model.TS, rule=Outflow_rule)
     
     def StorageMassBalance_rule(model, j, t):
         if t == model.TS.first():
@@ -110,15 +110,17 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     else:
         model.NonStorageMassBalance = Constraint(model.Nodes, model.TS, rule=NonStorageMassBalance_rule)
         
-    def Delivery_rule(model, j, t): # this is redundant with inflow, but more explicit
-        return model.D[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
-    if 'Reservoir' in model:
-        model.Delivery = Constraint(model.Non_reservoir, model.TS, rule=Delivery_rule)
-    else:
-        model.Delivery = Constraint(model.Nodes, model.TS, rule=Delivery_rule)
+    #def Delivery_rule(model, j, t): # this is redundant with inflow, but more explicit
+        #return model.D[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
+    #if 'Reservoir' in model:
+        #model.Delivery = Constraint(model.Non_reservoir, model.TS, rule=Delivery_rule)
+    #else:
+        #model.Delivery = Constraint(model.Nodes, model.TS, rule=Delivery_rule)
     
     def ChannelCap_rule(model, i, j, t):
-        if (i,j) in model.River or (i,j) in model.Return_Flow:
+        if 'River' in model and (i,j) in model.River:
+            return Constraint.Skip
+        elif 'Return_Flow' in model and (i,j) in model.Return_Flow:
             return Constraint.Skip
         elif 'Flow_Capacity' in p.link.keys() and (i,j,t) in p.link['Flow_Capacity'].keys():
             return (0, model.Q[i,j,t], p.link['Flow_Capacity'][(i,j,t)])
@@ -168,7 +170,6 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
             + summation(model.Flow_Priority, model.Q)
     def Objective_fn_nostorage(model):
         return summation(model.Demand_Priority, model.D) \
-            + summation(model.Storage_Priority, model.S) \
             + summation(model.Flow_Priority, model.Q)
     if 'Reservoir' in model:
         model.Ojective = Objective(rule=Objective_fn_storage, sense=maximize)

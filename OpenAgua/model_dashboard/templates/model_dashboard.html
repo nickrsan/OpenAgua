@@ -9,9 +9,11 @@
 {% block content %}
 <div class="container-fluid">
 
-    <div id="model_dashboard_top" class="row">
-        <div class="col col-sm-12 col-md-12 col-lg-12">
-            <label for "management_scenarios">Select scenarios</label>
+    <div class="row">
+
+        <div class="col col-sm-12 col-md-4 col-lg-5">
+        
+            <label for="management_scenarios">Select scenarios</label>
             <div id="scenarios" class="form-group">
                 <select class="selectpicker" multiple data-selected-text-format="count > 1" data-actions-box="true">
                     {% for scen in scenarios %}
@@ -23,13 +25,8 @@
                 <button id="stop_model" style="display:none" type="button" class="btn btn-danger">Stop model</button>
                 <button id="view_run_log" style="display:none" type="button" class="btn btn-info">View log</button>
             </div>
-        </div>
-    </div>
-    
-    <div class="row">
-    
-        <!--status bars-->
-        <div class="col col-sm-12 col-md-5 col-lg-5>
+
+            <!--progress bars-->
             <label for="progress_bars">Progress</label>
             <div id="progress_bars" class="progress-bars">
                 <div class="progress-row">
@@ -43,13 +40,18 @@
         </div>
         
         <!--log output-->
-        <div class="col col-sm-12 col-md-7 col-lg-7">
-            <label for="log_output">Details</label>
-            <div id="log_output"></div>
-            <div id="log_status_message"></div>      
+        <div class="col col-sm-12 col-md-8 col-lg-7">
+            <label for="main_log">Main log</label>
+            <div id="main_log" class="log"></div>
+            <div id="main_log_status_message"></div>
+            <br/>
+            <label for="scen_log">Scenario log</label>
+            <div id="scen_log" class="log"></div>
+            <div id="scen_log_status_message"></div>      
         </div>
         
-    </div>
+    </div>    
+    
 </div>
   
 <script>

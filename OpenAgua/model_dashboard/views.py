@@ -40,50 +40,51 @@ def model_dashboard_main():
 @login_required
 def run_model():
     
-    if request.method == 'GET':
-        return redirect(url_for('model_dashboard.model_dashboard_main'))
+    if request.method == 'POST':
 
-    # 1. get user input
-    scids = request.json['scids']
-    #scids = [5] # need to get these from study / user
-    session['scenarios_count'] = len(scids)
+        # 1. get user input
+        scids = request.json['scids']
+        #scids = [5] # need to get these from study / user
+        session['scenarios_count'] = len(scids)
+        
+        session['pyomo_scen_dir'] = '{}@{}'.format(session['hydra_username'], datetime.now().strftime('%d%m%Y.%H%M%S'))
+        
+        # 2. define app name and arguments
+        # in the future:
+        # a. at least some of these should come in via the user interface (i.e. as a json string)
+        # b. this should be passed on directly to the model server
+        args = dict(
+            app = app.config['PYOMO_APP_NAME'],
+            url = session['hydra_url'],
+            user = session['hydra_username'],
+            pw = decrypt(session['hydra_password'], # POTENTIAL SECURITY CONCERN?
+                         app.config['SECRET_ENCRYPT_KEY']),
+            sid = session['hydra_sessionid'],
+            nid = session['network_id'],
+            tid = session['template_id'],
+            uid = session['hydra_userid'],
+            scids = '"%s"' % scids,
+            ti = app.config['TEMP_TI'],
+            tf = app.config['TEMP_TF'],
+            tsf = app.config['TIMESTEP_FORMAT'],
+            htsf = app.config['HYDRA_DATETIME_FORMAT'],
+            fs = app.config['FORESIGHT'],
+            sol = app.config['SOLVER'],
+            ldir = session['pyomo_scen_dir']
+        )
+        
+        # 3. run the model as a subprocess
+        # in the future, this will be via a web server with json
+        command = 'python %s' % app.config['PYOMO_APP_PATH']
+        for k, v in args.items():
+            command += ' -{} {}'.format(k, v)
+        
+        returncode = Popen(command)
+        
+        status = 0 # model started
+        return jsonify(status=status)
     
-    session['pyomo_scen_dir'] = '{}@{}'.format(session['hydra_username'], datetime.now().strftime('%d%m%Y.%H%M%S'))
-    
-    # 2. define app name and arguments
-    # in the future:
-    # a. at least some of these should come in via the user interface (i.e. as a json string)
-    # b. this should be passed on directly to the model server
-    args = dict(
-        app = app.config['PYOMO_APP_NAME'],
-        url = session['hydra_url'],
-        user = session['hydra_username'],
-        pw = decrypt(session['hydra_password'], # POTENTIAL SECURITY CONCERN?
-                     app.config['SECRET_ENCRYPT_KEY']),
-        sid = session['hydra_sessionid'],
-        nid = session['network_id'],
-        tid = session['template_id'],
-        uid = session['hydra_userid'],
-        scids = '"%s"' % scids,
-        ti = app.config['TEMP_TI'],
-        tf = app.config['TEMP_TF'],
-        tsf = app.config['TIMESTEP_FORMAT'],
-        htsf = app.config['HYDRA_DATETIME_FORMAT'],
-        fs = app.config['FORESIGHT'],
-        sol = app.config['SOLVER'],
-        ldir = session['pyomo_scen_dir']
-    )
-    
-    # 3. run the model as a subprocess
-    # in the future, this will be via a web server with json
-    command = 'python %s' % app.config['PYOMO_APP_PATH']
-    for k, v in args.items():
-        command += ' -{} {}'.format(k, v)
-    
-    returncode = Popen(command)
-    
-    status = 0 # model started
-    return jsonify(status=status)
+    return redirect(url_for('model_dashboard.model_dashboard_main'))
 
 @model_dashboard.route('/_model_progress')
 def model_progress():
@@ -95,11 +96,15 @@ def model_progress():
         ts_completed = 0
         ts_count = 0
         progress = 0
+        main_log = None
+        scen_log = None
+        result = None
     else:
         result = json.loads(result.decode())
         ts_completed = result['completed']
         ts_count = result['count']
-        details = result['details']
+        main_log = result['main_log']
+        scen_log = result['scen_log']
         progress = 0 # default when starting
         status = 2 # the model is running at least
         
@@ -108,4 +113,4 @@ def model_progress():
         if progress == 100:
             status = 3
 
-    return jsonify(progress=int(progress), status=status, details=details)
+    return jsonify(progress=int(progress), status=status, main_log=main_log, scen_log=scen_log)

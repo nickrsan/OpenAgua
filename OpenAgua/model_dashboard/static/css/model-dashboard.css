@@ -1,11 +1,23 @@
-#log_output {
+.log {
     width: 100%;
-    height: 300px;
-    border-width: 1px;
-    border-color: #333333;
-    border-style: solid;
+    padding: 4px;
+    /*border-width: 1px;*/
+    /*border-color: #999999;*/
+    /*border-style: solid;*/
+    background-color: black;
+    /*font-size: small;*/
+    font-family: "Courier New", Courier, monospace;
+    color: white;
     overflow: scroll;
     white-space: pre;
+}
+
+#main_log {
+    height: 150px;
+}
+
+#scen_log {
+    height: 300px;
 }
 
 #model_dashboard_top {

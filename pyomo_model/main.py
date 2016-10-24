@@ -123,13 +123,17 @@ if __name__=='__main__':
     
     # create top-level log file
     logfile = join(args.log_dir, 'log.txt')
-    log = create_logger(args.app_name, logfile, '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    log = create_logger(args.app_name, logfile, '%(asctime)s - %(message)s')
         
     # pre-processing
     for arg in ['network_id', 'scenario_ids', 'template_id']:
         if eval('args.%s' % arg) is not None:
             exec('args.%s = eval(args.%s)' % (arg, arg))
     
-    log.info('started model run with args: %s' % str(args))
+    argdict = args.__dict__.copy()
+    argdict['hydra_password'] = '********'  # we need to encrypt this password
+    argtuples = sorted(argdict.items())
+    args_str = '\n\t'.join([''] + ['{}: {}'.format(a[0], a[1]) for a in argtuples])
+    log.info('started model run with args: %s' % args_str)
     
     run_scenarios(args, log)
