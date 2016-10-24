@@ -1,88 +1,65 @@
-# Chinese (Simplified) translations for PROJECT.
-# Copyright (C) 2016 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2016.
-#
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
-"POT-Creation-Date: 2016-10-22 14:55-0500\n"
-"PO-Revision-Date: 2016-10-21 18:45-0500\n"
-"Last-Translator: \n"
-"Language: zh_Hans\n"
-"Language-Team: zh_Hans <LL@li.org>\n"
-"Plural-Forms: nplurals=1; plural=0\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=utf-8\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Generated-By: Babel 2.3.4\n"
+"X-Generator: POEditor.com\n"
+"Project-Id-Version: OpenAgua\n"
+"Language: zh-CN\n"
 
 #: ../OpenAgua/templates/index.html:24
-msgid ""
-"OpenAgua is a next-generation decision support system for water resources"
-" planning."
-msgstr "OpenAgua是水资源规划的下一代决策支持系统。"
+msgid "OpenAgua is a next-generation decision support system for water resources planning."
+msgstr "OpenAgua 是新一代针对于水资源分配的决策支持系统。"
 
 #: ../OpenAgua/templates/index.html:26
 msgid "Planned features include:"
-msgstr ""
+msgstr "设计中的性能包括："
 
 #: ../OpenAgua/templates/index.html:28
 msgid "Optimization-based simulation modeling of water resources systems."
-msgstr ""
+msgstr "对水资源系统的优化模拟"
 
 #: ../OpenAgua/templates/index.html:28 ../OpenAgua/templates/index.html:29
 #: ../OpenAgua/templates/index.html:30 ../OpenAgua/templates/index.html:31
 #: ../OpenAgua/templates/index.html:32 ../OpenAgua/templates/index.html:33
 #: ../OpenAgua/templates/index.html:34 ../OpenAgua/templates/index.html:35
 msgid "learn more"
-msgstr ""
+msgstr "了解更多"
 
 #: ../OpenAgua/templates/index.html:29
-msgid ""
-"Standardized data organization based on <a "
-"href=\"http://www.hydraplatform.org\">Hydra Platform</a>."
-msgstr ""
+msgid "Standardized data organization based on <a href=\"http://www.hydraplatform.org\">Hydra Platform</a>."
+msgstr "基于 <a href=\"http://hydraplatform.org\" target=\"_blank\">Hydra Platform</a> 的标准化数据管理"
 
 #: ../OpenAgua/templates/index.html:30
-msgid ""
-"Easy and flexible sharing for collaboration between experts, decision-"
-"makers, and stakeholders."
-msgstr ""
+msgid "Easy and flexible sharing for collaboration between experts, decision-makers, and stakeholders."
+msgstr "有助于专家，决策者，和利益相关者之间合作的方便的信息分享"
 
 #: ../OpenAgua/templates/index.html:31
-msgid ""
-"Advanced scenario builder to rapidly explore a wide range of management "
-"alternatives and social, economic and environmental scenarios."
-msgstr ""
+msgid "Advanced scenario builder to rapidly explore a wide range of management alternatives and social, economic and environmental scenarios."
+msgstr "高级的情景生成器致于探索分析不同的管理方案以及社会，经济和环境情景"
 
 #: ../OpenAgua/templates/index.html:32
 msgid "Flexible computing options, leveraging the power of cloud computing."
-msgstr ""
+msgstr "灵活的计算选项，充分利用云计算能力"
 
 #: ../OpenAgua/templates/index.html:33
-msgid ""
-"Advanced visualization tools, including popular third-party graphing "
-"options (e.g., Tableau and Plotly)."
-msgstr ""
+msgid "Advanced visualization tools, including popular third-party graphing options (e.g., Tableau and Plotly)."
+msgstr "高级的图像生成工具，包括一些流行的第三方绘图软件（例如，Tableau 和 Plotly)"
 
 #: ../OpenAgua/templates/index.html:34
 msgid "Open source, with a BSD license."
-msgstr ""
+msgstr "基于 BSD (伯克利软件套件)许可证 的开源"
 
 #: ../OpenAgua/templates/index.html:34
-msgid ""
-"Feel free to <a href=\"https://github.com/CentroDelAgua/OpenAgua\">fork "
-"from GitHub</a> and help improve OpenAgua, or host from your own "
-"computer."
-msgstr ""
+msgid "Feel free to <a href=\"https://github.com/CentroDelAgua/OpenAgua\">fork from GitHub</a> and help improve OpenAgua, or host from your own computer."
+msgstr "随时从个人电脑上复制和帮助改进托管于 GitHub 的 OpenAgua 项目"
 
+#. Can you elaborate?
 #: ../OpenAgua/templates/index.html:35
 msgid "Secure everything."
-msgstr ""
+msgstr "安全保障"
 
 #: ../OpenAgua/templates/index.html:45
 msgid "Institutional partners"
-msgstr ""
+msgstr "合作者机构"
 

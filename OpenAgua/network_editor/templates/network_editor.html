@@ -50,13 +50,24 @@
 
 <!--network editor-->
 <div class='container-fluid'>
-  <div class='row'>
+  <div id="toprow" class='row'>
   
     <!--instructions-->
-    <div class="col col-sm-9 col-md-10 col-lg-10">
+    <div class="col col-sm-12 col-md-8 col-lg-9">
       <div>
       <p><strong>Basic usage:</strong> Use the top left buttons to add polylines (rivers, etc.) and points (demand sites, reservoirs, etc.)</p>
       </div>
+    </div>
+    
+    <div class="col col-sm-12 col-md-4 col-lg-3">
+      <form class="form-inline">
+      <div class="form-group">
+        <div class="input-group">
+          <input id="search" type="text" class="form-control" placeholder="Search..." style="width:100%">
+          <span class="input-group-addon"><span class="glyphicon glyphicon-search"></span></button>
+        </div>
+      </div>
+      </form>
     </div>
     
     <!--settings-->

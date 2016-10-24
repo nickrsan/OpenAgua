@@ -1,6 +1,7 @@
 /*
  * Index page
  */
+ 
 .index {
     margin-top: 15px;
 }
@@ -55,12 +56,36 @@ body {
     padding: 12px 5px 0px 5px;
 }
 
-.nav-menu-toggle {
-    margin-left: -15px;
+/*.nav-menu-toggle {*/
+    /*margin-left: -15px;*/
+/*}*/
+
+#navbar .navbar-brand {
+    padding: 0;
 }
+/*temporary*/
+#warning {
+    background-color: yellow;
+}
+
+
+
+/*nav bar*/
+
 #menu-toggle {
+    float: left;
     font-size: large;
     color: #ffffff;
+    background-color: #336699;
+    height: 50px;
+    width: 50px;
+    border-width: 0;
+    display: none;
+}
+
+#brand {
+    padding: 15px;
+    float: left;
 }
 
 #navbar .navbar-brand,
