@@ -9,13 +9,14 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
 
     model = ConcreteModel(name = model_name)
     
-    # sets
+    # SETS
     
     # basic sets
-    model.Nodes = Set(initialize=nodes)
-    model.Links = Set(initialize=links)
-    model.TS = Set(initialize=timesteps, ordered=True)
+    model.Nodes = Set(initialize=nodes) # nodes
+    model.Links = Set(initialize=links) # links
+    model.TS = Set(initialize=timesteps, ordered=True) # time steps
     
+    # all nodes directly upstream from a node
     def NodesIn_init(model, node):
         retval = []
         for (i,j) in model.Links:
@@ -24,6 +25,7 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         return retval
     model.NodesIn = Set(model.Nodes, initialize=NodesIn_init)
     
+    # all nodes directly downstream from a node
     def NodesOut_init(model, node):
         retval = []
         for (j,k) in model.Links:
@@ -42,7 +44,8 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     if 'Reservoir' in model:
         model.Non_reservoir = model.Nodes - model.Reservoir
     
-    # variables
+    # VARIABLES
+    
     if 'Reservoir' in model:
         model.S = Var(model.Reservoir * model.TS, domain=NonNegativeReals) # storage
         model.D = Var(model.Non_reservoir * model.TS, domain=NonNegativeReals) # delivery
@@ -50,15 +53,15 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         model.D = Var(model.Nodes * model.TS, domain=NonNegativeReals) # delivery
     model.G = Var(model.Nodes * model.TS, domain=NonNegativeReals) # gain (local inflow)
     model.L = Var(model.Nodes * model.TS, domain=NonNegativeReals) # loss (local outflow)
-    model.Q = Var(model.Links * model.TS, domain=NonNegativeReals) # flow in links
-    
     model.I = Var(model.Nodes * model.TS, domain=NonNegativeReals) # total inflow to a node
     model.O = Var(model.Nodes * model.TS, domain=NonNegativeReals) # total outflow from a node
+    model.Q = Var(model.Links * model.TS, domain=NonNegativeReals) # flow in links
     
-    # parameters 
+    # PARAMETERS 
     
     def InitialStorage(model, j):
         return p.node['Initial_Storage'][j]
+
     if 'Reservoir' in model:
         model.Si = Param(model.Reservoir, rule=InitialStorage)
     
@@ -69,6 +72,7 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         elif j in model.Outflow:
             priority = 0
         return priority
+    
     if 'Reservoir' in model:
         model.Demand_Priority = Param(model.Non_reservoir, model.TS, rule=NodePriority_rule)
         model.Storage_Priority = Param(model.Reservoir, model.TS, rule=NodePriority_rule)
@@ -80,30 +84,26 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         if 'Priority' in p.link.keys() and (i, j, t) in p.link['Priority'].keys():
             priority = p.link['Priority'][(i, j, t)]
         return priority
+    
     model.Flow_Priority = Param(model.Links, model.TS, rule=LinkPriority_rule)
     
-    # constraints
+    # CONSTRAINTS
     
-    #def Inflow_rule(model, j, t): # not to be confused with Inflow resources
-        #return model.I[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
-    #model.Inflow_definition = Constraint(model.Nodes, model.TS, rule=Inflow_rule)
+    def Inflow_rule(model, j, t): # not to be confused with Inflow resources
+        return model.I[j,t] == sum(model.Q[i,j,t] for i in model.NodesIn[j])
+    model.Inflow_definition = Constraint(model.Nodes, model.TS, rule=Inflow_rule)
     
-    #def Outflow_rule(model, j, t): # not to be confused with Outflow resources
-        #return model.O[j,t] == sum(model.Q[j,k,t] for k in model.NodesOut[j])
-    #model.Outflow_definition = Constraint(model.Nodes, model.TS, rule=Outflow_rule)
+    def Outflow_rule(model, j, t): # not to be confused with Outflow resources
+        return model.O[j,t] == sum(model.Q[j,k,t] for k in model.NodesOut[j])
+    model.Outflow_definition = Constraint(model.Nodes, model.TS, rule=Outflow_rule)
     
     def StorageMassBalance_rule(model, j, t):
         if t == model.TS.first():
-            return model.Si[j] - model.S[j, t] \
-                   + model.G[j, t] + model.I[j,t] \
-                   - model.L[j, t] - model.O[j,t] == 0
+            return model.Si[j] - model.S[j, t] + model.G[j, t] + model.I[j,t] - model.L[j, t] - model.O[j,t] == 0
         else:
-            return model.S[j, model.TS.prev(t)] - model.S[j, t] \
-                   + model.G[j, t] + model.I[j,t] \
-                   - model.L[j, t] - model.O[j,t] == 0
+            return model.S[j, model.TS.prev(t)] - model.S[j, t] + model.G[j, t] + model.I[j,t] - model.L[j, t] - model.O[j,t] == 0
     def NonStorageMassBalance_rule(model, j, t):
-        return model.G[j, t] + model.I[j,t] \
-               - model.L[j, t] - model.O[j,t] == 0
+        return model.G[j, t] + model.I[j,t] - model.L[j, t] - model.O[j,t] == 0
     if 'Reservoir' in model:
         model.StorageMassBalance = Constraint(model.Reservoir, model.TS, rule=StorageMassBalance_rule)
         model.NonStorageMassBalance = Constraint(model.Non_reservoir, model.TS, rule=NonStorageMassBalance_rule)
@@ -125,7 +125,7 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         elif 'Flow_Capacity' in p.link.keys() and (i,j,t) in p.link['Flow_Capacity'].keys():
             return (0, model.Q[i,j,t], p.link['Flow_Capacity'][(i,j,t)])
         else:
-            return (0, model.Q[i,j,t], 0)
+            return (0, model.Q[i,j,t], 0) # default flow capacity is zero
     model.ChannelCapacity = Constraint(model.Links, model.TS, rule=ChannelCap_rule)
     
     ## NB: delivery should be constrained by delivery link capacity, not actual demand, which
@@ -149,20 +149,20 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         if 'Runoff' in p.node.keys() and (j,t) in p.node['Runoff'].keys():
             return model.G[j,t] == p.node['Runoff'][(j,t)]
         else:
-            return model.G[j,t] == 0
+            return model.G[j,t] == 0 # no local gain
     model.Local_Gain = Constraint(model.Nodes, model.TS, rule=LocalGain_rule)
     
     # this will also be expanded to account for loss to groundwater, etc.
     def LocalLoss_rule(model, j, t):
-        if j in model.Outflow:
+        if 'Outflow' in model and j in model.Outflow: # no constraint at outflow nodes
             return Constraint.Skip
         elif 'Consumption' in p.node.keys() and (j,t) in p.node['Consumption']:
             return model.L[j,t] == model.D[j,t] * p.node['Consumption'][(j,t)] / 100
         else:
-            return model.L[j,t] == 0 # this should be specified as a default
+            return model.L[j,t] == 0 # no local loss
     model.Local_Loss = Constraint(model.Nodes, model.TS, rule=LocalLoss_rule)
     
-    # objective function
+    # OBJECTIVE FUNCTION
     
     def Objective_fn_storage(model):
         return summation(model.Demand_Priority, model.D) \

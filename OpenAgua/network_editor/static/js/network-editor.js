@@ -155,8 +155,10 @@ $(function() {
         var n = currentItems.getLayers().length;
         var status_message;
         if (n > 0 ) {
-            map.fitBounds(currentItems.getBounds(), {padding: [0, 0]});
-            notify('info', 'Network loaded!', 'Your network has ' + n + ' features.');
+            map.fitBounds(currentItems.getBounds(), {
+                paddingTopLeft: [0, 0],
+                paddingBottomRight: [0, 0]});
+            notify('info', 'Network loaded!', '');
         } else {
             map.setView([0, 0], 2);
             notify('info', 'Welcome!', 'Your network is empty. Please add features.');

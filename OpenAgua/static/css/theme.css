@@ -63,6 +63,14 @@ body {
 #navbar .navbar-brand {
     padding: 0;
 }
+/*temporary*/
+#warning {
+    background-color: yellow;
+}
+
+
+
+/*nav bar*/
 
 #menu-toggle {
     float: left;
