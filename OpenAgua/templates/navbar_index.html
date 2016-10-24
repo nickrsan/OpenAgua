@@ -11,16 +11,20 @@
     </div>
     <div class="navbar-collapse collapse">
       <ul class="nav navbar-nav navbar-right">
-        <li class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"><strong>EN - English</strong> <span class="caret"></span></a>
-          <ul class="dropdown-menu">
-            <li><a href="#">EN - English</a></li>
-            <li><a href="#">ES - Espa&#241;ol</a></li>
-            <li><a href="#">HI - &#2361;&#2367;&#2344;&#2381;&#2342;&#2368;</a></li>
-            <li><a href="#">RU - &#1088;&#1091;&#1089;&#1089;&#1082;&#1080;&#1081;</a></li>
-            <li><a href="#">ZH (Simp.) - &#20013;&#25991;(&#31616;)</a></li>
-            <li><a href="#">ZH (Trad.) - &#20013;&#25991;(&#32321;)</a></li>
-          </ul>
+        <li class="nav-item">
+          <form class="navbar-form navbar-left">
+            <div class="form-group">
+              <select id='locale' class="selectpicker" data-width="auto" data-style="btn-success">
+              {% for code in languages %}
+                {% if code == session['language'] %}
+                <option value="{{ code }}" selected="selected">{{ languages[code]}}</option>
+                {% else %}
+                <option value="{{ code }}">{{ languages[code]}}</option>
+                {% endif %}
+              {% endfor %}
+              </select>
+            </div>
+          <form>
         </li>
         <li class="dropdown">
           <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Support <span class="caret"></span></a>

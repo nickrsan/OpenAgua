@@ -23,7 +23,11 @@
 
 #scalar {border-width: 0px; margin-top: 10px; height: 35px}
 #function {height: 300px}
-#timeseries {height: 300px}
+#timeseries {
+  height: 300px;
+  border-top: 0px;
+  border-left: 0px;
+}
 #seasonalts {height: 300px}
 #array {height: 220px}
 

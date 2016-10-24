@@ -4,6 +4,8 @@
 
 {% include 'navbar_index.html' %} 
 
+<script src="{{ url_for('static', filename='js/index.js') }}"></script>
+
 {% endblock %}
 
 {% block body %}
@@ -19,19 +21,18 @@
   <div class="container-fluid">
     <div class="row">   
       <div class="col-sm-12 col-md-8">
+        <h3>{{ _('OpenAgua is a next-generation decision support system for water resources planning.') }}</h3>
         <p style="background-color:yellow;"><strong>PLEASE READ!</strong> Thank you for checking out this site. Please be aware that it is currently in a testing phase. Though we will try to keep user records, your user account and data may be deleted without warning at any time. Furthermore, we request that you don't share this site, as we are not set up for much website traffic (we're using a free tier AWS micro t2). If you weren't invited by the developers, please send an email to admin at openagua dot org and indicate you're interest.</p>
-        <h1>Welcome to OpenAgua!</h1>
-        <p>OpenAgua is a next-generation decision support system for water resources planning.</p>
-        <p>Planned features include:</p>
+        <p>{{_('Planned features include:')}}</p>
         <ul>
-          <li>Optimization-based simulation modeling of water resources systems. (<a href="#">learn more</a>)</li>
-          <li>Standardized data organization based on <a href="http://www.hydraplatform.org">Hydra Platform</a>. (<a href="#">learn more</a>)</li>
-          <li>Easy and flexible sharing for collaboration between experts, decision-makers, and stakeholders. (<a href="#">learn more</a>)</li>
-          <li>Advanced scenario builder to rapidly explore a wide range of management alternatives and social, economic and environmental scenarios. (<a href="#">learn more</a>)</li>
-          <li>Flexible computing options, leveraging the power of cloud computing. (<a href="#">learn more</a>)</li>
-          <li>Advanced visualization tools, including popular third-party graphing options (e.g., Tableau and Plotly). (<a href="#">learn more</a>)</li>
-          <li>Open source, with a BSD license. Feel free to <a href="https://github.com/CentroDelAgua-Decisiones/OpenAguaDSS">fork from GitHub</a> and help improve OpenAgua, or host from your own computer. (<a href="#">learn more</a>)</li>
-          <li>Secure everything. (<a href="#">learn more</a>)</li>
+          <li>{{_('Optimization-based simulation modeling of water resources systems.')}} (<a href="#">{{_('learn more')}}</a>)</li>
+          <li>{{_('Standardized data organization based on <a href="http://www.hydraplatform.org">Hydra Platform</a>.')}}  (<a href="#">{{_('learn more')}}</a>)</li>
+          <li>{{_('Easy and flexible sharing for collaboration between experts, decision-makers, and stakeholders.')}} (<a href="#">{{_('learn more')}}</a>)</li>
+          <li>{{_('Advanced scenario builder to rapidly explore a wide range of management alternatives and social, economic and environmental scenarios.')}} (<a href="#">{{_('learn more')}}</a>)</li>
+          <li>{{_('Flexible computing options, leveraging the power of cloud computing.')}} (<a href="#">{{_('learn more')}}</a>)</li>
+          <li>{{_('Advanced visualization tools, including popular third-party graphing options (e.g., Tableau and Plotly).')}} (<a href="#">{{_('learn more')}}</a>)</li>
+          <li>{{_('Open source, with a BSD license.')}} {{_('Feel free to <a href="https://github.com/CentroDelAgua/OpenAgua">fork from GitHub</a> and help improve OpenAgua, or host from your own computer.')}} (<a href="#">{{_('learn more')}}</a>)</li>
+          <li>{{_('Secure everything.')}} (<a href="#">{{_('learn more')}}</a>)</li>
         </ul>
         <br/>
         <div>
@@ -41,7 +42,7 @@
     
         <div class="row">
           <div class="col-sm-12 col-md-12 col-lg-12">
-            <h3>Institutional partners</h3>
+            <h3>{{_('Institutional partners')}}</h3>
                 <a href="http://www.centrodelagua.org/"><img class="logo" src="{{ url_for('static', filename='images/centrodelagua.png') }}" width="250px"></img></a>
                 <a href="http://watershed.ucdavis.edu/"><img class="logo" src="{{ url_for('static', filename='images/ucdcws.png') }}" width="250px"></img></a>
                 <a href="http://citris-uc.org"><img class="logo" src="{{ url_for('static', filename='images/citris_logo.png') }}" width="250"></img></a>

@@ -3,7 +3,7 @@ from webcolors import name_to_hex
 import sys
 import requests
 import json
-from flask import session
+from flask import session, flash
 from flask_security import current_user
 import zipfile
 from attrdict import AttrDict
@@ -130,11 +130,16 @@ class connection(object):
     def get_node(self, node_id=None):
         return self.call('get_node',{'node_id':node_id})
     
+    def get_link(self, link_id=None):
+        return self.call('get_link',{'link_id':link_id})
+    
     def purge_replace_node(self, gj=None):
         
-        node_id = gj['properties']['id']
+        new_link = None
         
-        ttype = gj['properties']['template_type_name']
+        node_id = gj.properties.id
+        
+        ttype = gj.properties.template_type_name
         
         adj_links = [l for l in self.network.links \
                  if node_id in [l.node_1_id, l.node_2_id]]
@@ -142,6 +147,15 @@ class connection(object):
         if ttype == 'Junction':
             new_node = None
             del_link_ids = [l.id for l in adj_links]
+            
+            # delete the downstream node and modify the upstream node
+            if len(adj_links) == 2 \
+               and (adj_links[0].node_2_id == adj_links[1].node_1_id or adj_links[1].node_2_id == adj_links[0].node_1_id):
+                uplink = [l for l in adj_links if l.node_2_id == node_id][0]
+                downlink = [l for l in adj_links if l.node_1_id == node_id][0]
+                uplink['node_2_id'] = downlink.node_2_id
+                new_link = self.call('update_link', {'link': uplink})
+                self.call('purge_link', {'link': downlink})
         elif ttype == 'Inflow':
             new_node = None
             del_link_ids = [l.id for l in adj_links]
@@ -177,7 +191,7 @@ class connection(object):
         # purge node (adjacent links are deleted if not updated)
         self.call('purge_node', {'node_id': node_id, 'purge_data': 'Y'})        
         
-        return new_node, del_link_ids
+        return new_node, new_link, del_link_ids
         
     def update_links(self, old_node_id, new_node_id):
         for link in self.network.links:
@@ -212,80 +226,91 @@ class connection(object):
         
     
     def make_geojson_from_node(self, node=None):
+        if 'geojson' in node.layout:
+            gj = node.layout.geojson
+        else:
+            gj = {'type':'Feature', 'geometry': {'type': 'Point', 'coordinates': [node.x, node.y]}}
+            
+        # make sure properties are up-to-date
         type_id = [t.id for t in node.types \
                    if t.template_id==self.template.id][0]
-        ttype = self.ttypes[type_id]
-        gj = {'type':'Feature',
-              'geometry':{'type':'Point',
-                          'coordinates':[node.x, node.y]},
-              'properties':{'name':node.name,
-                            'id':node.id,
-                            'description':node.description,
-                            'template_type_name':ttype.name,
-                            'template_type_id':ttype.id,
-                            'image':ttype.layout.image,
-                            'template_name':self.template.name}}
+        ttype = self.ttypes[type_id]        
+        gj['properties'] = {'name': node.name,
+                            'id': node.id,
+                            'description': node.description,
+                            'template_type_name': ttype.name,
+                            'template_type_id': ttype.id,
+                            'image': ttype.layout.image,
+                            'template_name': self.template.name}
         return gj
 
     def make_geojson_from_link(self, link=None):
         
-        coords = get_coords(self.network.nodes)
-        
-        type_id = [t.id for t in link.types \
-                   if t.template_id==self.template.id][0]
-        ttype = self.ttypes[type_id]
-
-        n1_id = link['node_1_id']
-        n2_id = link['node_2_id']
-        
-        # for dash arrays, see:
-        # https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
-        symbol = ttype.layout.symbol
-        if symbol=='solid':
-            dashArray = '1,0'
-        elif symbol=='dashed':
-            dashArray = '5,5'
+        if 'geojson' in link.layout:
+            gj = node.layout.geojson
+        else:         
+            coords = get_coords(self.network.nodes)
             
-        gj = {'type':'Feature',
-             'geometry':{ 'type': 'LineString',
-                          'coordinates': [coords[n1_id],coords[n2_id]] },
-             'properties':{'name':link.name,
-                           'id':link.id,
-                           'node_1_id': n1_id,
-                           'node_2_id': n2_id,
-                           'description':link.description,
-                           'template_type_name':ttype.name,
-                           'template_type_id':ttype.id,
-                           'image':ttype.layout.image,
-                           'template_name':self.template.name,
-                           'color': name_to_hex(ttype.layout.colour),
-                           'weight': ttype.layout.line_weight,
-                           'opacity': 0.7, # move to CSS?
-                           'dashArray': dashArray,
-                           'lineJoin': 'round'
-                           }
-             }
+            type_id = [t.id for t in link.types \
+                       if t.template_id==self.template.id][0]
+            ttype = self.ttypes[type_id]
+    
+            n1_id = link.node_1_id
+            n2_id = link.node_2_id
+            
+            # for dash arrays, see:
+            # https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
+            symbol = ttype.layout.symbol
+            if symbol=='solid':
+                dashArray = '1,0'
+            elif symbol=='dashed':
+                dashArray = '5,5'
+            
+            if n1_id in coords and n2_id in coords:
+                gj = {'type':'Feature',
+                     'geometry':{ 'type': 'LineString',
+                                  'coordinates': [coords[n1_id], coords[n2_id]] },
+                     'properties':{'name':link.name,
+                                   'id':link.id,
+                                   'node_1_id': n1_id,
+                                   'node_2_id': n2_id,
+                                   'description':link.description,
+                                   'template_type_name':ttype.name,
+                                   'template_type_id':ttype.id,
+                                   'image':ttype.layout.image,
+                                   'template_name':self.template.name,
+                                   'color': name_to_hex(ttype.layout.colour),
+                                   'weight': ttype.layout.line_weight,
+                                   'opacity': 0.7, # move to CSS?
+                                   'dashArray': dashArray,
+                                   'lineJoin': 'round'
+                                   }
+                     }
+            else:
+                gj = None
         return gj
         
     # make geojson features
-    def make_geojson_features(self):
-        
-        nodes_gj = \
-            [self.make_geojson_from_node(node) for node in self.network.nodes]
-        
-        links_gj = \
-            [self.make_geojson_from_link(link) \
-             for link in self.network.links]
+    def make_geojson_nodes(self):
+        return [self.make_geojson_from_node(node) for node in self.network.nodes]
 
-        features = nodes_gj + links_gj
-    
-        return features
+    # make geojson features
+    def make_geojson_links(self):
+        lines = []
+        for link in self.network.links:
+            line = self.make_geojson_from_link(link)
+            if line is not None:
+                lines.append(line)
+            else:
+                flash('Warning! "Link {}" appears to be invalid and was deleted.'.format(link.name), 'error')
+                self.call('purge_link', {'link_id': link.id, 'purge_data': 'Y'})
+        return lines
     
     # convert geoJson node to Hydra node
     def add_node_from_geojson(self, gj=None, existing_node_id=None):
-        x, y = gj['geometry']['coordinates']
-        ttype_name = gj['properties']['template_type_name']
-        ttype_id = int(gj['properties']['template_type_id'])
+        x, y = gj.geometry.coordinates
+        ttype_name = gj.properties.template_type_name
+        ttype_id = int(gj.properties.template_type_id)       
         
         typesummary = dict(
             name = ttype_name,
@@ -295,31 +320,33 @@ class connection(object):
         )
         node = dict(
             id = -1,
-            name = gj['properties']['name'],
-            description = gj['properties']['description'],
+            name = gj.properties.name,
+            description = gj.properties.description,
             x = str(x),
             y = str(y),
-            types = [typesummary]
+            types = [typesummary],
+            layout = {'geojson': dict(gj)}
         )
         
-        # delete old node
-        # will be faster to get this client side from Leaflet Snap
-        old_node_id = None
-        for n in self.network.nodes:
-            if (x,y) == (float(n.x), float(n.y)):
-                old_node_id = n.id
-                break
+        ## delete old node
+        ## will be faster to get this client side from Leaflet Snap
+        #old_node_id = None
+        #for n in self.network.nodes:
+            #if (x,y) == (float(n.x), float(n.y)):
+                #old_node_id = n.id
+                #break
         
         # add new node
         new_node = self.call('add_node', {'network_id': session['network_id'], 'node': node})
         
         # update existing adjacent links, if any, with new node id
         # it would be best if we could get the attached links clientside
-        if old_node_id is not None:
-            self.update_links(old_node_id, new_node.id)
-            self.call('purge_node', {'node_id': old_node_id})
+        #if old_node_id is not None:
+            #self.update_links(old_node_id, new_node.id)
+            #self.call('purge_node', {'node_id': old_node_id})
         
-        return new_node, old_node_id
+        #return new_node, old_node_id
+        return new_node
     
     def make_generic_node(self, ttype_name, node_name, x, y):
         typesummary = dict(

@@ -34,7 +34,9 @@ def load_network():
     conn = make_connection()
     conn.load_active_study()
     
-    features = conn.make_geojson_features()
+    points = conn.make_geojson_nodes()
+    lines = conn.make_geojson_links()
+    features = points + lines
     features = json.dumps(features)
     
     status_code = 1
@@ -50,21 +52,51 @@ def add_node():
         conn = make_connection()
         conn.load_active_study()
     
-        gj = request.json
+        gj = AttrDict(request.json['gj'])
+        parent_link_id = request.json['parent_link_id']
+        existing_node_id = request.json['existing_node_id']
         
         # check if the node already exists in the network
         # NB: need to check if there can be duplicate names by 
-        if gj['properties']['name'] in [f.name for f in conn.network.nodes]:
+        if gj.properties.name in [f.name for f in conn.network.nodes]:
             status_code = -1
-            old_node_id = None,
+            #old_node_id = None,
             new_gj = None
             
         # create the new node
         else:
-            new_node, old_node_id = conn.add_node_from_geojson(gj)
+            #new_node, old_node_id = conn.add_node_from_geojson(gj)
+            new_node = conn.add_node_from_geojson(gj)
             new_gj = [conn.make_geojson_from_node(new_node)]
+            
+            if parent_link_id:
+            
+                old_link = [l for l in conn.network.links if l.id == parent_link_id][0]
+                
+                # update old link, now ending at new node
+                up_link = AttrDict(old_link.copy())
+                up_link.node_2_id = new_node.id
+                up_link.name = old_link.name + ' 01'
+                up_link = conn.call('update_link', {'link': up_link})
+                
+                # create new downstream link
+                down_link = AttrDict(old_link.copy())
+                down_link.id = None
+                down_link.name = old_link.name + ' 02'
+                down_link.node_1_id = new_node.id
+                down_link = conn.call('add_link', {'network_id': conn.network.id, 'link': down_link})
+    
+                conn.load_active_study() # reload the network
+                for link in [up_link, down_link]:
+                    new_gj.append(conn.make_geojson_from_link(link))
+                    
+            elif existing_node_id: # update existing links and delete old node
+                conn.update_links(existing_node_id, new_node.id)
+                conn.call('purge_node', {'node_id': existing_node_id})
+            
             status_code = 1
-        return jsonify(new_gj=new_gj, old_node_id=old_node_id, status_code=status_code)
+        #return jsonify(new_gj=new_gj, old_node_id=old_node_id, status_code=status_code)
+        return jsonify(new_gj=new_gj, status_code=status_code)
     
     return redirect(url_for('net_editor.network_editor'))
 
@@ -200,22 +232,55 @@ def purge_replace_feature():
         conn = make_connection()
         conn.load_active_study()
         
-        gj = request.json
+        gj = AttrDict(request.json)
     
         status_code = -1
         new_gj = []
-        if gj['geometry']['type'] == 'Point':
-            new_node, del_links = conn.purge_replace_node(gj)
+        if gj.geometry.type == 'Point':
+            new_node, new_link, del_links = conn.purge_replace_node(gj)
             if new_node:
                 new_gj.append(conn.make_geojson_from_node(new_node))
                 status_code = 1
+            if new_link:
+                new_gj.append(conn.make_geojson_from_link(new_link))
+                #status_code = 0
             else:
                 status_code = 0
         else:
-            link_id = gj['properties']['id']
+            link_id = gj.properties.id
             conn.call('purge_link', {'link_id': link_id, 'purge_data':'Y'})
             del_links = [link_id]
             status_code = 1
         return jsonify(new_gj=new_gj, del_links=del_links, status_code=status_code)
+    
+    return redirect(url_for('net_editor.network_editor'))
+
+@net_editor.route('/_change_name_description', methods=['GET', 'POST'])
+@login_required
+def change_name_description():
+    
+    if request.method == 'POST':
+        
+        conn = make_connection()
+        
+        feature = AttrDict(request.json)
+        if feature.type == 'Point':
+            node = conn.get_node(feature.id)
+            node['name'] = feature.name
+            node['description'] = feature.description
+            node['attributes'] = None
+            result = conn.call('update_node', {'node': node})
+        else:
+            link = conn.get_link(feature.id)
+            link['name'] = feature.name
+            link['description'] = feature.description
+            link['attributes'] = None
+            result = conn.call('update_link', {'link': link})
+        if 'faultcode' in result:
+            status_code = -1
+        else:
+            status_code = 1
+        
+        return jsonify(status_code = status_code)
     
     return redirect(url_for('net_editor.network_editor'))

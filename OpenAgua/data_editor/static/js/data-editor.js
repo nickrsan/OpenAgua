@@ -4,7 +4,8 @@ var feature_id, feature_type,
     template_id,
     res_attr, res_attr_id, res_attr_name,
     type_id,
-    data_type, orig_data_type, cur_data_type;
+    data_type, orig_input_data_type, cur_input_data_type,
+    hotTable;
 
 var unit,
     dimension, 
@@ -32,11 +33,11 @@ aceEditor.setOptions({
 });
 
 // initialize handsontable (time series editor)
-var hotEditor = makeHandsontable('timeseries', $("#timeseries").css("height"), unsaved)
+//var hotEditor = makeHandsontable('#timeseries', $("#timeseries").css("height"), unsaved);
 
-$(function(){
+$( function() {
 
-  clearPreview()
+  clearPreview();
 
   // load the variables when the feature is clicked
   $('#features').on('changed.bs.select', function (e) {
@@ -64,7 +65,7 @@ $(function(){
       res_attr = JSON.parse(selected.attr("data-tags"));
       unit = res_attr.unit;
       dimension = res_attr.dimension;
-      orig_data_type = res_attr.data_type;
+      data_type = res_attr.data_type;
       var spicker = $('#scenarios');
       if (spicker.attr('disabled')) {
         spicker.attr('disabled',false).selectpicker('refresh');
@@ -74,7 +75,7 @@ $(function(){
       } else {
       var stitle = 'Select a scenario'
       $('button[data-id="scenarios"]')
-        .attr('title',stitle).children('.filter-option').text(stitle)
+        .attr('title',stitle).children('.filter-option').text(stitle);
       }
     }
   });
@@ -84,17 +85,19 @@ $(function(){
     var selected = $('#datatypes option:selected');
     
     var tags = JSON.parse(selected.attr("data-tags"));
-    var temp_data_type = tags.data_type;
+    var temp_input_data_type = tags.data_type;
       var msg = 'Are you sure you want to change the data type? This change will become permanent if the new data is saved.'
       bootbox.confirm(msg, function(confirm) {
         if (confirm) {          
-          cur_data_type = temp_data_type;
-          if (cur_data_type == 'function' & cur_data_type != orig_data_type) {
-            aceEditor.setValue('');          
+          cur_input_data_type = temp_input_data_type;
+          updateEditor(cur_input_data_type, unit, dimension);
+          if (cur_input_data_type == 'function' && cur_input_data_type != orig_input_data_type) {
+            aceEditor.setValue('');
+          } else if (cur_input_data_type == 'timeseries') {
+            //hotTable.reload();
           }
-          updateEditor(cur_data_type, unit, dimension);
         } else {
-          setDataTypeSelector(cur_data_type);
+          setDataTypeSelector(cur_input_data_type);
         }
       });
   });
@@ -136,7 +139,7 @@ $('#check, #save').click(function() {
   var new_data,
       unchanged;
 
-  switch(cur_data_type) {
+  switch(cur_input_data_type) {
   
     case "function":
       new_data = aceEditor.getValue(); 
@@ -169,8 +172,8 @@ $('#check, #save').click(function() {
       break;
   }
   
-  // also check if the data type has changed
-  if (cur_data_type != orig_data_type) {
+  // also check if the input type has changed
+  if (cur_input_data_type != orig_input_data_type) {
     unchanged = false;  
   }
   
@@ -258,6 +261,7 @@ function loadVariables(type_id) {
 function loadVariableData() {
 
   data_type = res_attr.data_type;
+  orig_input_data_type = data_type;
   var data = {
     type_id: type_id,
     feature_type: feature_type,
@@ -270,20 +274,19 @@ function loadVariableData() {
     res_attr_data = resp.res_attr_data;
     var eval_value = resp.eval_value;
     if (res_attr_data != null) {
-      orig_data_type = res_attr_data.value.type;
       metadata = JSON.parse(res_attr_data.value.metadata)
       if (metadata.hasOwnProperty('function')) {
         if (metadata.function.length) {
-          orig_data_type = 'function';
+          orig_input_data_type = 'function';
         }
       }
   
     } 
-    cur_data_type = orig_data_type; // should be here
+    cur_input_data_type = orig_input_data_type; // should be here
     
-    loadEditorData(cur_data_type, res_attr_data, eval_value);
+    loadEditorData(cur_input_data_type, data_type, res_attr, res_attr_data, eval_value);
     if (res_attr_data != null) {
-      loadPreviewData(cur_data_type, scen_name, eval_value);    
+      loadPreviewData(data_type, scen_name, eval_value);    
     } else {
       clearPreview();    
     }
@@ -293,28 +296,39 @@ function loadVariableData() {
 }
 
 
-function loadEditorData(cur_data_type, res_attr_data, eval_value) {
+function loadEditorData(input_data_type, data_type, res_attr, res_attr_data, eval_value) {
+
+  var col_headers,
+    input_is_data = (input_data_type === data_type);;
+
+  // basic prep
+  switch(data_type) {
+    case 'timeseries':
+      col_headers = ['Time step', scen_name]; // get from settings later
+      break;
+    default:
+    break;
+  }
 
   clearEditor();
-  updateEditor(cur_data_type, unit, dimension);
-  
-  switch(cur_data_type) {
-      
+  updateEditor(input_data_type, unit, dimension);
+    
+  switch(input_data_type) {
+    
     case 'function':
       if (res_attr_data == null) {
         original_data = '';
       } else {
         original_data = JSON.parse(res_attr_data.value.metadata).function;
       }
-      setDataTypeSelector(cur_data_type);
+      setDataTypeSelector(input_data_type);
       updateAceEditor(original_data);
       break;
   
     case 'timeseries':
       original_data = _.cloneDeep(eval_value);
-      setDataTypeSelector(cur_data_type);
-      var col_headers = ['Month', scen_name]; // get from settings later
-      updateHandsontable(eval_value, col_headers);
+      setDataTypeSelector(input_data_type);
+      hot(eval_value, col_headers);
       break;
       
     case 'scalar':
@@ -341,13 +355,24 @@ function loadEditorData(cur_data_type, res_attr_data, eval_value) {
     default:
       break;
   }
+  
+  // load the non-input data in the background
+  if (!input_is_data) {
+    switch(data_type) {
+      case 'timeseries':
+        hot(eval_value, col_headers);
+        break;
+      default:
+        break;
+    }
+  }
 }
 
-function loadPreviewData(cur_data_type, scen_name, eval_value) {
+function loadPreviewData(data_type, scen_name, eval_value) {
 
   clearPreview();
   
-  switch(cur_data_type) {
+  switch(data_type) {
       
     case 'function':
       previewTimeseries(scen_name, eval_value);
@@ -387,7 +412,7 @@ function checkOrSaveData(new_data, action) {
 
   var data = {
     action: action,
-    cur_data_type: cur_data_type,
+    cur_data_type: cur_input_data_type,
     new_data: new_data
   }
   
@@ -419,15 +444,14 @@ function checkData(data) {
           notify('success','Looks good!', 'Remember to save your edits.');
           errmsg('');
         }
-        //updateChart(scen_name, resp.eval_value);
-        loadPreviewData(cur_data_type, scen_name, resp.eval_value);
+        loadPreviewData(cur_input_data_type, scen_name, resp.eval_value);
         unsaved();
     }
   });
 }
 
 function saveData(data) {
-  data.orig_data_type = orig_data_type;
+  data.orig_data_type = orig_input_data_type;
   data.scen_id = scen_id;
   data.res_attr = res_attr;
   data.res_attr_data = res_attr_data; // old data container
@@ -462,9 +486,9 @@ function saveData(data) {
 
 // EDITOR FUNCTIONS
 
-function updateEditor(data_type, unit, dimension) {
+function updateEditor(input_data_type, unit, dimension) {
   $('.editor').hide();
-  $('#'+data_type).show();
+  $('#'+input_data_type).show();
   $('#editor_status').hide();
   $('#editor').show()
   $('#unit').html('<strong>&nbsp;Unit: </strong>'+unit+'&nbsp;('+dimension+')');
@@ -534,4 +558,44 @@ function clearPreview(msg='No data to preview') {
   } else {
     $('#preview_status').empty().hide();  
   }
+}
+
+function hot(data, colHeaders) {
+
+  // some preprocessing
+  var colWidths = [70].concat(_.times(colHeaders.length-1, _.constant(80)));
+  var container = $('#timeseries')
+  container.empty();
+  // settings
+  var contextMenu = ['undo', 'redo'];
+  
+  // destroy old table, if it exists  
+  if (hotTable !== undefined) {
+    hotTable.destroy();
+  }
+  // create the table
+  hotTable = new Handsontable(container[0], {
+    afterChange: function(changes, source) {
+      unsaved();
+    },
+    data: data,
+    manualColumnResize: true,
+    defaultRowHeight: 60,
+    manualRowResize: false,
+    height: container.height(),
+    stretchH: 'last',
+    minSpareRows: 0,
+    minSpareCols: 0,
+    rowHeaders: true,
+    colHeaders: true,
+    contextMenu: contextMenu,
+    colWidths: colWidths,
+    minCols: colHeaders.length,
+    maxCols: colHeaders.length,
+    minRows: data.length,
+    maxRows: data.length,
+    colHeaders: colHeaders
+    ////columns: columns
+
+  });
 }
