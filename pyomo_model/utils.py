@@ -133,7 +133,9 @@ class connection(object):
     def save_results(self, instance, outputnames):
         res_scens = {}
         updated_res_scens = []
-        for rs in self.network.scenarios[0].resourcescenarios:
+        scenario = self.network.scenarios[0]
+        scenario_id = scenario.id
+        for rs in scenario.resourcescenarios:
             res_scens[rs.resource_attr_id] = rs
     
         # loop through all the model variables

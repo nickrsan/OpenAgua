@@ -34,7 +34,7 @@ PYOMO_APP_NAME = 'OpenAgua'
 SOLVER = "glpk"
 FORESIGHT = 'perfect' # to be set by user
 TEMP_TI = '01/2000'
-TEMP_TF = '12/2019'
+TEMP_TF = '12/2000'
 
 # Flask-Security settings
 SECURITY_FLASH_MESSAGES = True
