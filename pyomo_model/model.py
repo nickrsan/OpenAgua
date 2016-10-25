@@ -41,11 +41,14 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
         exec('m.{} = Set(within=m.Links, initialize={})'.format(k, v))
     
     # create set for non-storage nodes
-    m.Non_reservoir = m.Nodes - m.Reservoir
+    m.NonReservoir = m.Nodes - m.Reservoir
+    m.Demand_Nodes = m.NonReservoir - m.Junction
     
     # VARIABLES
     
     m.S = Var(m.Reservoir * m.TS, domain=NonNegativeReals) # storage
+    m.D = Var(m.Demand_Nodes * m.TS, domain=NonNegativeReals) # delivery to demand nodes
+    
     m.G = Var(m.Nodes * m.TS, domain=NonNegativeReals) # gain (local inflow)
     m.L = Var(m.Nodes * m.TS, domain=NonNegativeReals) # loss (local outflow)
     m.I = Var(m.Nodes * m.TS, domain=NonNegativeReals) # total inflow to a node
@@ -60,20 +63,21 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     
     def NodePriority_rule(m, j, t):
         if j in m.Outflow:
-            return 1
+            return 0
         elif 'Priority' in p.node.keys() and (j, t) in p.node['Priority'].keys():
-            priority = p.node['Priority'][(j, t)]
+            return p.node['Priority'][(j, t)]
         else:
             return -1
-    m.Demand_Priority = Param(m.Non_reservoir, m.TS, rule=NodePriority_rule)
+    m.Demand_Priority = Param(m.Demand_Nodes, m.TS, rule=NodePriority_rule)
     m.Storage_Priority = Param(m.Reservoir, m.TS, rule=NodePriority_rule)
 
     def LinkPriority_rule(m, i, j, t):
-        priority = 0
-        if 'Priority' in p.link.keys() and (i, j, t) in p.link['Priority'].keys():
-            priority = p.link['Priority'][(i, j, t)]
-        return priority
-    
+        if (i,j) in m.River:
+            return 0
+        elif 'Priority' in p.link.keys() and (i, j, t) in p.link['Priority'].keys():
+            return p.link['Priority'][(i, j, t)]
+        else:
+            return -1
     m.Flow_Priority = Param(m.Links, m.TS, rule=LinkPriority_rule)
     
     # CONSTRAINTS
@@ -85,6 +89,10 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     def Outflow_rule(m, j, t): # not to be confused with Outflow resources
         return m.O[j,t] == sum(m.Q[j,k,t] for k in m.NodesOut[j])
     m.Outflow_definition = Constraint(m.Nodes, m.TS, rule=Outflow_rule)
+    
+    def Delivery_rule(m, j, t): # basically the same as I, but for a different purpose
+        return m.D[j,t] == sum(m.Q[i,j,t] for i in m.NodesIn[j])
+    m.Delivery_definition = Constraint(m.Demand_Nodes, m.TS, rule=Delivery_rule)
     
     def MassBalance_rule(m, j, t):
         if j in m.Reservoir:
@@ -114,7 +122,7 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
             #return (0, m.D[j,t], p.node['Demand'][(j,t)])
         #else:
             #return Constraint.Skip
-    #m.DeliveryCap = Constraint(m.Non_reservoir, m.TS, rule=DeliveryCap_rule)
+    #m.DeliveryCap = Constraint(m.NonReservoir, m.TS, rule=DeliveryCap_rule)
     
     def StorageBounds_rule(m, j, t):
         return (p.node['Inactive_Pool'][(j,t)], m.S[j,t], p.node['Storage_Capacity'][(j,t)])
@@ -134,8 +142,8 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     def LocalLoss_rule(m, j, t):
         if j in m.Outflow: # no constraint at outflow nodes
             return Constraint.Skip
-        elif 'Consumption' in p.node.keys() and (j,t) in p.node['Consumption']:
-            return m.L[j,t] == m.D[j,t] * p.node['Consumption'][(j,t)] / 100
+        elif 'Consumptive_Loss' in p.node.keys() and (j,t) in p.node['Consumptive_Loss']:
+            return m.L[j,t] == m.D[j,t] * p.node['Consumptive_Loss'][(j,t)] / 100
         else:
             return m.L[j,t] == 0 # no local loss
     m.Local_Loss = Constraint(m.Nodes, m.TS, rule=LocalLoss_rule)
@@ -143,13 +151,13 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
     # OBJECTIVE FUNCTION
     
     def Objective_fn(m):
-        return summation(m.Demand_Priority, m.I) + summation(m.Storage_Priority, m.S) + summation(m.Flow_Priority, m.Q)
+        return summation(m.Demand_Priority, m.D) + summation(m.Storage_Priority, m.S) + summation(m.Flow_Priority, m.Q)
     m.Ojective = Objective(rule=Objective_fn, sense=maximize)
     
     return m
 
+
 def prepare_model(model_name, network, template, attr_names, timestep_dict):
-#def prepare_m(m_name, network, attrs, timestep_dict):
     
     # prepare data - we could move some of this to elsewhere 
     
