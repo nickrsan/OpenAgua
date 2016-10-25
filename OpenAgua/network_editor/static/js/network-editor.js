@@ -208,23 +208,30 @@ $(function() {
             });
             var parent_line = L.GeometryUtil.closestLayerSnap(map, lines, L.latLng(coords), 1, false);
             var close_points = L.GeometryUtil.layersWithin(map, points, L.latLng(coords), 1);
+            var confirm_first = false;
             if (close_points.length) close_point = close_points[0].layer.feature
-            if (close_point !== null && close_point.properties.template_type_name !== 'Junction') {
+            if (close_point !== null) {
+                existing_node_id = close_point.properties.id
+                if (close_point.properties.template_type_name !== 'Junction') {
+                    confirm_first = true;
+                }
+            } else {
+                if (parent_line !== null && close_point == null) {
+                    parent_line_id = parent_line.layer._leaflet_id;
+                    parent_link_id = parent_line.layer.feature.properties.id;
+                }
+            }
+            if (confirm_first) {
                 bootbox.confirm('Are you sure you want to replace ' + close_point.properties.template_type_name + ' "' + close_point.properties.name + '" with another point? This cannot be undone.', function(confirm) {
                     if(confirm) {
-                        existing_node_id = close_point.properties.id;
                         showAddNode();
                     } else {
                         newItems.removeLayer(layer);
                     }
                 });
             } else {
-                if (parent_line !== null && close_point == null) {
-                    parent_line_id = parent_line.layer._leaflet_id;
-                    parent_link_id = parent_line.layer.feature.properties.id;
-                }
                 showAddNode();
-            }                
+            }
         } else {
             showAddLink();
         }
