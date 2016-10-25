@@ -60,12 +60,10 @@ def add_node():
         # NB: need to check if there can be duplicate names by 
         if gj.properties.name in [f.name for f in conn.network.nodes]:
             status_code = -1
-            #old_node_id = None,
             new_gj = None
             
         # create the new node
         else:
-            #new_node, old_node_id = conn.add_node_from_geojson(gj)
             new_node = conn.add_node_from_geojson(gj)
             new_gj = [conn.make_geojson_from_node(new_node)]
             
@@ -95,7 +93,6 @@ def add_node():
                 conn.call('purge_node', {'node_id': existing_node_id})
             
             status_code = 1
-        #return jsonify(new_gj=new_gj, old_node_id=old_node_id, status_code=status_code)
         return jsonify(new_gj=new_gj, status_code=status_code)
     
     return redirect(url_for('net_editor.network_editor'))
@@ -105,6 +102,7 @@ def add_node():
 def add_link():
     
     if request.method == 'POST':
+        
         conn = make_connection()
         conn.load_active_study()
     
@@ -120,13 +118,12 @@ def add_link():
         else:
             hlinks, hnodes = conn.make_links_from_geojson(gj)
             conn.load_active_study() # reload the network with the new links
-            status_code = -1
+            status_code = 1
             new_gj = []
             if hlinks:
                 for link in hlinks:
                     gj = conn.make_geojson_from_link(link)
                     new_gj.append(gj)
-                status_code = 1
             if hnodes:
                 for node in hnodes:
                     gj = conn.make_geojson_from_node(node)

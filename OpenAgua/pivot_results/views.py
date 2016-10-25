@@ -18,6 +18,11 @@ def main():
     conn = make_connection(login=True)
     conn.load_active_study()
     #res_attrs = conn.get_res_attrs()
+    #res_types = {'Nodes': {}, 'Links': {}}
+    #for n in conn.network.nodes:
+        #res_type = [rt for rt in n.types if rt.template_id == conn.template.id][0]
+        #if res_type.type_id not in res_types['Nodes']:
+            #res_types['Nodes'][res_type.type_id] = res_type.name
     return render_template('pivot_results.html', ttypes=conn.ttypes)
 
 @pivot_results.route('/_load_pivot_data')
@@ -49,8 +54,8 @@ def load_pivot_data():
                 continue
             
             metadata = json.loads(rs.value.metadata)
-            if 'function' in metadata and len(metadata['function']):
-                continue # for now - need to fix
+            #if 'function' in metadata and len(metadata['function']):
+                #continue # for now - need to fix
             
             # add filters here
             if filter_by_attr and rs.attr_id not in filters.attr_ids:

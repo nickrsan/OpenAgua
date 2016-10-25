@@ -20,10 +20,11 @@ def data_editor_main():
     
     features = OrderedDict()
     
-    for res_type in ['node','link']:
+    for res_type in ['node', 'link']:
         for r in eval('conn.network.{}s'.format(res_type.lower())):
             ttype = [t for t in r.types if t.template_id == session['template_id']][0]
-            if ttype.name in ['Inflow', 'Outflow', 'Junction', 'Withdrawal']:
+            #if ttype.name in ['Inflow', 'Outflow', 'Junction', 'Withdrawal']:
+            if ttype.name in ['Inflow', 'Junction', 'Withdrawal']:
                 continue
             idx = (ttype.id, ttype.name, res_type)
             if idx not in features.keys():

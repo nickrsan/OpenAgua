@@ -75,7 +75,7 @@ def run_scenario(scenario_id, args=None):
         logd.info('Optimal feasible solution found.')
         outputnames = {'S': 'storage', 'I': 'inflow', 'O': 'outflow'}
         #outputnames = {'I': 'inflow', 'O': 'outflow'}
-        conn.save_results(instance, outputnames)
+        result = conn.save_results(instance, outputnames)
         logd.info('Results saved.')
     elif results.solver.termination_condition == TerminationCondition.infeasible:
         logd.info('WARNING! Problem is infeasible. Check detailed results.')

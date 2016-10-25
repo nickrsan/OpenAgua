@@ -75,19 +75,22 @@ class connection(object):
         # dictionary to store resource attribute ids
         self.res_attrs = AttrDict({'node': {}, 'link': {}})
         self.attr_ids = {}
-        self.res_names = {}
+        self.raid_to_res_name = {}
+        self.node_names = {}
         
         for n in self.network.nodes:
+            self.node_names[n.id] = n.name
             for ra in n.attributes:
-                self.res_attrs['node'][(n.id, self.attrs.node[ra.attr_id]['name_'])] = ra.id
+                attr_name = self.attrs.node[ra.attr_id]['name_']
+                self.res_attrs['node'][(n.id, attr_name)] = ra.id
                 self.attr_ids[ra.id] = ra.attr_id
-                self.res_names[ra.id] = n.name
+                self.raid_to_res_name[ra.id] = n.name
         
         for l in self.network.links:
             for ra in l.attributes:
                 self.res_attrs['link'][(l.node_1_id, l.node_2_id, self.attrs.link[ra.attr_id]['name_'])] = ra.id    
                 self.attr_ids[ra.id] = ra.attr_id
-                self.res_names[ra.id] = l.name
+                self.raid_to_res_name[ra.id] = l.name
 
     def call(self, func, args):
         self.log.debug("Calling: %s" % (func))
@@ -170,41 +173,41 @@ class connection(object):
                 ra_id = self.res_attrs.node[idx]
                 attr_id = self.attr_ids[ra_id]
                 attr = self.attrs.node[attr_id]
-                res_name = self.res_names[ra_id]
+                res_name = self.raid_to_res_name[ra_id]
                 dataset_name = '{} for {}'.format(fullname, res_name)
                 
                 dataset_value = json.dumps({'0': timeseries[idx]})
                 #dataset_value = {'0': timeseries[idx]}
                 
-                #if ra_id not in res_scens.keys():
+                if ra_id not in res_scens.keys():
                     ## create a new dataset
-                dataset = {
-                    'type': attr.dtype,
-                    'name': dataset_name,
-                    'unit': attr.unit,
-                    'dimension': attr.dim,
-                    'value': dataset_value
-                }
-                self.call('add_data_to_attribute',
-                          {'scenario_id': scenario_id, 'resource_attr_id': ra_id, 'dataset': dataset})
-                #else:
-                    ## just update the existing resourcedata
-                    #rs = res_scens[ra_id]
-                    ##dataset = res_scens[ra_id].value
-                    #rs.value.name = dataset_name
-                    #rs.value.value = dataset_value
-                    ##updated_res_scen = {
-                        ##'resource_attr_id': ra_id,
-                        ##'attr_id': attr_id,
-                        ##'value': dataset
-                    ##}
-                    #updated_res_scens.append(rs)
+                    dataset = {
+                        'type': attr.dtype,
+                        'name': dataset_name,
+                        'unit': attr.unit,
+                        'dimension': attr.dim,
+                        'value': dataset_value
+                    }
+                    self.call('add_data_to_attribute',
+                              {'scenario_id': scenario_id, 'resource_attr_id': ra_id, 'dataset': dataset})
+                else:
+                    # just update the existing resourcedata
+                    rs = res_scens[ra_id]
+                    #dataset = res_scens[ra_id].value
+                    rs['value']['name'] = dataset_name
+                    rs['value']['value'] = dataset_value
+                    #updated_res_scen = {
+                        #'resource_attr_id': ra_id,
+                        #'attr_id': attr_id,
+                        #'value': dataset
+                    #}
+                    updated_res_scens.append(rs)
     
-        #if updated_res_scens:
-            #update = conn.call('update_resourcedata',
-                               #{'scenario_id': scenario_id, 'resource_scenarios': updated_res_scens}) 
-                               
-        #return result
+        if updated_res_scens:
+            result = self.call('update_resourcedata',
+                               {'scenario_id': scenario_id, 'resource_scenarios': updated_res_scens})
+            
+        return
     
 class JSONObject(dict):
     def __init__(self, obj_dict):

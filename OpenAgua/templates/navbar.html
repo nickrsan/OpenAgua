@@ -15,13 +15,15 @@
     
     <div class="navbar-collapse collapse">
 
-      <ul class="nav navbar-nav">
+      <!--<ul class="nav navbar-nav">-->
+      <div class="nav navbar-nav">
         {% if 'study_name' in session and session['study_name'] %}
-          <li class="nav-item" id="study_name">{{ session['study_name'] }}</li>
+          <div class="nav-item" id="study_name">{{ session['study_name'] }}</div>
         {% else %}
-          <li class="nav-item" id="study_name"></li>
+          <div class="nav-item" id="study_name"></div>
         {% endif %}
-      </ul>
+      </div>
+      <!--</ul>-->
       <ul class="nav navbar-nav navbar-right">
         <li class="nav-item"><a class="nav-link" href="/home"><span class="glyphicon glyphicon-home"></span> Home</a></li>
         
