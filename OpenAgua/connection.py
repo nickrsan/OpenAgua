@@ -412,7 +412,7 @@ class connection(object):
                         node_type = 'Junction'
                         node_name = '{} {} ({},{})'.format(lname, node_type, x, y)
                     node = self.make_generic_node(node_type, node_name, x, y)
-                    node['id'] = -i # IDs should be unique
+                    node['id'] = -len(nodes) # IDs should be unique
                     nodes.append(node)
 
                     nlookup[(x,y)] = None # to skip over next x, y
@@ -447,8 +447,7 @@ class connection(object):
             link['id'] = -i
             links.append(link)
             
-        hlinks = self.call('add_links', {'network_id': self.network.id,
-                                         'links': links})
+        hlinks = self.call('add_links', {'network_id': self.network.id, 'links': links})
         
         return hlinks, hnodes
     

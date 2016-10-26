@@ -1,19 +1,21 @@
 <!-- add node -->
-<div class="modal fade" id="modal_add_node" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
-  <div class="modal-dialog modal-sm" role="document">
+<div class="modal fade" id="modal_add_node" role="dialog" data-backdrop="false">
+  <div class="modal-dialog modal-md" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">New point feature</h4>
+        <h4 class="modal-title">New point feature</h4>
       </div>
       <div class="modal-body">
           <form role="form">
             <div class="form-group">
-              <label for="node_type">Type:</label>
+              <label for="node_type">Type</label>
               <select id="node_type" class="selectpicker">
                 {% for ntype in ntypes %}
                   <option value="{{ ntype.id }}">{{ ntype.name }}</option>
                 {% endfor %}
-              </select><br>
+              </select>
+            </div>
+            <div class="form-group">
               <label for="node_name">Name</label>
               <input type="text" class="form-control" id="node_name" autofocus>
             </div>
@@ -34,10 +36,10 @@
 
 <!-- add link -->
 <div class="modal fade" id="modal_add_link" role="dialog" aria-labelledby="myModalLabel" data-backdrop="false">
-  <div class="modal-dialog modal-sm" role="document">
+  <div class="modal-dialog modal-md" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title" id="myModalLabel">New polyline feature</h4>
+        <h4 class="modal-title" id="myModalLabel">New line feature</h4>
       </div>
       <div class="modal-body">
           <form role="form">

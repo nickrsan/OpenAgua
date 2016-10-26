@@ -23,6 +23,18 @@
     display: inline-block;
 }
 
+#filterby {
+    width: 150px;
+}
+
+#res_type_filter {
+    width: 300px;
+}
+
+#secondary_filter {
+    width: 200px;
+}
+
 /*#page-content-wrapper {*/
     /*padding-right: 5px;*/
 /*}*/

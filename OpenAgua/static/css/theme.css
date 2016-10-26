@@ -46,31 +46,10 @@ body {
 /*
  * Top navigation
  */
- 
-#study_name {
-    color: #999999;
-    font-weight: bold;
-    font-size: large;
-    position: relative;
-    display: block;
-    padding: 12px 5px 0px 5px;
-}
-
-/*.nav-menu-toggle {*/
-    /*margin-left: -15px;*/
-/*}*/
 
 #navbar .navbar-brand {
     padding: 0;
-}
-/*temporary*/
-#warning {
-    background-color: yellow;
-}
-
-
-
-/*nav bar*/
+} 
 
 #menu-toggle {
     float: left;
@@ -94,6 +73,24 @@ body {
 #navbar .navbar-brand > a:hover {
     color: #ffffff;
     text-decoration: none;
+}
+ 
+#study_name {
+    color: #999999;
+    font-weight: bold;
+    font-size: large;
+    position: absolute;
+    display: block;
+    padding: 12px 5px 0px 5px;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/*temporary*/
+#warning {
+    background-color: yellow;
 }
 
 /*

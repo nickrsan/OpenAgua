@@ -40,7 +40,7 @@
     <div class="col-sm-6 col-md-3">
       <div class="form-group">
         <label for="variables">Variable</label>
-        <select id="variables" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature first">
+        <select id="variables" class="selectpicker" data-live-search="true" data-width="100%" disabled title="Select a feature first">
         </select>
       </div>
     </div>
@@ -49,7 +49,7 @@
       <!--select a scenario-->
       <div class="form-group">
         <label for="scenarios">Scenario</label>
-        <select id="scenarios" class="selectpicker show-menu-arrow" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
+        <select id="scenarios" class="selectpicker" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
         {% for scenario in scenarios %}
           <option data-tags='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
         {% endfor %}
@@ -62,7 +62,7 @@
   <div id="editor_row" class="row">
     <div class="col-md-6 col-sm-12">
       
-      <label for="editor">Edit data&nbsp;<a href="/help/data_editor_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Data editor instructions and examples"></span></a></label>
+      <label for="editor">Edit data&nbsp;<a href="/help/data_editor_instructions"><span class="glyphicon glyphicon-question-sign" title="Data editor instructions and examples"></span></a></label>
       <div id="editor_status" class='viewer_status'>No data loaded</div>
       
       <div id="editor">
@@ -94,7 +94,7 @@
         </div><br>
         <div id="editor_footer">
           <div id="datatypes_wrapper" class="pull-left">
-            <select id="datatypes" class="selectpicker show-menu-arrow" data-width="100%">
+            <select id="datatypes" class="selectpicker" data-width="100%">
               <option value="function" data-tags='{"data_type": "function"}'>Function/code</option>
               <option value="timeseries" data-tags='{"data_type": "timeseries"}'>Time series</option>
             </select>

@@ -239,9 +239,8 @@ function loadVariables(type_id) {
             .append($('<option>')
               .attr('data-tags',JSON.stringify(tags))
               .val(res_attr.tpl_type_attr.name)
-              .text(res_attr.tpl_type_attr.name)
-            );
-          }
+              .text(res_attr.tpl_type_attr.name));
+        }
       });
       vpicker.attr('disabled',false);
       $('#variables').selectpicker('render');
