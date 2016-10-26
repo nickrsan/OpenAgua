@@ -1,4 +1,6 @@
-var pivotOutput, filterParams = {}, plotlyDiv = 'plotlyArea',
+var pivotOutput,
+  filterParams = {}, type_attrs = [], 
+  plotlyDiv = 'plotlyArea',
   plotlyListenerBuilt = false, loadedChart = null;
 
 $( document ).ready( function() {
@@ -7,7 +9,33 @@ $( document ).ready( function() {
   
   loadPivot( chartRendererName = 'plotly', width=getChartWidth(), height=getChartHeight() );  
   
+  var attr_id;
+  
+  //$('#chart_renderer').select2();
+  
   // load feature types
+  //$('#filterby').select2({
+   //placeholder: 'Filter by...'
+  //});
+  
+  //$('#filterby').on('change', function (e) {
+    //var selected = $('#filterby option:selected');
+    //type_attrs = [];
+    //if (selected.length) {
+      //$('.filter').hide();
+      //filterby = selected.val();
+      //if (filterby !== 'none' && filterby !== null) {
+        //$('#'+filterby+'_filter_container').show();
+        //filterParams.filterby = filterby;
+      //} else {
+        //filterParams = {};
+        //$('.filter').hide();
+        ////$(".filter option").removeAttr("selected");
+        ////$('.filter select').selectpicker('refresh');
+      //}
+    //}
+  //});
+
   $('#filterby').on('changed.bs.select', function (e) {
     var selected = $('#filterby option:selected');
     if (selected.length) {
@@ -25,8 +53,46 @@ $( document ).ready( function() {
     }
   });
   
+  //$('#res_type_filter').select2({
+    //placeholder: 'Select a feature...',
+    //multiple: 'multiple'
+  //});
+
+  //$('#res_type_filter').on('change', function(e) {
+    //var ttype_id;
+    //filterParams.ttype_ids = [];
+    //var selected_ttypes = $('#res_type_filter option:selected');
+    
+    //if (selected_ttypes.length) {
+      //$.each(selected_ttypes, function(key, selected_ttype) {
+        //ttype_id = Number(selected_ttype.dataset.id);
+        //filterParams.ttype_ids.push(ttype_id);
+        //if (type_attrs.length) {
+          //type_attrs = _.intersectionBy(type_attrs, ttypes[ttype_id].typeattrs, 'attr_id');
+        //} else {
+          //type_attrs = ttypes[ttype_id].typeattrs;
+        //}
+      //});
+      
+      //var select = $('#secondary_filter').empty();
+      //$.each(type_attrs, function(i, ta) {
+        //select.append($('<option>').val(ta.attr_id).text(ta.attr_name));
+      //});
+      //select.select2({
+        //placeholder: 'Select variables...',
+        //multiple: 'multiple'
+      //});
+      //$('#secondary_filter_container').show();
+    //} else {  
+      //$('#secondary_filter_container').hide();
+      ////$("#secondary_filter").removeAttr("selected");
+      ////$('#secondary_filter').selectpicker('refresh');
+      //filterParams.ttype_ids = [];
+    //}
+  //});
+  
   $('#res_type_filter').on('hidden.bs.select', function(e) {
-    var idx, ttype_id, type_attrs, attr_id;
+    var idx, ttype_id, type_attrs;
     var type_attrs = [];
     filterParams.ttype_ids = [];
     var selected_ttypes = $('#res_type_filter option:selected');
@@ -58,10 +124,8 @@ $( document ).ready( function() {
   
   $('#secondary_filter').on('hidden.bs.select', function(e) {
     filterParams.attr_ids = [];
-    $('#secondary_filter option:selected').each(function() {
-      //attr_id = Number($(this).attr('data-id'));
-      attr_id = Number($(this).val()); // this is inconsistent with above method, but is correct
-      filterParams.attr_ids.push(attr_id);
+    $('#secondary_filter option:selected').each(function(i, item) {
+      filterParams.attr_ids.push(Number(item.value));
     });
   });
   
@@ -69,7 +133,6 @@ $( document ).ready( function() {
     //pivotOutput.empty();
     loadPivot( chartRendererName=$("#chart_renderer").val(), width=getChartWidth(), height=getChartHeight() );
   });
-
   
 });
 

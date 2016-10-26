@@ -50,6 +50,7 @@ var ttypes = {{ ttypes|tojson|safe }};
                 <div class="form-group">
                     <label for="chart_renderer">Renderer</label>
                     <select id='chart_renderer' class='selectpicker' data-width='auto'>
+                    <!--<select id='chart_renderer'>-->
                         <option value="plotly">Plotly</option>
                         <option value="gchart">Google Charts</option>
                         <!--<option value="c3">C3</option>-->
@@ -58,14 +59,18 @@ var ttypes = {{ ttypes|tojson|safe }};
                 <div class="form-group">
                     <label for='filterby'>Filters</label>
                     <select id='filterby' class='selectpicker' data-width='auto' title='Filter by...'>
+                    <!--<select id='filterby'>-->
                         <option value="none">No filter</option>
                         <option value="res_type" data-subtext="Reservoir, River, etc.">Feature type</option>
                         <option value="attr" data-subtext="Storage, Flow, etc.">Variable</option>
                     </select>
                 </div>
                 <div id="res_type_filter_container" class='filter form-group' style="display:none">
-                    <!--<label for="res_type_filter">Feature type</label>-->
+                    <label for="res_type_filter">Feature type</label>
                     <select id='res_type_filter' class='selectpicker' data-width='auto' multiple title='Select a feature type...' data-actions-box="true">
+                    
+                    <!--<select id="res_type_filter">-->
+                        <!--<option></option>-->
                         {% for ttid in ttypes %}
                             <option data-id="{{ ttid }}">{{ ttypes[ttid].name }}</option>
                         {% endfor %}
@@ -81,6 +86,7 @@ var ttypes = {{ ttypes|tojson|safe }};
                 </div>
                 <div id="secondary_filter_container" class='filter form-group' style='display:none'>
                     <select id='secondary_filter' class='selectpicker' data-width='auto' multiple data-selected-text-format="count > 2" data-actions-box="true">
+                    <!--<select id="secondary_filter">-->
                     </select>
                 </div>
                 <div class="form-group">

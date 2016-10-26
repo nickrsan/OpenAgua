@@ -115,14 +115,14 @@ def create_model(model_name, nodes, links, type_nodes, type_links, timesteps, p)
             return (0, m.Q[i,j,t], 0) # default flow capacity is zero
     m.ChannelCapacity = Constraint(m.Links, m.TS, rule=ChannelCap_rule)
     
-    ## NB: delivery should be constrained by delivery link capacity, not actual demand, which
-    ## will be driven by economics
-    #def DeliveryCap_rule(m, j, t):
-        #if 'Demand' in p.node.keys() and (j,t) in p.node['Demand'].keys():
-            #return (0, m.D[j,t], p.node['Demand'][(j,t)])
-        #else:
-            #return Constraint.Skip
-    #m.DeliveryCap = Constraint(m.NonReservoir, m.TS, rule=DeliveryCap_rule)
+    # NB: delivery should be constrained by delivery link capacity, not actual demand, which
+    # will be driven by economics
+    def DeliveryCap_rule(m, j, t):
+        if 'Demand' in p.node.keys() and (j,t) in p.node['Demand'].keys():
+            return m.D[j,t] <= p.node['Demand'][(j,t)]
+        else:
+            return Constraint.Skip
+    m.DeliveryCap = Constraint(m.Demand_Nodes, m.TS, rule=DeliveryCap_rule)
     
     def StorageBounds_rule(m, j, t):
         return (p.node['Inactive_Pool'][(j,t)], m.S[j,t], p.node['Storage_Capacity'][(j,t)])
