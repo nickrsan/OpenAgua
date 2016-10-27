@@ -33,11 +33,13 @@
 <script src="{{ url_for('.static', filename='js/plotly_renderers.js') }}" type="text/javascript" charset="utf-8"></script>
 
 <!--OpenAgua-->
-<link href="{{ url_for('.static', filename='css/pivot-results.css') }}" media="all" rel="stylesheet" type="text/css" />
-<script src="{{ url_for('.static', filename='js/pivot-results.js') }}" type="text/javascript" charset="utf-8"></script>
+<link href="{{ url_for('.static', filename='css/chart-maker.css') }}" media="all" rel="stylesheet" type="text/css" />
+<script src="{{ url_for('.static', filename='js/chart-maker.js') }}" type="text/javascript" charset="utf-8"></script>
 
 <script>
 var ttypes = {{ ttypes|tojson|safe }};
+var filterParams = {{ filters|tojson|safe }};
+var chartSetup = {{ setup|tojson|safe }}
 </script>
 
 {% endblock %}

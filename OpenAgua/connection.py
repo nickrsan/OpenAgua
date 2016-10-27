@@ -469,6 +469,7 @@ class connection(object):
             session['project_id'] = None
             session['network_id'] = None
             session['template_id'] = None
+            session['study_id'] = None
             session['study_name'] = None
             self.invalid_study = True
 
@@ -476,6 +477,7 @@ class connection(object):
             session['project_id'] = study.project_id
             session['network_id'] = study.network_id
             session['template_id'] = study.template_id
+            session['study_id'] = study.id
             session['study_name'] = study.name
             self.invalid_study = False
         
@@ -519,6 +521,7 @@ class connection(object):
                     session['study_name'] = '{}'.format(self.network.name)
                 else:
                     session['study_name'] = None
+                    session['study_id'] = None
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
@@ -710,10 +713,10 @@ def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_
     if activate:
         activate_study(db, study_id = study.id)
 
-def add_chart(db, hydrauser_id, name, description, thumbnail, filters, setup):
+def add_chart(db, hydrastudy_id, name, description, thumbnail, filters, setup):
     
     chart = Chart()
-    chart.hydrauser_id = hydrauser_id
+    chart.hydrastudy_id = hydrastudy_id
     chart.name = name
     chart.description = description
     chart.thumbnail = thumbnail
@@ -724,3 +727,16 @@ def add_chart(db, hydrauser_id, name, description, thumbnail, filters, setup):
     db.session.commit()
     
     return 0
+
+def load_study_charts(study_id):
+    
+    charts = Chart.query.filter(Chart.hydrastudy_id==study_id)
+    
+    return charts
+
+def load_study_chart(study_id, chart_id):
+    
+    chart = Chart.query.filter(Chart.hydrastudy_id==study_id).filter(Chart.id == chart_id).first()
+    
+    return chart
+    

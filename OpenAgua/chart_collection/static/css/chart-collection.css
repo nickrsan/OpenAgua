@@ -1,66 +1,41 @@
-/*SELECTORS*/
-
-#selector_row {
-  margin-top:15px;
-  margin-bottom:15px
+.thumb {
+    text-align: center;
+    margin-top: 15px;
+    margin-bottom: 15px;
 }
 
-
-/* EDITORS */
-
-#editor_row {
-  margin-bottom:20px
+.wrapper {
+    text-align: center;
+    width: 250px;
+    margin: 0 auto;
+    border: 1px #999999 solid;
 }
 
-#editor {display: none}
-
-.editor {
-  border-style: solid;
-  border-width: 1px;
-  border-color: #C0C0C0;
-  display: none
+.thumb button {
+    height: 250px;
+    width: 100%;
+    border-width: 0;
+    border-color: #999999;
+    border-style: solid;
+    background-color: #ffffff;
+    padding: 0;
 }
 
-#scalar {border-width: 0px; margin-top: 10px; height: 35px}
-#function {height: 300px}
-#timeseries {
-  height: 300px;
-  border-top: 0px;
-  border-left: 0px;
-}
-#seasonalts {height: 300px}
-#array {height: 220px}
+.thumb img { width: 100%; }
 
-#editor_footer {height:30px; margin-top:10px; margin-bottom:10px}
-#editor_metadata {margin-top: 5px}
-
-/* PREVIEWERS */
-
-.preview {
-  border-style: solid;
-  border-color: #999999;
-  border-width: 1px;
-  display: none;
+.caption {
+    padding: 5px 5px 10px 5px;
+    background-color: whitesmoke;
 }
 
-.viewer_status {
-  color: #999999;
-  font-size: large;
-  margin-bottom: 15px;
+.thumb h3 {
+    margin: 0;
+    font-size: medium;
+    font-weight: bold;
+    text-align: left;
 }
-#preview_timeseries {
-  height: 350px;
-  width: 100%;
-}
-#preview_scalar {
-  color: #336699;
-  font-size: xx-large;
-  font-weight: bold;
-  margin: 0 15px 0 0;
-  padding: 15px;
-}
-#preview_array {
-  color: #999999;
-  font-size: large;
-  margin: 15px;
+
+.thumb p {
+    text-align: left;
+    height: 50px;
 }

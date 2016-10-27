@@ -1,13 +1,18 @@
 var pivotOutput,
-  filterParams = {}, type_attrs = [], 
+  type_attrs = [], 
   plotlyDiv = 'plotlyArea',
   plotlyListenerBuilt = false, loadedChart = null;
 
 $( document ).ready( function() {
-
+  //spinner.spin(spinDiv);
   pivotOutput = $("#pivot");
   
-  loadPivot( chartRendererName = 'plotly', width=getChartWidth(), height=getChartHeight() );  
+  loadPivot(
+    chartRendererName = chartSetup.renderer,
+    width = getChartWidth(),
+    height = getChartHeight(),
+    pivotOptions = chartSetup.config
+  );  
   
   var attr_id;
   
@@ -130,13 +135,16 @@ $( document ).ready( function() {
   });
   
   $("#load_options").click( function() {
-    //pivotOutput.empty();
-    loadPivot( chartRendererName=$("#chart_renderer").val(), width=getChartWidth(), height=getChartHeight() );
+    loadPivot(
+      chartRendererName=$("#chart_renderer").val(),
+      width=getChartWidth(),
+      height=getChartHeight()
+    );
   });
   
 });
 
-function loadPivot(chartRendererName, width, height) {
+function loadPivot(chartRendererName, width, height, pivotOptions={}) {
 
   // Get JSON-formatted data from the server
   var chartRenderers, nCharts, opts, defaultVals;
@@ -166,6 +174,9 @@ function loadPivot(chartRendererName, width, height) {
       break;      
   }
   
+  opts.onEditValues = function (changes) { $(".changesOutput").html(JSON.stringify(changes)) };
+  opts.onDrawTable = function (htTable) { $(".changesOutput").empty() };
+  
   loadedChart = chartRendererName;
   
   var defaultVals
@@ -175,39 +186,62 @@ function loadPivot(chartRendererName, width, height) {
     defaultVals = []
   }
   
-  opts.onEditValues = function (changes) { $(".changesOutput").html(JSON.stringify(changes)) }
-  opts.onDrawTable = function (htTable) { $(".changesOutput").empty() }
+  // default options if they are not provided
+  if ( Object.keys(pivotOptions).length === 0 ) {
+    pivotOptions = {
+      vals: defaultVals,
+      aggregatorName: "Average",
+    };
+  }
+  
+  // renderers and options not saved with chart
+  $.extend(pivotOptions, {
+    renderers: $.extend({}, chartRenderers, $.pivotUtilities.renderers),
+    rendererOptions: opts
+  });
+  
+  pivotOptions.onRefresh = function(config) {
+      var pivot_config = JSON.parse(JSON.stringify(config));
+      //delete some values which are functions
+      delete pivot_config["aggregators"];
+      delete pivot_config["renderers"];
+      //delete some bulky default values
+      delete pivot_config["rendererOptions"];
+      delete pivot_config["localeStrings"];
+      chartSetup.config = pivot_config;
+      chartSetup.renderer = chartRendererName
+  }    
   
   $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
-      var pivotData = resp.data;
-      var pivotOptions = {
-          vals: defaultVals,
-          aggregatorName: "Average",
-          renderers: $.extend({}, chartRenderers, $.pivotUtilities.renderers),
-          //renderers: $.extend({}, chartRenderers, $.pivotUtilities.novix_renderers, $.pivotUtilities.renderers),
-          rendererOptions: opts,
-      };
-      pivotOutput.pivotUI( pivotData, pivotOptions, true );
+      var pivotData = resp.data;      
+      pivotOutput.pivotUI(
+        pivotData,
+        pivotOptions,
+        true
+      );
       
       //add optgroups
-      $('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
-      var select = $(".pvtSelect select");
-      var selections = select.children();
-      select.empty();
-      var charts = $('<optgroup>').attr('label','Charts');
-      var tables = $('<optgroup>').attr('label','Tables');
-      selections.each(function(i, option) {
-        if ( i < nCharts) {
-          charts.append(option);
-        } else {
-          tables.append(option);
-        }
-      })
-      select.append(charts);
-      select.append(tables);
-      prettifyPivot();
+      //$('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
+      //var select = $(".pvtSelect select");
+      //var selections = select.children();
+      //select.empty();
+      //var charts = $('<optgroup>').attr('label','Charts');
+      //var tables = $('<optgroup>').attr('label','Tables');
+      //selections.each(function(i, option) {
+        //if ( i < nCharts) {
+          //charts.append(option);
+        //} else {
+          //tables.append(option);
+        //}
+      //})
+      //select.append(charts);
+      //select.append(tables);
+      //prettifyPivot();
+      //$('.selectpicker').selectpicker('val', chartSetup.config.rendererName);
       updateResizeListener(chartRendererName);
   });
+  
+  //spinner.spin(false);
 }
 
 function prettifyPivot() {
@@ -271,14 +305,6 @@ function getChartHeight() {
   return $(window).height() - 300;
 }
 
-//$('#save_as_thumbnail').click(function() {
-    //html2canvas($("#pvtRendererArea"), {
-      //onrendered: function(canvas) {
-        //$("body").append(canvas);
-      //}
-    //});
-//});
-
 //BOTTOM
 
 $( function() {
@@ -336,6 +362,8 @@ $( function() {
               var form = $('#chart_form')[0];
               var formData = new FormData(form);
               formData.append('thumbnail', url);
+              formData.append('filters', JSON.stringify(filterParams));
+              formData.append('setup', JSON.stringify(chartSetup));
               $.ajax({
                 type: "POST",
                 url: '_save_chart',

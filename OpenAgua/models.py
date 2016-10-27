@@ -61,7 +61,7 @@ class HydraStudy(db.Model):
 class Chart(db.Model):
     __tablename__ = 'chart'
     id = db.Column(db.Integer(), primary_key=True)
-    hydrauser_id = db.Column(db.Integer(), db.ForeignKey('hydrauser.id', ondelete='CASCADE'))
+    hydrastudy_id = db.Column(db.Integer(), db.ForeignKey('hydrastudy.id', ondelete='CASCADE'))
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(255), server_default='')
     thumbnail = db.Column(db.String(255), nullable=False)
