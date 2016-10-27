@@ -1,12 +1,16 @@
+import os
+import pandas
+import base64
+
 from flask import Blueprint, redirect, url_for, render_template, request, session, jsonify, json
 from flask_security import login_required, current_user
 
 from attrdict import AttrDict
 
-from ..connection import connection, make_connection, save_data, load_hydrauser
+from ..connection import connection, make_connection, save_data, load_hydrauser, add_chart
 #from ..utils import hydra_timeseries, d2o, eval_scalar, eval_timeseries, eval_function, eval_data
 
-import pandas
+from OpenAgua import app, db
 
 # blueprint definition
 from . import pivot_results
@@ -100,4 +104,37 @@ def load_pivot_data():
         
     return jsonify(data=data)
 
-
+@pivot_results.route('/_save_chart', methods=['GET', 'POST'])
+@login_required
+def save_chart():
+    
+    if request.method == 'POST':
+        
+        hydrauser_id = session['hydrauser_id']
+        
+        thumbnail = request.form['thumbnail']
+        name = request.form['name']
+        description = request.form['description']
+        #filters = request.form['filters']
+        #setup = request.form['setup']
+        filters = json.dumps({})
+        setup = json.dumps({})
+        
+        # save image to file
+        userfiles = os.path.join(app.config['USER_FILES'], current_user.id) # testing for now
+        thumbnailspath = os.path.join('thumbnails', 'charts')
+        thumbnailsabspath = os.path.join(userfiles, thumbnailspath)
+        if not os.path.exists(thumbnailsabspath):
+            os.makedirs(thumbnailsabspath)
+        thumbnailpath = os.path.join(thumbnailspath, '{}.png'.format(name))
+        thumbnailabspath = os.path.join(userfiles, thumbnailpath)
+        
+        imgstr = thumbnail.split(',')[1].encode()
+        with open(thumbnailabspath, "wb") as f:
+            f.write(base64.decodestring(imgstr))
+                
+        add_chart(db, hydrauser_id, name, description, thumbnailpath, filters, setup)
+    
+        return jsonify(result = 0)
+    
+    return redirect(url_for('pivot_results.main'))

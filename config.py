@@ -22,6 +22,9 @@ DEFAULT_HYDRA_TEMPLATE = 'OpenAgua'
 DEFAULT_SCENARIO_NAME = 'Baseline'
 UPLOADED_TEMPLATES_DEST = os.path.join(APP_ROOT, 'OpenAgua/static/hydra/templates')
 
+# user files
+USER_FILES = os.path.join(APP_ROOT, 'userfiles')
+
 # OpenAgua settings
 MONTH_FORMAT = '%m/%Y'
 TIMESTEP_FORMAT = '%m/%Y'

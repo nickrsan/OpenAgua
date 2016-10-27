@@ -57,3 +57,15 @@ class HydraStudy(db.Model):
     network_id = db.Column(db.Integer(), nullable=False)
     template_id = db.Column(db.Integer(), nullable=False)
     active = db.Column(db.Boolean(), nullable=False)
+
+class Chart(db.Model):
+    __tablename__ = 'chart'
+    id = db.Column(db.Integer(), primary_key=True)
+    hydrauser_id = db.Column(db.Integer(), db.ForeignKey('hydrauser.id', ondelete='CASCADE'))
+    name = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.String(255), server_default='')
+    thumbnail = db.Column(db.String(255), nullable=False)
+    filters = db.Column(db.Text(), nullable=False)
+    setup = db.Column(db.Text(), nullable=False)
+    
+    

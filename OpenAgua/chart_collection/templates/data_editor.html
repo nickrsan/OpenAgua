@@ -1,0 +1,136 @@
+{% extends "master.html" %}
+{% block title %} - Data Editor{% endblock %}
+{% block head_main %}
+
+<link href="{{ url_for('.static', filename='css/data-editor.css') }}" media="all" rel="stylesheet" type="text/css" />
+
+<script>
+  var template_id = {{session['template_id']}}
+</script>
+
+{% endblock %}
+
+{% block content %}
+
+<script>
+  var dateFormat = "{{ session['amchart_date_format'] }}" // need to get this from the model setup
+</script>
+
+<div class="container-fluid">
+
+  <div id="selector_row" class="row">
+  
+    <!--select a feature-->
+    <div class="col-sm-6 col-md-3">    
+      <div class="form-group">
+        <label for="features">Feature</label>
+        <select id="features" class="selectpicker" data-live-search="true" data-width="100%" title="Select a feature">  
+        {% for (type_id, type_name, feature_type), feats in features.items() %}
+          <optgroup label="{{ type_name }}">
+          {% for f in feats %}
+            <option data-tags='{"type_id": {{type_id}}, "feature_id": {{f.id}}, "feature_type": "{{feature_type}}"}'>{{f.name}}</option>
+          {% endfor %}
+          </optgroup>
+        {% endfor %}
+        </select>
+      </div>
+    </div>
+    
+    <!--select a variable-->
+    <div class="col-sm-6 col-md-3">
+      <div class="form-group">
+        <label for="variables">Variable</label>
+        <select id="variables" class="selectpicker" data-live-search="true" data-width="100%" disabled title="Select a feature first">
+        </select>
+      </div>
+    </div>
+
+    <div class="col-sm-6 col-md-3">
+      <!--select a scenario-->
+      <div class="form-group">
+        <label for="scenarios">Scenario</label>
+        <select id="scenarios" class="selectpicker" data-live-search="true" data-width="100%" disabled title="Select a feature/variable first">
+        {% for scenario in scenarios %}
+          <option data-tags='{"scen_id": {{scenario.id}}, "scen_name": "{{scenario.name}}"}'>{{scenario.name}}</option>
+        {% endfor %}
+        </select>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="editor_row" class="row">
+    <div class="col-md-6 col-sm-12">
+      
+      <label for="editor">Edit data&nbsp;<a href="/help/data_editor_instructions"><span class="glyphicon glyphicon-question-sign" title="Data editor instructions and examples"></span></a></label>
+      <div id="editor_status" class='viewer_status'>No data loaded</div>
+      
+      <div id="editor">
+  
+        <!--scalar editor-->
+        <div id="scalar" class="editor">
+          <label class="control-label sr-only sr-only-focusable" for="scalar_input">Number:</label>
+          <input id="scalar_input" type="text" class="form-control" placeholder="Enter a number...">
+        </div>
+      
+        <!--function editor-->
+        <div id="function" class="editor"></div>
+        
+        <!--timeseries editor-->
+        <div id="timeseries" class="editor"></div>
+        
+        <!--array editor-->
+        <div id="array" class="editor"></div>
+        
+        <!--text editor-->
+        <div id="descriptor" class="editor">
+          <label class="control-label sr-only sr-only-focusable" for="text_input">Text:</label>
+          <textarea id="text_input" class="form-control" rows="3" placeholder="Enter some text..."></textarea>
+        </div>
+        
+        <div id='editor_metadata' style='width:100%'>
+          <div id='unit' class='pull-left'></div>
+          <div id='save_status' class='pull-right' style="font-weight:bold;color:red"></div>
+        </div><br>
+        <div id="editor_footer">
+          <div id="datatypes_wrapper" class="pull-left">
+            <select id="datatypes" class="selectpicker" data-width="100%">
+              <option value="function" data-tags='{"data_type": "function"}'>Function/code</option>
+              <option value="timeseries" data-tags='{"data_type": "timeseries"}'>Time series</option>
+            </select>
+          </div>
+
+          <div id="editor_buttons" class="pull-right">
+            <div class="btn-group"><button id="revert" class="btn btn-default btn-md">Revert</button></div>
+            <div class="btn-group"><button id="check" class="btn btn-default btn-md">Check/preview</button></div>
+            <div class="btn-group"><button id="save" class="btn btn-primary btn-md">Save changes</button></div>
+          </div>
+        </div>
+        
+        <p id="errmsg" style="height:10px"></p>
+        
+      </div>      
+    </div>
+    
+    <div class="col-md-6 col-sm-12">
+      <label for="preview_timeseries">Preview data&nbsp;<a href="/help/preview_instructions"><span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="Preview chart instructions"></span></a></label>
+      <div id="preview_status" class="viewer_status"></div>
+      
+      <div id="preview_timeseries" class="preview"></div>
+      <div id="preview_scalar" class="preview"></div>
+      <div id="preview_array" class="preview"></div>
+      <div id="preview_descriptor" class="preview"></div>
+      
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block endscript %}
+
+<script src="{{ url_for('.static', filename='js/amchart.js') }}" type="text/javascript" charset="utf-8"></script>
+<script src="{{ url_for('.static', filename='js/data-editor.js') }}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}

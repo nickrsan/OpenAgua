@@ -11,7 +11,7 @@ from attrdict import AttrDict
 import logging
 
 from .utils import hydra_timeseries, empty_hydra_timeseries, eval_data, encrypt, decrypt
-from .models import User, HydraUser, HydraUrl, HydraStudy
+from .models import User, HydraUser, HydraUrl, HydraStudy, Chart
 from . import app, db # delete later
 
 log = logging.getLogger(__name__)
@@ -709,3 +709,18 @@ def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_
     db.session.commit()
     if activate:
         activate_study(db, study_id = study.id)
+
+def add_chart(db, hydrauser_id, name, description, thumbnail, filters, setup):
+    
+    chart = Chart()
+    chart.hydrauser_id = hydrauser_id
+    chart.name = name
+    chart.description = description
+    chart.thumbnail = thumbnail
+    chart.filters = filters
+    chart.setup = setup
+    
+    db.session.add(chart)
+    db.session.commit()
+    
+    return 0

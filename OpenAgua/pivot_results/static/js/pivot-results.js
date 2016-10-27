@@ -268,7 +268,7 @@ function getChartWidth() {
 }
 
 function getChartHeight() {
-  return $(window).height() - 255;
+  return $(window).height() - 300;
 }
 
 //$('#save_as_thumbnail').click(function() {
@@ -278,3 +278,83 @@ function getChartHeight() {
       //}
     //});
 //});
+
+//BOTTOM
+
+$( function() {
+
+  $('#save').click( function(e) {
+  e.preventDefault();
+  var div = $('#'+plotlyDiv);
+  var dw = div.width(), dh = div.height();
+  var w, h;
+  if ( dw >= dh ) {
+    w = 300;
+    h = dh * w / dw;
+  } else {
+    h = 300;
+    w = dw * h / dh;
+  }
+  Plotly.toImage(div[0], {
+      format: 'png',
+      height: dh,
+      width: dw,
+    }).then(function(url){
+
+      var thumbnail = $('<div>')
+        .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
+        .css({'text-align': 'center'});
+        
+      var form = $('<form id="chart_form">').html(
+      '<br/><div class="form-group"> \
+        <label for="name">Name</label> \
+        <input type="text" class="form-control" id="name" name="name"> \
+      </div> \
+      <div class="form-group"> \
+        <label for="description">Description</label> \
+        <textarea class="form-control" id="description" name="description"/> \
+      </div>')
+      
+      var form = $('<div>')
+        .append(thumbnail)
+        .append(form)
+        .html();
+      bootbox.confirm({
+          title: 'Save to collection',
+          message: form,
+          closeButton: true,
+          buttons: {
+              cancel: {
+                  label: '<i class="fa fa-times"></i> Cancel'
+              },
+              confirm: {
+                  label: '<i class="fa fa-check"></i> Save'
+              }
+          },
+          callback: function(result) {
+            if (result) {
+              var form = $('#chart_form')[0];
+              var formData = new FormData(form);
+              formData.append('thumbnail', url);
+              $.ajax({
+                type: "POST",
+                url: '_save_chart',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                success: function(resp){
+                  notify('success', 'Success!', 'Chart saved to Chart Collections.')
+                }
+              });
+              
+            }          
+          }
+      });
+      
+    });
+      
+  });
+  
+});
+
