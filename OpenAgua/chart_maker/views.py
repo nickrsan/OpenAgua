@@ -2,12 +2,14 @@ import os
 import pandas
 import base64
 
-from flask import Blueprint, redirect, url_for, render_template, request, session, jsonify, json
+from flask import Blueprint, redirect, url_for, render_template, request,\
+     session, jsonify, json
 from flask_security import login_required, current_user
 
 from attrdict import AttrDict
 
-from ..connection import connection, make_connection, save_data, load_hydrauser, add_chart, load_study_chart
+from ..connection import connection, make_connection, save_data,\
+     load_hydrauser, add_chart, get_study_chart, get_study_chart_names
 
 from OpenAgua import app, db
 
@@ -28,15 +30,23 @@ def main():
             #res_types['Nodes'][res_type.type_id] = res_type.name
     
     if 'chart_id' not in session or session['chart_id'] == None:
+        chart_id = None
+        filters = {}
         setup = {'renderer': app.config['DEFAULT_CHART_RENDERER'],
                  'config': {}}
     else:
-        chart = load_study_chart(session['study_id'], session['chart_id'])
+        chart_id = session['chart_id']
+        chart = get_study_chart(session['study_id'], chart_id)
         filters = json.loads(chart.filters)
         setup = json.loads(chart.setup)
+    chart_params = {'chart_id': chart_id,
+                    'filters': filters,
+                    'setup': setup}
     #session['chart_id'] = None
+    
+    chart_names = json.dumps(get_study_chart_names(session['study_id']))
 
-    return render_template('chart-maker.html', ttypes=conn.ttypes, filters=filters, setup=setup)
+    return render_template('chart-maker.html', ttypes=conn.ttypes, chart_params=chart_params)
 
 @chart_maker.route('/_load_chart')
 @login_required

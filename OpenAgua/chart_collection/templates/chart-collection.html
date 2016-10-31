@@ -8,17 +8,17 @@
 
 {% block content %}
 
-<div class="container-fluid">
+<div id="thumbnails" class="container-fluid">
   <div id="selector_row" class="row">
   
     <!--select a feature-->
     
     {% for chart in charts %}
-      <div class="thumb col col-sm-6 col-md-3 col-lg-3">
+      <div class="thumb col col-sm-6 col-md-4 col-lg-3">
         <div class="wrapper" id="{{ chart['id'] }}">
           <!--<div class="main">-->
             <button type="button" class="edit">
-              <img src="{{ chart['thumbnail'] }}" /><br/>
+              <img class="img-responsive center-block" src="{{ chart['thumbnail'] }}" />
             </button>
           <!--</div>-->
           <div class="caption">

@@ -728,15 +728,15 @@ def add_chart(db, hydrastudy_id, name, description, thumbnail, filters, setup):
     
     return 0
 
-def load_study_charts(study_id):
-    
+def get_study_charts(study_id):
     charts = Chart.query.filter(Chart.hydrastudy_id==study_id)
-    
     return charts
 
-def load_study_chart(study_id, chart_id):
-    
+def get_study_chart(study_id, chart_id):
     chart = Chart.query.filter(Chart.hydrastudy_id==study_id).filter(Chart.id == chart_id).first()
-    
     return chart
+    
+def get_study_chart_names(study_id):
+    charts = get_study_charts(study_id)
+    return [chart.name for chart in charts]
     

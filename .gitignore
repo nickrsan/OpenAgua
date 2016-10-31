@@ -4,8 +4,8 @@
 *.log
 instance/
 
-# ignore migrations
 migrations/
+userfiles/
 
 # pycharm folder
 .idea/

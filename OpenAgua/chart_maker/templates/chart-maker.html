@@ -38,8 +38,11 @@
 
 <script>
 var ttypes = {{ ttypes|tojson|safe }};
-var filterParams = {{ filters|tojson|safe }};
-var chartSetup = {{ setup|tojson|safe }}
+var chartParams = {{ chart_params|tojson|safe}}
+var filterParams = chartParams.filters;
+var chartSetup = chartParams.setup;
+var chartNames = chartParams.chart_names;
+var chartId = chartParams.chart_id;
 </script>
 
 {% endblock %}
@@ -110,9 +113,9 @@ var chartSetup = {{ setup|tojson|safe }}
 </div>
 
     <footer class="footer">
-        <button id="save" type="button" class='btn btn-primary'>Save to collection</button>
+        <button id="save" type="button" class='save btn btn-primary'>Save</button>
+        <button id="saveas" type="button" class='save btn btn-default'>Save as...</button>
     </footer>
-
 
 {% endblock %}
 

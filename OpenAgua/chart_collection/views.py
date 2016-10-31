@@ -3,7 +3,7 @@ import shutil
 
 from flask import redirect, url_for, render_template, request, session, jsonify, json
 from flask_security import login_required, current_user
-from ..connection import connection, make_connection, load_hydrauser, load_study_charts
+from ..connection import connection, make_connection, load_hydrauser, get_study_charts
 
 from OpenAgua import app
 
@@ -17,7 +17,7 @@ def main():
     conn = make_connection(login=True)
     conn.load_active_study()
     
-    chartsobj = load_study_charts(session['study_id'])
+    chartsobj = get_study_charts(session['study_id'])
     
     charts = []
     thumbnailspath = app.config['CHART_THUMBNAILS_PATH']

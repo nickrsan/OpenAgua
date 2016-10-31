@@ -94,3 +94,8 @@
     width: 100%;
     border-top: grey thin solid;
 }
+
+#saveerror {
+    color: red;
+    font-weight: bold;
+}

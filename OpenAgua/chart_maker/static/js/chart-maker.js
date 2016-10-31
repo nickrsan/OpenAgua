@@ -4,7 +4,6 @@ var pivotOutput,
   plotlyListenerBuilt = false, loadedChart = null;
 
 $( document ).ready( function() {
-  //spinner.spin(spinDiv);
   pivotOutput = $("#pivot");
   
   loadPivot(
@@ -145,7 +144,7 @@ $( document ).ready( function() {
 });
 
 function loadPivot(chartRendererName, width, height, pivotOptions={}) {
-
+  spinner.spin(spinDiv);
   // Get JSON-formatted data from the server
   var chartRenderers, nCharts, opts, defaultVals;
   
@@ -210,7 +209,7 @@ function loadPivot(chartRendererName, width, height, pivotOptions={}) {
       delete pivot_config["localeStrings"];
       chartSetup.config = pivot_config;
       chartSetup.renderer = chartRendererName
-  }    
+  }
   
   $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
       var pivotData = resp.data;      
@@ -219,37 +218,42 @@ function loadPivot(chartRendererName, width, height, pivotOptions={}) {
         pivotOptions,
         true
       );
-      
-      //add optgroups
-      //$('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
-      //var select = $(".pvtSelect select");
-      //var selections = select.children();
-      //select.empty();
-      //var charts = $('<optgroup>').attr('label','Charts');
-      //var tables = $('<optgroup>').attr('label','Tables');
-      //selections.each(function(i, option) {
-        //if ( i < nCharts) {
-          //charts.append(option);
-        //} else {
-          //tables.append(option);
-        //}
-      //})
-      //select.append(charts);
-      //select.append(tables);
-      //prettifyPivot();
-      //$('.selectpicker').selectpicker('val', chartSetup.config.rendererName);
+      addOptGroups(nCharts);
+      prettifyPivot(chartSetup.config.rendererName);
       updateResizeListener(chartRendererName);
+
   });
   
-  //spinner.spin(false);
+  spinner.spin(false);
 }
 
-function prettifyPivot() {
+function addOptGroups(nCharts) {
+    //add optgroups
+    var select = $(".pvtRenderer");
+    var selections = select.children();
+    var charts = $('<optgroup>').attr('label','Charts');
+    var tables = $('<optgroup>').attr('label','Tables');
+    select.append(charts);
+    select.append(tables);
+    selections.each(function(i, option) {
+      if ( i < nCharts) {
+        $(this).appendTo(charts);
+      } else {
+        $(this).appendTo(tables);
+      }
+    });
+}
+
+function prettifyPivot(originalVal) {
   // prettify the pivotUI (including with Bootstrap classes)
-  $(".pvtSelect select").addClass('selectpicker')
-    .attr({'id':'pvtSelect', 'data-style': 'btn-primary', 'title': 'Chart or table...'}).selectpicker('refresh');
-  $(".pvtVals select").addClass('selectpicker')
-    .attr({'data-style': 'btn-default'}).selectpicker('refresh');
+  $('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
+  //$(".pvtSelect select")
+  var pvtRenderer = $(".pvtSelect select").addClass('selectpicker').attr({'id':'pvtSelect', 'data-style': 'btn-primary'})
+  if (originalVal.length === 0) {
+    pvtRenderer.attr('title', 'Chart or table...');
+  }
+  pvtRenderer.selectpicker('refresh');
+  $(".pvtAggregator").addClass('selectpicker').attr({'data-style': 'btn-default'}).selectpicker('refresh');
   $(".pvtAttrDropdown").addClass('selectpicker').selectpicker('refresh');
   $("#pivot button:contains('Select')").addClass('btn btn-default');
   $("#pivot button:contains('OK')").addClass('btn btn-primary')
@@ -259,13 +263,15 @@ function prettifyPivot() {
   //$("<div>").attr('id', 'plotArea').css({width: "100%", height: "100%"})
     //.appendTo($('body'));
   //$('.pvtAttrDropdown option').first().text('[no attribute]');
+  //$('.pvtSelect').selectpicker('val', originalVal);
+  $('.pvtSelect').selectpicker('refresh');
 }
 
 function updateResizeListener(chartRendererName) {
   $('#pvtSelect').off('hidden.bs.select');
   $('#pvtSelect').on('hidden.bs.select', function() {
     if ($(this).find('option:selected').parent().attr('label') == 'Charts') {
-      //loadedChart = chartRendererName;
+      loadedChart = chartRendererName;
       var element = $('#page-content-wrapper');
       switch(chartRendererName) {
         case 'plotly':
@@ -309,80 +315,135 @@ function getChartHeight() {
 
 $( function() {
 
-  $('#save').click( function(e) {
-  e.preventDefault();
-  var div = $('#'+plotlyDiv);
-  var dw = div.width(), dh = div.height();
-  var w, h;
-  if ( dw >= dh ) {
-    w = 300;
-    h = dh * w / dw;
-  } else {
-    h = 300;
-    w = dw * h / dh;
-  }
-  Plotly.toImage(div[0], {
-      format: 'png',
-      height: dh,
-      width: dw,
-    }).then(function(url){
-
-      var thumbnail = $('<div>')
-        .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
-        .css({'text-align': 'center'});
-        
-      var form = $('<form id="chart_form">').html(
-      '<br/><div class="form-group"> \
-        <label for="name">Name</label> \
-        <input type="text" class="form-control" id="name" name="name"> \
-      </div> \
-      <div class="form-group"> \
-        <label for="description">Description</label> \
-        <textarea class="form-control" id="description" name="description"/> \
-      </div>')
-      
-      var form = $('<div>')
-        .append(thumbnail)
-        .append(form)
-        .html();
-      bootbox.confirm({
-          title: 'Save to collection',
-          message: form,
-          closeButton: true,
-          buttons: {
-              cancel: {
-                  label: '<i class="fa fa-times"></i> Cancel'
-              },
-              confirm: {
-                  label: '<i class="fa fa-check"></i> Save'
-              }
-          },
-          callback: function(result) {
-            if (result) {
-              var form = $('#chart_form')[0];
-              var formData = new FormData(form);
-              formData.append('thumbnail', url);
-              formData.append('filters', JSON.stringify(filterParams));
-              formData.append('setup', JSON.stringify(chartSetup));
-              $.ajax({
-                type: "POST",
-                url: '_save_chart',
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                success: function(resp){
-                  notify('success', 'Success!', 'Chart saved to Chart Collections.')
-                }
-              });
-              
-            }          
-          }
-      });
-      
-    });
-      
-  });
+  $('.save').click( function(e) {
   
+    e.preventDefault();
+    var div = $('#'+plotlyDiv);
+    var dw = div.width(), dh = div.height();
+    var w, h;
+    if ( dw >= dh ) {
+      w = 300;
+      h = dh * w / dw;
+    } else {
+      h = 300;
+      w = dw * h / dh;
+    }
+    Plotly.toImage(div[0], {
+        format: 'png',
+        height: dh,
+        width: dw,
+      })
+      .then(function(url){
+      
+        switch($(this).attr('id')) {
+          case 'save':
+            saveDialog(url);
+            break;
+          case 'saveas':
+            saveAsDialog(url);
+            break;
+          default:
+            break;
+        }
+        
+      });
+  });
 });
 
+function saveAsDialog(url) {
+
+  var thumbnail = $('<div>')
+    .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
+    .css({'text-align': 'center'});
+    
+  var form = $('<form>')
+  var form = $('<div>').append(thumbnail).append(form).html();
+  bootbox.confirm({
+      title: 'Overwrite existing chart?',
+      message: form,
+      closeButton: true,
+      buttons: {
+          cancel: {
+              label: '<i class="fa fa-times"></i> Cancel'
+          },
+          confirm: {
+              label: '<i class="fa fa-check"></i> Save'
+          }
+      },
+      callback: function(result) {
+        if (result) {
+          var form = $('#chart_form')[0];
+          var formData = new FormData(form);
+          saveChart(formData, url, false);
+        }
+      }
+  });
+}
+
+function saveAsDialog(url) {
+
+  var thumbnail = $('<div>')
+    .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
+    .css({'text-align': 'center'});
+    
+  var form = $('<form id="chart_form">').html(
+  '<br/><div class="form-group"> \
+    <label for="name">Name</label> \
+    <input type="text" class="form-control" id="name" name="name"> \
+  </div> \
+  <div class="form-group"> \
+    <label for="description">Description</label> \
+    <textarea class="form-control" id="description" name="description"/> \
+  </div> \
+  <p id="saveerror"></p>')
+  
+  var form = $('<div>')
+    .append(thumbnail)
+    .append(form)
+    .html();
+  bootbox.confirm({
+      title: 'Save to collection',
+      message: form,
+      closeButton: true,
+      buttons: {
+          cancel: {
+              label: '<i class="fa fa-times"></i> Cancel'
+          },
+          confirm: {
+              label: '<i class="fa fa-check"></i> Save'
+          }
+      },
+      callback: function(result) {
+        if (result) {
+          var name = $('#name').val();
+          if ($.inArray(name, chartNames) === 0) {
+            $('#saveerror').text('Name already exists.')
+            return false;
+          } else {
+            var form = $('#chart_form')[0];
+            var formData = new FormData(form);
+            saveChart(formData, url, true);
+            chartNames.push(name);
+          }
+        }
+      }
+  });
+}
+
+saveChart = function(formData, url, asnew) {
+  formData.append('thumbnail', url);
+  formData.append('filters', JSON.stringify(filterParams));
+  formData.append('setup', JSON.stringify(chartSetup));
+  formData.append('asnew', asnew);
+  $.ajax({
+    type: "POST",
+    url: '_save_chart_as',
+    data: formData,
+    cache: false,
+    contentType: false,
+    processData: false,
+    success: function(resp){
+      notify('success', 'Success!', 'Chart saved to Chart Collections.')
+    }
+  });
+}
