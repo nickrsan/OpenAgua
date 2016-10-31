@@ -39,12 +39,13 @@ def main():
         chart = get_study_chart(session['study_id'], chart_id)
         filters = json.loads(chart.filters)
         setup = json.loads(chart.setup)
+        
+    chart_names = get_study_chart_names(session['study_id'])
+        
     chart_params = {'chart_id': chart_id,
+                    'chart_names': chart_names,
                     'filters': filters,
                     'setup': setup}
-    #session['chart_id'] = None
-    
-    chart_names = json.dumps(get_study_chart_names(session['study_id']))
 
     return render_template('chart-maker.html', ttypes=conn.ttypes, chart_params=chart_params)
 

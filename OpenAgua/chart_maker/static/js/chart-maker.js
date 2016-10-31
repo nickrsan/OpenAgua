@@ -316,11 +316,12 @@ function getChartHeight() {
 $( function() {
 
   $('.save').click( function(e) {
-  
     e.preventDefault();
-    var div = $('#'+plotlyDiv);
-    var dw = div.width(), dh = div.height();
-    var w, h;
+    var saveType = $(this).attr('id'),
+      div = $('#'+plotlyDiv),
+      dw = div.width(),
+      dh = div.height(),
+      w, h;
     if ( dw >= dh ) {
       w = 300;
       h = dh * w / dw;
@@ -335,12 +336,12 @@ $( function() {
       })
       .then(function(url){
       
-        switch($(this).attr('id')) {
+        switch(saveType) {
           case 'save':
-            saveDialog(url);
+            saveDialog(url, w, h);
             break;
           case 'saveas':
-            saveAsDialog(url);
+            saveAsDialog(url, w, h);
             break;
           default:
             break;
@@ -350,7 +351,7 @@ $( function() {
   });
 });
 
-function saveAsDialog(url) {
+function saveDialog(url, w, h) {
 
   var thumbnail = $('<div>')
     .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
@@ -380,7 +381,7 @@ function saveAsDialog(url) {
   });
 }
 
-function saveAsDialog(url) {
+function saveAsDialog(url, w, h) {
 
   var thumbnail = $('<div>')
     .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
@@ -437,13 +438,13 @@ saveChart = function(formData, url, asnew) {
   formData.append('asnew', asnew);
   $.ajax({
     type: "POST",
-    url: '_save_chart_as',
+    url: '_save_chart',
     data: formData,
     cache: false,
     contentType: false,
     processData: false,
     success: function(resp){
-      notify('success', 'Success!', 'Chart saved to Chart Collections.')
+      notify('success', 'Success!', 'Chart saved to Chart Collection.')
     }
   });
 }
