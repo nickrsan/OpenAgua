@@ -35,7 +35,6 @@ def manage_templates():
     
     return render_template('templates_manager.html', templates=templates)
 
-
 @manager.route('/manage/templates/_upload', methods=['GET', 'POST'])
 @login_required
 def upload_template():

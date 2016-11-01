@@ -1,0 +1,47 @@
+{% extends "master.html" %}
+{% block title %} - Data Editor{% endblock %}
+{% block head_main %}
+
+<link href="{{ url_for('static', filename='lib/magnific-popup/magnific-popup.css') }}" media="all" rel="stylesheet" type="text/css" />
+<script src="{{ url_for('static', filename='lib/magnific-popup/jquery.magnific-popup.min.js') }}"></script>
+
+<link href="{{ url_for('.static', filename='css/chart-collection.css') }}" media="all" rel="stylesheet" type="text/css" />
+
+{% endblock %}
+
+{% block content %}
+
+<div id="thumbnails" class="container-fluid">
+  <div id="selector_row" class="row">
+  
+    <!--select a feature-->
+    
+    {% for chart in charts %}
+      <div class="thumb col col-sm-6 col-md-4 col-lg-3">
+        <div class="wrapper" id="{{ chart['id'] }}">
+          <!--<div class="main">-->
+            <!--<button type="button" class="edit" style="background-image: url('{{ chart['thumbnail'] }}')">-->
+            <!--<button type="button" class="edit">-->
+              <!--<img class="img-responsive center-block" src="{{ chart['thumbnail'] }}" />-->
+              <a href="{{ chart['thumbnail'] }}" data-mfp-src="{{ chart['thumbnail'] }}"><img class="img-responsive center-block" src="{{ chart['thumbnail'] }}" /></a>
+            <!--</button>-->
+          <!--</div>-->
+          <div class="caption">
+            <h3>{{ chart['name'] }}</h3>
+            <!--<p>{{ chart['description'] }}</p>-->
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+    
+  
+  </div>
+</div>
+
+{% endblock %}
+
+{% block endscript %}
+
+<script src="{{ url_for('.static', filename='js/chart-collection.js') }}" type="text/javascript" charset="utf-8"></script>
+
+{% endblock %}

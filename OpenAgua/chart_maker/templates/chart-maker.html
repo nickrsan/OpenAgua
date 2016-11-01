@@ -33,11 +33,16 @@
 <script src="{{ url_for('.static', filename='js/plotly_renderers.js') }}" type="text/javascript" charset="utf-8"></script>
 
 <!--OpenAgua-->
-<link href="{{ url_for('.static', filename='css/pivot-results.css') }}" media="all" rel="stylesheet" type="text/css" />
-<script src="{{ url_for('.static', filename='js/pivot-results.js') }}" type="text/javascript" charset="utf-8"></script>
+<link href="{{ url_for('.static', filename='css/chart-maker.css') }}" media="all" rel="stylesheet" type="text/css" />
+<script src="{{ url_for('.static', filename='js/chart-maker.js') }}" type="text/javascript" charset="utf-8"></script>
 
 <script>
 var ttypes = {{ ttypes|tojson|safe }};
+var chartParams = {{ chart_params|tojson|safe}}
+var filterParams = chartParams.filters;
+var chartSetup = chartParams.setup;
+var chartNames = chartParams.chart_names;
+var chartId = chartParams.chart_id;
 </script>
 
 {% endblock %}
@@ -102,14 +107,15 @@ var ttypes = {{ ttypes|tojson|safe }};
         <div class="col col-sm-12 col-md-12 col-lg-12">
             <div id="spinner"></div>
             <div id="pivot" class="pane" style="width:100%"></div>
-            <!--<div>-->
-                <!--<button id="save_as_thumbnail" class="btn btn-default">Set as icon</button>-->
-            <!--</div>-->
             <span class="changesOutput" ></span>
         </div>    
     </div>
 </div>
 
+    <footer class="footer">
+        <!--<button id="save" type="button" class='save btn btn-primary'>Save</button>-->
+        <button id="saveas" type="button" class='save btn btn-default'>Save as...</button>
+    </footer>
 
 {% endblock %}
 

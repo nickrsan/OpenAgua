@@ -1,13 +1,17 @@
 var pivotOutput,
-  filterParams = {}, type_attrs = [], 
+  type_attrs = [], 
   plotlyDiv = 'plotlyArea',
   plotlyListenerBuilt = false, loadedChart = null;
 
 $( document ).ready( function() {
-
   pivotOutput = $("#pivot");
   
-  loadPivot( chartRendererName = 'plotly', width=getChartWidth(), height=getChartHeight() );  
+  loadPivot(
+    chartRendererName = chartSetup.renderer,
+    width = getChartWidth(),
+    height = getChartHeight(),
+    pivotOptions = chartSetup.config
+  );  
   
   var attr_id;
   
@@ -130,14 +134,17 @@ $( document ).ready( function() {
   });
   
   $("#load_options").click( function() {
-    //pivotOutput.empty();
-    loadPivot( chartRendererName=$("#chart_renderer").val(), width=getChartWidth(), height=getChartHeight() );
+    loadPivot(
+      chartRendererName=$("#chart_renderer").val(),
+      width=getChartWidth(),
+      height=getChartHeight()
+    );
   });
   
 });
 
-function loadPivot(chartRendererName, width, height) {
-
+function loadPivot(chartRendererName, width, height, pivotOptions={}) {
+  spinner.spin(spinDiv);
   // Get JSON-formatted data from the server
   var chartRenderers, nCharts, opts, defaultVals;
   
@@ -166,6 +173,9 @@ function loadPivot(chartRendererName, width, height) {
       break;      
   }
   
+  opts.onEditValues = function (changes) { $(".changesOutput").html(JSON.stringify(changes)) };
+  opts.onDrawTable = function (htTable) { $(".changesOutput").empty() };
+  
   loadedChart = chartRendererName;
   
   var defaultVals
@@ -175,47 +185,75 @@ function loadPivot(chartRendererName, width, height) {
     defaultVals = []
   }
   
-  opts.onEditValues = function (changes) { $(".changesOutput").html(JSON.stringify(changes)) }
-  opts.onDrawTable = function (htTable) { $(".changesOutput").empty() }
+  // default options if they are not provided
+  if ( Object.keys(pivotOptions).length === 0 ) {
+    pivotOptions = {
+      vals: defaultVals,
+      aggregatorName: "Average",
+    };
+  }
+  
+  // renderers and options not saved with chart
+  $.extend(pivotOptions, {
+    renderers: $.extend({}, chartRenderers, $.pivotUtilities.renderers),
+    rendererOptions: opts
+  });
+  
+  pivotOptions.onRefresh = function(config) {
+      var pivot_config = JSON.parse(JSON.stringify(config));
+      //delete some values which are functions
+      delete pivot_config["aggregators"];
+      delete pivot_config["renderers"];
+      //delete some bulky default values
+      delete pivot_config["rendererOptions"];
+      delete pivot_config["localeStrings"];
+      chartSetup.config = pivot_config;
+      chartSetup.renderer = chartRendererName
+  }
   
   $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
-      var pivotData = resp.data;
-      var pivotOptions = {
-          vals: defaultVals,
-          aggregatorName: "Average",
-          renderers: $.extend({}, chartRenderers, $.pivotUtilities.renderers),
-          //renderers: $.extend({}, chartRenderers, $.pivotUtilities.novix_renderers, $.pivotUtilities.renderers),
-          rendererOptions: opts,
-      };
-      pivotOutput.pivotUI( pivotData, pivotOptions, true );
-      
-      //add optgroups
-      $('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
-      var select = $(".pvtSelect select");
-      var selections = select.children();
-      select.empty();
-      var charts = $('<optgroup>').attr('label','Charts');
-      var tables = $('<optgroup>').attr('label','Tables');
-      selections.each(function(i, option) {
-        if ( i < nCharts) {
-          charts.append(option);
-        } else {
-          tables.append(option);
-        }
-      })
-      select.append(charts);
-      select.append(tables);
-      prettifyPivot();
+      var pivotData = resp.data;      
+      pivotOutput.pivotUI(
+        pivotData,
+        pivotOptions,
+        true
+      );
+      addOptGroups(nCharts);
+      prettifyPivot(chartSetup.config.rendererName);
       updateResizeListener(chartRendererName);
+
   });
+  
+  spinner.spin(false);
 }
 
-function prettifyPivot() {
+function addOptGroups(nCharts) {
+    //add optgroups
+    var select = $(".pvtRenderer");
+    var selections = select.children();
+    var charts = $('<optgroup>').attr('label','Charts');
+    var tables = $('<optgroup>').attr('label','Tables');
+    select.append(charts);
+    select.append(tables);
+    selections.each(function(i, option) {
+      if ( i < nCharts) {
+        $(this).appendTo(charts);
+      } else {
+        $(this).appendTo(tables);
+      }
+    });
+}
+
+function prettifyPivot(originalVal) {
   // prettify the pivotUI (including with Bootstrap classes)
-  $(".pvtSelect select").addClass('selectpicker')
-    .attr({'id':'pvtSelect', 'data-style': 'btn-primary', 'title': 'Chart or table...'}).selectpicker('refresh');
-  $(".pvtVals select").addClass('selectpicker')
-    .attr({'data-style': 'btn-default'}).selectpicker('refresh');
+  $('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
+  //$(".pvtSelect select")
+  var pvtRenderer = $(".pvtSelect select").addClass('selectpicker').attr({'id':'pvtSelect', 'data-style': 'btn-primary'})
+  if (originalVal.length === 0) {
+    pvtRenderer.attr('title', 'Chart or table...');
+  }
+  pvtRenderer.selectpicker('refresh');
+  $(".pvtAggregator").addClass('selectpicker').attr({'data-style': 'btn-default'}).selectpicker('refresh');
   $(".pvtAttrDropdown").addClass('selectpicker').selectpicker('refresh');
   $("#pivot button:contains('Select')").addClass('btn btn-default');
   $("#pivot button:contains('OK')").addClass('btn btn-primary')
@@ -225,13 +263,15 @@ function prettifyPivot() {
   //$("<div>").attr('id', 'plotArea').css({width: "100%", height: "100%"})
     //.appendTo($('body'));
   //$('.pvtAttrDropdown option').first().text('[no attribute]');
+  //$('.pvtSelect').selectpicker('val', originalVal);
+  $('.pvtSelect').selectpicker('refresh');
 }
 
 function updateResizeListener(chartRendererName) {
   $('#pvtSelect').off('hidden.bs.select');
   $('#pvtSelect').on('hidden.bs.select', function() {
     if ($(this).find('option:selected').parent().attr('label') == 'Charts') {
-      //loadedChart = chartRendererName;
+      loadedChart = chartRendererName;
       var element = $('#page-content-wrapper');
       switch(chartRendererName) {
         case 'plotly':
@@ -268,13 +308,143 @@ function getChartWidth() {
 }
 
 function getChartHeight() {
-  return $(window).height() - 255;
+  return $(window).height() - 300;
 }
 
-//$('#save_as_thumbnail').click(function() {
-    //html2canvas($("#pvtRendererArea"), {
-      //onrendered: function(canvas) {
-        //$("body").append(canvas);
-      //}
-    //});
-//});
+//BOTTOM
+
+$( function() {
+
+  $('.save').click( function(e) {
+    e.preventDefault();
+    var saveType = $(this).attr('id'),
+      div = $('#'+plotlyDiv),
+      dw = div.width(),
+      dh = div.height(),
+      w, h;
+    if ( dw >= dh ) {
+      w = 300;
+      h = dh * w / dw;
+    } else {
+      h = 300;
+      w = dw * h / dh;
+    }
+    Plotly.toImage(div[0], {
+        format: 'png',
+        height: dh,
+        width: dw,
+      })
+      .then(function(url){
+      
+        switch(saveType) {
+          case 'save':
+            saveDialog(url, w, h);
+            break;
+          case 'saveas':
+            saveAsDialog(url, w, h);
+            break;
+          default:
+            break;
+        }
+        
+      });
+  });
+});
+
+function saveDialog(url, w, h) {
+
+  var thumbnail = $('<div>')
+    .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
+    .css({'text-align': 'center'});
+    
+  var form = $('<form>')
+  var form = $('<div>').append(thumbnail).append(form).html();
+  bootbox.confirm({
+      title: 'Overwrite existing chart?',
+      message: form,
+      closeButton: true,
+      buttons: {
+          cancel: {
+              label: '<i class="fa fa-times"></i> Cancel'
+          },
+          confirm: {
+              label: '<i class="fa fa-check"></i> Save'
+          }
+      },
+      callback: function(result) {
+        if (result) {
+          var form = $('#chart_form')[0];
+          var formData = new FormData(form);
+          saveChart(formData, url, false);
+        }
+      }
+  });
+}
+
+function saveAsDialog(url, w, h) {
+
+  var thumbnail = $('<div>')
+    .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
+    .css({'text-align': 'center'});
+    
+  var form = $('<form id="chart_form">').html(
+  '<br/><div class="form-group"> \
+    <label for="name">Name</label> \
+    <input type="text" class="form-control" id="name" name="name"> \
+  </div> \
+  <div class="form-group"> \
+    <label for="description">Description</label> \
+    <textarea class="form-control" id="description" name="description"/> \
+  </div> \
+  <p id="saveerror"></p>')
+  
+  var form = $('<div>')
+    .append(thumbnail)
+    .append(form)
+    .html();
+  bootbox.confirm({
+      title: 'Save to collection',
+      message: form,
+      closeButton: true,
+      buttons: {
+          cancel: {
+              label: '<i class="fa fa-times"></i> Cancel'
+          },
+          confirm: {
+              label: '<i class="fa fa-check"></i> Save'
+          }
+      },
+      callback: function(result) {
+        if (result) {
+          var name = $('#name').val();
+          if ($.inArray(name, chartNames) === 0) {
+            $('#saveerror').text('Name already exists.')
+            return false;
+          } else {
+            var form = $('#chart_form')[0];
+            var formData = new FormData(form);
+            saveChart(formData, url, true);
+            chartNames.push(name);
+          }
+        }
+      }
+  });
+}
+
+saveChart = function(formData, url, asnew) {
+  formData.append('thumbnail', url);
+  formData.append('filters', JSON.stringify(filterParams));
+  formData.append('setup', JSON.stringify(chartSetup));
+  formData.append('asnew', asnew);
+  $.ajax({
+    type: "POST",
+    url: '_save_chart',
+    data: formData,
+    cache: false,
+    contentType: false,
+    processData: false,
+    success: function(resp){
+      notify('success', 'Success!', 'Chart saved to Chart Collection.')
+    }
+  });
+}

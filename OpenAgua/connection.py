@@ -11,7 +11,7 @@ from attrdict import AttrDict
 import logging
 
 from .utils import hydra_timeseries, empty_hydra_timeseries, eval_data, encrypt, decrypt
-from .models import User, HydraUser, HydraUrl, HydraStudy
+from .models import User, HydraUser, HydraUrl, HydraStudy, Chart
 from . import app, db # delete later
 
 log = logging.getLogger(__name__)
@@ -469,6 +469,7 @@ class connection(object):
             session['project_id'] = None
             session['network_id'] = None
             session['template_id'] = None
+            session['study_id'] = None
             session['study_name'] = None
             self.invalid_study = True
 
@@ -476,6 +477,7 @@ class connection(object):
             session['project_id'] = study.project_id
             session['network_id'] = study.network_id
             session['template_id'] = study.template_id
+            session['study_id'] = study.id
             session['study_name'] = study.name
             self.invalid_study = False
         
@@ -519,6 +521,7 @@ class connection(object):
                     session['study_name'] = '{}'.format(self.network.name)
                 else:
                     session['study_name'] = None
+                    session['study_id'] = None
     
 class JSONObject(dict):
     def __init__(self, obj_dict):
@@ -709,3 +712,31 @@ def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_
     db.session.commit()
     if activate:
         activate_study(db, study_id = study.id)
+
+def add_chart(db, hydrastudy_id, name, description, thumbnail, filters, setup):
+    
+    chart = Chart()
+    chart.hydrastudy_id = hydrastudy_id
+    chart.name = name
+    chart.description = description
+    chart.thumbnail = thumbnail
+    chart.filters = filters
+    chart.setup = setup
+    
+    db.session.add(chart)
+    db.session.commit()
+    
+    return 0
+
+def get_study_charts(study_id):
+    charts = Chart.query.filter(Chart.hydrastudy_id==study_id)
+    return charts
+
+def get_study_chart(study_id, chart_id):
+    chart = Chart.query.filter(Chart.hydrastudy_id==study_id).filter(Chart.id == chart_id).first()
+    return chart
+    
+def get_study_chart_names(study_id):
+    charts = get_study_charts(study_id)
+    return [chart.name for chart in charts]
+    
