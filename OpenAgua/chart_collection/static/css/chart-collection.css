@@ -36,6 +36,12 @@
 
 }
 
+.edit {
+    background-position: center;
+    background-size: 100px 100px;
+    background-repeat: no-repeat;
+}
+
 .caption {
     padding: 10px 10px 10px 10px;
     background-color: whitesmoke;

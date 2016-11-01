@@ -37,7 +37,7 @@ def main():
         chart['description'] = c.description
         
         staticdst = os.path.join('static', chartspath, c.thumbnail)
-        chart['thumbnail'] = staticdst
+        chart['thumbnail'] = staticdst.replace('\\','/')
         chart['id'] = c.id
         charts.append(chart)
         
