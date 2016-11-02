@@ -12,3 +12,5 @@ userfiles/
 
 # pyomo app log files
 pyomo_model/logs/*
+
+/docs/_site/
