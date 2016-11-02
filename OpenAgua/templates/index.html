@@ -10,56 +10,280 @@
 
 {% block body %}
 
-<div class="container-fluid">
-  <div class="row">   
-    <div class="col-sm-12 col-md-10 col-sm-offset-0 col-md-offset-1">
-      {{ macros.messages()}}
-    </div>
-  </div>
-</div>
-<div class="index">
-  <div class="container-fluid">
-    <div class="row">   
-      <div class="col-sm-12 col-md-8">
-        <h3>{{ _('OpenAgua is a next-generation decision support system for water resources planning.') }}</h3>
-        <p style="background-color:yellow;"><strong>PLEASE READ!</strong> Thank you for checking out this site. Please be aware that it is currently in a testing phase. Though we will try to keep user records, your user account and data may be deleted without warning at any time. Furthermore, we request that you don't share this site, as we are not set up for much website traffic (we're using a free tier AWS micro t2). If you weren't invited by the developers, please send an email to admin at openagua dot org and indicate you're interest.</p>
-        <p>{{_('Planned features include:')}}</p>
-        <ul>
-          <li>{{_('Optimization-based simulation modeling of water resources systems.')}} (<a href="#">{{_('learn more')}}</a>)</li>
-          <li>{{_('Standardized data organization based on <a href="http://www.hydraplatform.org">Hydra Platform</a>.')}}  (<a href="#">{{_('learn more')}}</a>)</li>
-          <li>{{_('Easy and flexible sharing for collaboration between experts, decision-makers, and stakeholders.')}} (<a href="#">{{_('learn more')}}</a>)</li>
-          <li>{{_('Advanced scenario builder to rapidly explore a wide range of management alternatives and social, economic and environmental scenarios.')}} (<a href="#">{{_('learn more')}}</a>)</li>
-          <li>{{_('Flexible computing options, leveraging the power of cloud computing.')}} (<a href="#">{{_('learn more')}}</a>)</li>
-          <li>{{_('Advanced visualization tools, including popular third-party graphing options (e.g., Tableau and Plotly).')}} (<a href="#">{{_('learn more')}}</a>)</li>
-          <li>{{_('Open source, with a BSD license.')}} {{_('Feel free to <a href="https://github.com/CentroDelAgua/OpenAgua">fork from GitHub</a> and help improve OpenAgua, or host from your own computer.')}} (<a href="#">{{_('learn more')}}</a>)</li>
-          <li>{{_('Secure everything.')}} (<a href="#">{{_('learn more')}}</a>)</li>
-        </ul>
-        <br/>
-        <div>
-          <a class="btn btn-primary btn-md label-default" href="/register" role="button">Create account</a>
-          <a class="btn btn-primary btn-md label-success" href="/login" role="button">Sign in</a>
+<html><head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+        <script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+        <link href="http://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href="OA1.css" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="dam_files\ccc7c.main.css">
+        <link rel="stylesheet" href="OA.css">
+        <link rel="stylesheet" href="http://pingendo.github.io/pingendo-bootstrap/themes/default/bootstrap.css">
+    </head><body>
+        <div class="navbar navbar-default navbar-inverse navbar-static-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-ex-collapse">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand">OpenAgua</a>
+                </div>
+                <div class="collapse navbar-collapse" id="navbar-ex-collapse">
+                    <ul class="nav navbar-nav navbar-right">
+                        <li class="active">
+                            <a href="#">About Us</a>
+                        </li>
+                        <li class="active">
+                            <a href="#">Home</a>
+                        </li>
+                        <li>
+                            <a href="#">Sign In</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </div>
+        <div class="carousel hidden-sm hidden-xs slide" id="fullcarousel-example" data-interval="5000" data-ride="carousel">
+            <div class="carousel-inner">
+                <div class="item">
+                    <img src="b4.png">
+                    <div class="carousel-caption">
+                        <h2>Title</h2>
+                        <p>Description</p>
+                    </div>
+                </div>
+                <div class="item">
+                    <img src="B1.png">
+                    <div class="carousel-caption">
+                        <h1></h1>
+                        <p></p>
+                    </div>
+                </div>
+            </div>
+            <a class="left carousel-control" href="#carousel-example-generic" data-slide="prev"><i class="icon-prev fa fa-angle-left"></i></a>
+            <a class="right carousel-control" href="#carousel-example-generic" data-slide="next"><i class="icon-next fa fa-angle-right"></i> </a>
+        </div>
+        <div class="section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div id="carousel-example" data-interval="3000" class="carousel slide" data-ride="carousel">
+                                        <div class="carousel-inner">
+                                            <div class="item">
+                                                <img src="B_code.png">
+                                                <div class="carousel-caption">
+                                                    <h1>OpenAgua</h1>
+                                                    <h2 class="text-primary">The next-generation decision support system for water resources planning.</h2>
+                                                </div>
+                                            </div>
+                                            <div class="item">
+                                                <img src="{{ url_for('static', filename='images/B1_meeting.png') }}">
+                                                <div class="carousel-caption">
+                                                    <h1>OpenAgua</h1>
+                                                    <h1>The next-generation decision support system for water resources planning.</h1>
+                                                </div>
+                                            </div>
+                                            <div class="item">
+                                                <img src="B1_selected art.png">
+                                                <div class="carousel-caption">
+                                                    <h2>Selected art</h2>
+                                                    <p>Description</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <a class="left carousel-control" href="#carousel-example" data-slide="prev"><i class="icon-prev  fa fa-angle-left"></i></a>
+                                        <a class="right carousel-control" href="#carousel-example" data-slide="next"><i class="icon-next fa fa-angle-right"></i></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p></p>
+                        <div id="carousel-example" data-interval="4000" class="carousel slide" data-ride="carousel">
+                            <div class="carousel-inner">
+                                <div class="item active">
+                                    <img src="{{ url_for('static', filename='images/B_river.jpg') }}">
+                                    <div class="carousel-caption">
+                                        <h1></h1>
+                                        <p></p>
+                                    </div>
+                                </div>
+                                <div class="item">
+                                    <img src="{{ url_for('static', filename='images/B_watershed.jpg') }}">
+                                    <div class="carousel-caption">
+                                        <p></p>
+                                    </div>
+                                </div>
+                                <div class="item">
+                                    <img src="{{ url_for('static', filename='images/B_code.jpg') }}">
+                                    <div class="carousel-caption">
+                                        <h2></h2>
+                                        <p></p>
+                                    </div>
+                                </div>
+                                <div class="item">
+                                    <img src="{{ url_for('static', filename='images/B1_meeting.jpg') }}">
+                                </div>
+                                <div class="item">
+                                    <img src="{{ url_for('static', filename='images/B1_algae.jpg') }}">
+                                </div>
+                            </div>
+                            <a class="left carousel-control" href="#carousel-example" data-slide="prev"><i class="icon-prev  fa fa-angle-left"></i></a>
+                            <a class="right carousel-control" href="#carousel-example" data-slide="next"><i class="icon-next fa fa-angle-right"></i></a>
+                        </div>
+                        <div class="container">
+                            <div class="row">
+                                <div class="col-md-11">
+                                    <div class="section">
+                                        <div class="container">
+                                            <div class="row">
+                                                <div class="col-md-2">
+                                                    <img src="{{ url_for('static', filename='images/OA_logo_small.jpg') }}" class="img-responsive">
+                                                </div>
+                                                <div class="col-md-9">
+                                                    <h3>
+                                                        <b>OpenAgua</b>
+                                                        <br>The next-generation decision support system for water resources planning.
+                                                        The goal of this proyect is the open collaboration between researchers,
+                                                        politicians, stakeholders and students.&nbsp;</h3>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h3 class="text-left">
+                            <br>
+                            <b>Features of OpenAgua:</b>
+                            <br>
+                            <br>
+                        </h3>
+                        <div class="col-md-3">
+                            <i class="fa fa-2x fa-fw fa-tint"></i>
+                            <h4>
+                                <b>Optimization water modeling</b>
+                            </h4>
+                            <p>OpenAgua uses optimization-based simulation modeling of water resources
+                                systems.</p>
+                            <p></p>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="fa fa-2x fa-fw fa-group"></i>
+                            <h4>
+                                <b>Sharing for collaboration&nbsp;</b>
+                            </h4>
+                            <p>Easy and flexible sharing for collaboration between experts, decision-makers,
+                                and stakeholders.</p>
+                        </div>
+                        <div class="col-md-3">
+                            <img class="img-responsive">
+                            <i class="fa fa-2x fa-flip-horizontal fa-fw fa-th-list pull-center"></i>
+                            <h4>
+                                <b>Standardized data organization</b>
+                            </h4>
+                            <p>Standardized data organization is &nbsp;based on Hydra Platform</p>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="fa fa-2x fa-fw fa-cubes"></i>
+                            <h4>
+                                <b>Advanced scenario builder&nbsp;</b>
+                            </h4>
+                            <p class="text-left">Advanced scenario builder to rapidly explore a wide range of management
+                                alternatives and social, economic and environmental scenarios.</p>
+                            <p class="text-left"></p>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="fa fa-2x fa-cloud fa-fw"></i>
+                            <h4 class="text-left">
+                                <b>Cloud computing</b>
+                            </h4>
+                            <p>Flexible computing options, leveraging the power of cloud computing.</p>
+                            <p></p>
+                        </div>
+                        <div class="col-md-3">
+                            <img class="img-responsive">
+                            <i class="fa fa-2x fa-bar-chart-o fa-flip-horizontal fa-fw pull-center"></i>
+                            <h4>
+                                <b>Advanced visualization tools</b>
+                            </h4>
+                            <p>Advanced visualization tools, including popular third-party graphing options
+                                (e.g., Tableau and Plotly)</p>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="fa fa-2x fa-code-fork fa-fw"></i>
+                            <h4>
+                                <b>Open source</b>
+                            </h4>
+                            <p>Open source, with a BSD license. Feel free to fork from GitHub and help
+                                improve OpenAgua, or host from your own computer.</p>
+                        </div>
+                        <div class="col-md-3">
+                            <i class="fa fa-2x fa-fw fa-lock"></i>
+                            <h4>
+                                <b>Security</b>
+                            </h4>
+                            <p>Secure interphase system</p>
+                        </div>
+                        <p></p>
+                        <h1></h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-11">
+                        <h3 contenteditable="true">Institutional Partners</h3>
+                        <img src="{{ url_for('static', filename='images/partners.jpg') }}" class="img-responsive">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <footer class="hidden-xs section section-primary">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <h3></h3>
+                        <p>
+                            <br>
+                            <br>© 2016 Tecnológico de Monterrey / University of California, Davis</p>
+                    </div>
+                    <div class="col-sm-6">
+                        <p class="text-info text-right">
+                            <br>
+                            <br>
+                        </p>
+                        <div class="row">
+                            <div class="col-md-12 hidden-lg hidden-md hidden-sm text-left">
+                                <a href="#"><i class="fa fa-3x fa-fw fa-instagram text-inverse"></i></a>
+                                <a href="#"><i class="fa fa-3x fa-fw fa-twitter text-inverse"></i></a>
+                                <a href="#"><i class="fa fa-3x fa-fw fa-facebook text-inverse"></i></a>
+                                <a href="#"><i class="fa fa-3x fa-fw fa-github text-inverse"></i></a>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 hidden-xs text-right">
+                                <a href="#"><i class="fa fa-3x fa-fw fa-instagram text-inverse"></i></a>
+                                <a href="#"><i class="fa fa-3x fa-fw fa-twitter text-inverse"></i></a>
+                                <a href="#"><i class="fa fa-3x fa-fw fa-facebook text-inverse"></i></a>
+                                <a href="#"><i class="fa fa-3x fa-fw fa-github text-inverse"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </footer>
     
-        <div class="row">
-          <div class="col-sm-12 col-md-12 col-lg-12">
-            <h3>{{_('Institutional partners')}}</h3>
-                <a href="http://www.centrodelagua.org/"><img class="logo" src="{{ url_for('static', filename='images/centrodelagua.png') }}" width="250px"></img></a>
-                <a href="http://watershed.ucdavis.edu/"><img class="logo" src="{{ url_for('static', filename='images/ucdcws.png') }}" width="250px"></img></a>
-                <a href="http://citris-uc.org"><img class="logo" src="{{ url_for('static', filename='images/citris_logo.png') }}" width="250"></img></a>
-          </div>
-        </div>
-        
-      </div>
-      
-      <div class="col-sm-12 col-md-3">
-        <!--<h3>Latest news</h3>-->
-        <!--<h3>Meet the team</h3>-->
-      </div>
-  
-    </div>
-  
-  </div>
-</div>
+
+</body></html>
 
     <footer class="footer">
       <div class="container">
