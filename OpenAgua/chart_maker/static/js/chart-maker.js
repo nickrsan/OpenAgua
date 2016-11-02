@@ -249,7 +249,7 @@ function prettifyPivot(originalVal) {
   $('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
   //$(".pvtSelect select")
   var pvtRenderer = $(".pvtSelect select").addClass('selectpicker').attr({'id':'pvtSelect', 'data-style': 'btn-primary'})
-  if (originalVal.length === 0) {
+  if (originalVal === undefined || originalVal.length === 0) {
     pvtRenderer.attr('title', 'Chart or table...');
   }
   pvtRenderer.selectpicker('refresh');
@@ -319,9 +319,11 @@ $( function() {
     e.preventDefault();
     var saveType = $(this).attr('id'),
       div = $('#'+plotlyDiv),
-      dw = div.width(),
-      dh = div.height(),
+      //dw = div.width(),
+      //dh = div.height(),
       w, h;
+    var dw = $(window).width() * 0.75;
+    var dh = dw * 6/9;
     if ( dw >= dh ) {
       w = 300;
       h = dh * w / dw;
