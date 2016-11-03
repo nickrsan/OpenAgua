@@ -29,16 +29,18 @@ def main():
         #if res_type.type_id not in res_types['Nodes']:
             #res_types['Nodes'][res_type.type_id] = res_type.name
     
-    if 'chart_id' not in session or session['chart_id'] == None:
-        chart_id = None
-        filters = {}
-        setup = {'renderer': app.config['DEFAULT_CHART_RENDERER'],
-                 'config': {}}
-    else:
+    # default setup
+    chart_id = None
+    filters = {}
+    setup = {'renderer': app.config['DEFAULT_CHART_RENDERER'],
+             'config': {}}
+    
+    if 'chart_id' in session and session['chart_id'] is not None:
         chart_id = session['chart_id']
         chart = get_study_chart(session['study_id'], chart_id)
-        filters = json.loads(chart.filters)
-        setup = json.loads(chart.setup)
+        if chart:
+            filters = json.loads(chart.filters)
+            setup = json.loads(chart.setup)            
         
     chart_names = get_study_chart_names(session['study_id'])
         

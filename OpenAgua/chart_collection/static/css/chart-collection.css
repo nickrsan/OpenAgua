@@ -1,8 +1,4 @@
-#wrapper {
-    /*background-color: dimgrey;*/
-}
-
-.thumb {
+#thumbnails .col {
     text-align: center;
     margin-top: 15px;
     margin-bottom: 15px;
@@ -10,36 +6,15 @@
 
 .wrapper {
     text-align: center;
-    /*width: 210px;*/
-    /*height: 250px;*/
     margin: 0 auto;
     border: 1px #999999 solid;
 }
 
-.thumb button {
-    display: block;
-    height: 250px;
-    width: 100%;
-    border-width: 0;
-    border-color: #999999;
-    border-style: solid;
-    background-color: #ffffff;
+.image {
     padding: 0;
-}
-
-.thumb img {
-    display: block;
-    max-width:95%;
-    max-height:95%;
-    /*width: auto;*/
-    /*height: auto;*/
-
-}
-
-.edit {
-    background-position: center;
-    background-size: 100px 100px;
+    background-size: contain;
     background-repeat: no-repeat;
+    background-position: center;
 }
 
 .caption {
@@ -47,14 +22,57 @@
     background-color: whitesmoke;
 }
 
-.thumb h3 {
+.caption h3 {
     margin: 0;
     font-size: medium;
     font-weight: bold;
     text-align: left;
 }
 
-.thumb p {
+.caption p {
     text-align: left;
     height: 50px;
+}
+
+.controls {
+    width: 100%;
+    height: 200px;
+    background:rgba(0,0,0,0);
+    text-align:center;
+    /*padding:45px 0 66px 0;*/
+    opacity:0;
+    -webkit-transition: opacity .25s ease;
+}
+
+.controls:hover {
+    opacity:1;
+}
+
+.center {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.bottom {
+    position: absolute;
+    bottom: 20%;
+    right: 10%;
+}
+
+.controls .btn {
+    border: thin solid grey;
+    background-color: white;
+    color: grey;
+}
+
+.controls .btn:hover {
+    border: thin solid #336699;
+    background-color: white;
+    color: #336699;
+}
+
+.bottom .btn {
+    border-radius: 5px;
 }

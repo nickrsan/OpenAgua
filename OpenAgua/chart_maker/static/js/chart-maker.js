@@ -152,8 +152,8 @@ function loadPivot(chartRendererName, width, height, pivotOptions={}) {
     case 'plotly':
       chartRenderers = $.pivotUtilities.plotly_renderers;
       opts = {
-        width: width,
-        height: height,
+        width: getChartWidth,
+        height: getChartHeight,
         divname: plotlyDiv
       }
       nCharts = 6;
@@ -249,7 +249,7 @@ function prettifyPivot(originalVal) {
   $('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
   //$(".pvtSelect select")
   var pvtRenderer = $(".pvtSelect select").addClass('selectpicker').attr({'id':'pvtSelect', 'data-style': 'btn-primary'})
-  if (originalVal.length === 0) {
+  if (originalVal === undefined || originalVal.length === 0) {
     pvtRenderer.attr('title', 'Chart or table...');
   }
   pvtRenderer.selectpicker('refresh');
@@ -303,12 +303,20 @@ function resizePlotlyChart() {
   Plotly.redraw(plotlyDiv);
 }
 
-function getChartWidth() {
-  return $('#page-content-wrapper').width() - 280;
+var getChartWidth = function() {
+  return window.innerWidth - getWidthOffset();
 }
 
-function getChartHeight() {
-  return $(window).height() - 300;
+var getChartHeight = function() {
+  return window.innerHeight - getHeightOffset();
+}
+
+function getWidthOffset() {
+  return $('#sidebar-wrapper').width() + 280;
+}
+
+function getHeightOffset() {
+  return $('#navbar').height() + 250;
 }
 
 //BOTTOM
@@ -319,9 +327,12 @@ $( function() {
     e.preventDefault();
     var saveType = $(this).attr('id'),
       div = $('#'+plotlyDiv),
-      dw = div.width(),
-      dh = div.height(),
+      //dw = div.width(),
+      //dh = div.height(),
       w, h;
+    var dw = 900;
+    //var dh = dw * 6 / 9;
+    var dh = dw * 1 / 2;
     if ( dw >= dh ) {
       w = 300;
       h = dh * w / dw;

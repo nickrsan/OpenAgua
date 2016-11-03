@@ -68,11 +68,20 @@
         }        
         
         opts = $.extend(true, defaults, opts);
-        if ((base = opts).width == null) {
-          base.width = window.innerWidth / 1.4;
+        var width, height;
+        if (opts.width == null) {
+          width = window.innerWidth - opts.wOffset;
+        } else if ( typeof opts.width === 'function') {
+          width = opts.width();
+        } else {
+          width = opts.width;
         }
-        if ((base1 = opts).height == null) {
-          base1.height = window.innerHeight / 1.4 - 50;
+        if ( opts.height == null ) {
+          height = window.innerHeight - opts.hOffset;
+        } else if ( typeof opts.height === 'function' ) {
+          height = opts.height();
+        } else {
+          height = opts.height;
         }
         rowKeys = pivotData.getRowKeys();
         if (rowKeys.length === 0) {
@@ -215,8 +224,8 @@
         title.text(titleText);
         layout = $.extend(true, layout, {
           title: titleText,     
-          width: base.width,
-          height: base1.height,
+          width: width,
+          height: height,
           xaxis: {
             title: hAxisTitle
           },

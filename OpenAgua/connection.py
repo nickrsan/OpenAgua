@@ -740,3 +740,10 @@ def get_study_chart_names(study_id):
     charts = get_study_charts(study_id)
     return [chart.name for chart in charts]
     
+def delete_study_chart(db, study_id, chart_id):
+    try:
+        Chart.query.filter_by(hydrastudy_id=study_id, id=chart_id).delete()
+        db.session.commit()
+        return 1
+    except:
+        return -1

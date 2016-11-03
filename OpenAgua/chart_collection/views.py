@@ -3,9 +3,9 @@ import shutil
 
 from flask import redirect, url_for, render_template, request, session, jsonify, json
 from flask_security import login_required, current_user
-from ..connection import connection, make_connection, load_hydrauser, get_study_charts
+from ..connection import connection, make_connection, load_hydrauser, get_study_charts, delete_study_chart
 
-from OpenAgua import app
+from OpenAgua import app, db
 
 # import blueprint definition
 from . import chart_collection
@@ -42,3 +42,22 @@ def main():
         charts.append(chart)
         
     return render_template('chart-collection.html', charts=charts)
+
+@chart_collection.route('/_delete_chart', methods=['GET', 'POST'])
+@login_required
+def delete_chart():
+    
+    if request.method == 'POST':
+        
+        study_id = session['study_id']
+        chart_id = request.json['chart_id']
+        
+        result = delete_study_chart(db, study_id, chart_id)
+        
+        # also remove delete chart from session
+        if 'chart_id' in session and session['chart_id'] == chart_id:
+            session['chart_id'] = None
+        
+        return jsonify(result=result)
+        
+    return redirect(url_for('chart_collection.main'))
