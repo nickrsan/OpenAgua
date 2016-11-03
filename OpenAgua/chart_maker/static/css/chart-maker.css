@@ -56,6 +56,10 @@
     background-color: #ffffff;
 }
 
+.pvtTotal, .pvtTotalLabel, .pvtGrandTotal {
+    display: none;
+}
+
 .pvtSelect>.bootstrap-select>.dropdown-toggle.bs-placeholder,
 .pvtSelect>.bootstrap-select>.dropdown-toggle.bs-placeholder:active,
 .pvtSelect>.bootstrap-select>.dropdown-toggle.bs-placeholder:focus,
