@@ -26,7 +26,7 @@ def network_editor():
         elif t.resource_type == 'LINK':
             ltypes.append(t)
 
-    return render_template('network_editor.html', ntypes=ntypes, ltypes=ltypes) 
+    return render_template('network-editor.html', ntypes=ntypes, ltypes=ltypes) 
 
 @net_editor.route('/_load_network')
 @login_required

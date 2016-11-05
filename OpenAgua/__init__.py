@@ -47,6 +47,7 @@ import OpenAgua.views
 from .manager import manager
 from .home import home
 from .data_editor import data_editor
+from .data_editor_advanced import data_editor_advanced
 from .network_editor import net_editor
 from .study_overview import study_overview
 from .model_dashboard import model_dashboard
@@ -58,6 +59,7 @@ app.register_blueprint(home, url_prefix='')
 app.register_blueprint(manager, url_prefix='')
 app.register_blueprint(study_overview, url_prefix='')
 app.register_blueprint(data_editor, url_prefix='')
+app.register_blueprint(data_editor_advanced, url_prefix='')
 app.register_blueprint(net_editor, url_prefix='')
 app.register_blueprint(model_dashboard, url_prefix='')
 app.register_blueprint(chart_maker, url_prefix='')
