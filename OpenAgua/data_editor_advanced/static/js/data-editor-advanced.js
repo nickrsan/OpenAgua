@@ -9,10 +9,10 @@ var pvtTypeOld = 'Input';
 
 $( document ).ready( function() {
   pivotOutput = $("#pivot");
-  pivotOptions = chartSetup.config;
+  pivotOptions = pivotSetup.config;
 
   loadPivot(
-    chartSetup.renderer,
+    pivotSetup.renderer,
     getPivotWidth(),
     getPivotHeight()
   );  
@@ -151,14 +151,14 @@ function loadPivot(chartRendererName, width, height) {
   
   pivotOptions.onRefresh = function(config) {
     //pivotConfig = JSON.parse(JSON.stringify(config));
-    chartSetup.config = JSON.parse(JSON.stringify(config));
+    pivotSetup.config = JSON.parse(JSON.stringify(config));
     //delete some values which are functions
-    delete chartSetup.config["aggregators"];
-    delete chartSetup.config["renderers"];
+    delete pivotSetup.config["aggregators"];
+    delete pivotSetup.config["renderers"];
     //delete some bulky default values
-    delete chartSetup.config["rendererOptions"];
-    delete chartSetup.config["localeStrings"];
-    chartSetup.renderer = chartRendererName
+    delete pivotSetup.config["rendererOptions"];
+    delete pivotSetup.config["localeStrings"];
+    pivotSetup.renderer = chartRendererName
   }
 
   $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
@@ -227,8 +227,8 @@ function addAutoTranspose(pivotData, nTables) {
     if (pvtType !== pvtTypeOld) {
       var rendererName = $(this).find("option:selected").val();
       pivotOptions.rendererName = rendererName;
-      pivotOptions.cols = chartSetup.config.rows;
-      pivotOptions.rows = chartSetup.config.cols;
+      pivotOptions.cols = pivotSetup.config.rows;
+      pivotOptions.rows = pivotSetup.config.cols;
       // need a line to get pivotData from table (i.e., as modified)
       makePivot(pivotOutput, pivotData, pivotOptions, true, nTables)
     }
@@ -422,7 +422,7 @@ function saveAsDialog(url, w, h) {
 saveChart = function(formData, url, asnew) {
   formData.append('thumbnail', url);
   formData.append('filters', JSON.stringify(filterParams));
-  formData.append('setup', JSON.stringify(chartSetup));
+  formData.append('setup', JSON.stringify(pivotSetup));
   formData.append('asnew', asnew);
   $.ajax({
     type: "POST",

@@ -30,32 +30,33 @@ def main():
             #res_types['Nodes'][res_type.type_id] = res_type.name
 
     # default setup
-    chart_id = None
+    pivot_id = None
     filters = {}
-    setup = {'renderer': app.config['DEFAULT_CHART_RENDERER'],
+    setup = {'renderer': 'plotly',
              'config': {}}
 
-    if 'chart_id' in session and session['chart_id'] is not None:
-        chart_id = session['chart_id']
-        chart = get_study_chart(session['study_id'], chart_id)
-        if chart:
-            filters = json.loads(chart.filters)
-            setup = json.loads(chart.setup)            
+    if 'input_id' in session and session['input_id'] is not None:
+        pivot_id = session['input_id']
+        pivot = get_study_input(session['study_id'], pivot_id)
+        if pivot:
+            filters = json.loads(input.filters)
+            setup = json.loads(input.setup)            
 
-    chart_names = get_study_chart_names(session['study_id'])
+    #input_names = get_study_input_names(session['pivot_id'])
+    saved_names = []
 
-    chart_params = {'chart_id': chart_id,
-                    'chart_names': chart_names,
+    pivot_params = {'pivot_id': pivot_id,
+                    'saved_names': saved_names,
                     'filters': filters,
                     'setup': setup}
 
-    return render_template('data-editor-advanced.html', ttypes=conn.ttypes, chart_params=chart_params)
+    return render_template('data-editor-advanced.html', ttypes=conn.ttypes, pivot_params=pivot_params)
 
-@data_editor_advanced.route('/_load_chart')
-@login_required
-def load_chart():
-    session['chart_id'] = request.args.get('chart_id', type=int)
-    return jsonify(redirect=url_for('data_editor_advanced.main'))
+#@data_editor_advanced.route('/_load_chart')
+#@login_required
+#def load_chart():
+    #session['input_id'] = request.args.get('pivot_id', type=int)
+    #return jsonify(redirect=url_for('data_editor_advanced.main'))
 
 @data_editor_advanced.route('/_load_pivot_data')
 @login_required
@@ -76,14 +77,18 @@ def load_pivot_data():
     data = []
     if filter_by_attr:
         datadict = {} # we will postprocess the data
+    
+    # load the data
     for sc in conn.network.scenarios:
         scen_name = sc.name
+        
         for rs in sc.resourcescenarios:
 
             ra = res_attrs[rs.resource_attr_id]
-
-            if rs.value.type != 'timeseries':
-                continue
+            
+            if ra.is_var == 'Y': continue
+            if ra.res_type == 'Junction': continue
+            if rs.value.type != 'timeseries': continue # change later depending on type
 
             metadata = json.loads(rs.value.metadata)
             #if 'function' in metadata and len(metadata['function']):

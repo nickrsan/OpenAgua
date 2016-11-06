@@ -38,11 +38,11 @@
 
 <script>
 var ttypes = {{ ttypes|tojson|safe }};
-var chartParams = {{ chart_params|tojson|safe}}
-var filterParams = chartParams.filters;
-var chartSetup = chartParams.setup;
-var chartNames = chartParams.chart_names;
-var chartId = chartParams.chart_id;
+var pivotParams = {{ pivot_params|tojson|safe}}
+var filterParams = pivotParams.filters;
+var pivotSetup = pivotParams.setup;
+var pivotNames = pivotParams.pivot_names;
+var pivotId = pivotParams.pivot_id;
 </script>
 
 {% endblock %}
