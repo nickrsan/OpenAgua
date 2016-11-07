@@ -78,7 +78,7 @@ class connection(object):
         if username is None:
             err = 'Error. Username not provided.'
         resp = self.call('get_user_by_name', {'username': username})        
-        return resp    
+        return resp
     
     def get_project(self, project_id=None):
         return self.call('get_project', {'project_id': project_id})
@@ -132,32 +132,6 @@ class connection(object):
     
     def get_link(self, link_id=None):
         return self.call('get_link',{'link_id':link_id})
-
-    def add_template_from_json(template, basename, version):
-        new_tpl = AttrDict(template.copy())
-        new_tpl.name = '{} Vers. {}'.format(basename, version)
-        
-        # copy old template directory
-        tpl_dir = app.config['UPLOADED_TEMPLATES_DEST']
-        src = os.path.join(tpl_dir, template.name)
-        dst = os.path.join(tpl_dir, new_tpl.name)
-        shutil.copytree(src, dst)
-        #old_tpl = os.path.join(tpl_dir, 'template', 'template.xml')
-        #if os.path.exists(old_tpl):
-            #os.remove(old_tpl) # old xml is obsolete
-        
-        # genericize the template
-        def visit(path, key, value):
-            if key in set(['cr_date']):
-                return False
-            elif key in set(['id', 'template_id', 'type_id', 'attr_id']):
-                return key, None            
-            return key, value
-        new_tpl = remap(dict(new_tpl), visit=visit)
-        
-        new_template = self.call('add_template', {'tmpl': new_tpl})
-        
-        return new_template
     
     def purge_replace_node(self, gj=None):
         
@@ -234,8 +208,8 @@ class connection(object):
         attrs = {}
         for t in self.template.types:
             for ta in t.typeattrs:
-                attrs[ta.attr_id] = ta.copy()
-        return AttrDict(attrs)
+                attrs[ta.attr_id] = {'name': ta.attr_name, 'is_var': ta.is_var}
+        return attrs
     
     def get_res_attrs(self):
         attrs = self.get_attrs()
@@ -243,9 +217,11 @@ class connection(object):
         for f in self.network.nodes + self.network.links:
             ttype = [t.name for t in f.types if t.template_id==self.template.id][0]
             for ra in f.attributes:
-                res_attr = {'res_name': f.name, 'res_type': ttype}
-                res_attr.update(attrs[ra.attr_id])
-                res_attrs[ra.id] = AttrDict(res_attr)
+                res_attrs[ra.id] = AttrDict({
+                    'res_name': f.name,
+                    'res_type': ttype,
+                    'attr_name': attrs[ra.attr_id]['name'],
+                    'is_var': attrs[ra.attr_id]['is_var']})
         return res_attrs
         
     
@@ -581,8 +557,7 @@ def save_data(conn, old_data_type, cur_data_type, res_attr, res_attr_data, new_v
         new_value = json.dumps(empty_hydra_timeseries())
     else:
         new_data_type = cur_data_type
-        metadata.pop('function', None)
-        
+        metadata['function'] = ''
 
     ##has the data type changed? - obsolete
     #if new_data_type != old_data_type:

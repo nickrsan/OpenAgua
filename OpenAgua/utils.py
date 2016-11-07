@@ -30,7 +30,6 @@ def get_dates(formatted=True):
     return dates            
             
 def empty_timeseries():
-    '''Return an empty date:value time series''' 
     return [{'date': date, 'value': None} for date in get_dates()]
 
 def hydra_timeseries(data):
@@ -43,9 +42,7 @@ def hydra_timeseries(data):
     return timeseries
 
 def empty_hydra_timeseries():
-    timeseries = {date.strftime(session['hydra_datetime_format']): None \
-                  for date in get_dates(formatted=False)}
-    return {'0': timeseries}
+    return hydra_timeseries(empty_timeseries())
 
 def eval_scalar(x):
     
