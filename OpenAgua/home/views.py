@@ -187,7 +187,7 @@ def purge_project():
         status_code = 1
         if session['project_id'] == project_id:
             session['project_name'] = None
-            session['project_id'] = None        
+            session['project_id'] = None
     else:
         status_code = -1
     return jsonify(result={'status_code': status_code})
