@@ -98,6 +98,17 @@
     margin-bottom: 0px;
 }
 
+/*hide some controls*/
+.pvtRenderer {
+    display: none;
+    position: absolute;
+}
+
+.pvtAttrDropdown {
+    display: none;
+    position: absolute;
+}
+
 /*BOTTOM CONTROLS*/
 
 .footer {

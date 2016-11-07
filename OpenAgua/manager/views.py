@@ -52,8 +52,7 @@ def upload_template():
         # load template
         template_xml_path = zf.namelist()[0]
         template_xml = zf.read(template_xml_path).decode('utf-8')
-        resp = conn.call('upload_template_xml',
-                                {'template_xml': template_xml}) 
+        resp = conn.call('upload_template_xml', {'template_xml': template_xml}) 
         zf.extractall(path=app.config['UPLOADED_TEMPLATES_DEST'])
         
         template_name = template_xml_path.split('/')[0]
@@ -79,28 +78,7 @@ def save_as_new_template():
             basename = template.name
             version = 1
         
-        new_tpl = template.copy()
-        new_tpl['name'] = '{} Vers. {}'.format(basename, version)
-        
-        # copy old template directory
-        tpl_dir = app.config['UPLOADED_TEMPLATES_DEST']
-        src = os.path.join(tpl_dir, template.name)
-        dst = os.path.join(tpl_dir, new_tpl['name'])
-        shutil.copytree(src, dst)
-        old_tpl = os.path.join(tpl_dir, 'template', 'template.xml')
-        if os.path.exists(old_tpl):
-            os.remove(old_tpl) # old xml is obsolete (need to figure out how to expore templates from json)
-        
-        # genericize the template
-        def visit(path, key, value):
-            if key in set(['cr_date']):
-                return False
-            elif key in set(['id', 'template_id', 'type_id', 'attr_id']):
-                return key, None            
-            return key, value
-        new_tpl = remap(dict(new_tpl), visit=visit)
-
-        result = conn.call('add_template', {'tmpl': new_tpl})
+        result = conn.add_template_from_json(template, basename, version)
         
         return jsonify(result = json.dumps(result))
     

@@ -15,6 +15,10 @@
   
   {% include 'head_layout.html' %}
 
+  <!--OpenAgua customizations-->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}" />
+
   {% block head_master %}{% endblock %}
   {% block head_main %}{% endblock %}
 
@@ -22,20 +26,23 @@
   
 <body {% block load %}{% endblock %}>
 
+<div id="spinner"></div>
+
 {% block body %}
-    
-    {% block main %}{% endblock %}
 
-    <footer class="footer">
-      <div class="container">
-        {% include "footer.html" %}
-      </div>
-    </footer>
-
+<footer class="footer">
+  <div class="container">
+    {% include "footer.html" %}
+  </div>
+</footer>
 
 {% endblock %}
+
+<!--OpenAgua functions-->
+<script src="{{ url_for('static', filename='js/openagua.js') }}"></script>
     
-{% block endscript %}{% endblock %}
+{% block endscript %}
+{% endblock %}
 
 </body>
 </html>
