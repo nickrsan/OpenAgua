@@ -2,7 +2,6 @@
 {% block title %} - Network Editor{% endblock %}
 {% block head_main %}
 
-
 <!--Leaflet-->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.1/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.0.1/dist/leaflet.js"></script>
@@ -12,10 +11,13 @@
 
 <!--draw-->
 <link rel="stylesheet" href="{{ url_for('static', filename='lib/leaflet/draw/leaflet.draw.css') }}" />
-<script src="{{ url_for('static', filename='lib/leaflet/draw/leaflet.draw.js') }}"></script>
+<script src="{{ url_for('static', filename='lib/leaflet/draw/leaflet.draw-src.js') }}"></script>
 
 <!--snap-->
 <script src="{{ url_for('static', filename='lib/leaflet/snap/leaflet.snap.js') }}"></script>
+
+<!--draw.topology-->
+<link rel="stylesheet" href="{{ url_for('static', filename='lib/leaflet/draw.topology/css/leaflet.draw.topology.css') }}" />
 
 <!--locate-->
 <link rel="stylesheet" href="{{ url_for('static', filename='lib/leaflet/locate/L.Control.Locate.min.css') }}" />
@@ -69,20 +71,7 @@
       </div>
       </form>
     </div>
-    
-    <!--settings-->
-    <!--<div class="col col-sm-3 col-md-2 col-lg-2">-->
-      <!--<div class="btn-group pull-right">-->
-        <!--<button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-cog"></span> <span class="caret"></span></button>-->
-        <!--<ul class="dropdown-menu">-->
-          <!--<li>-->
-            <!--&nbsp;&nbsp;<input type="checkbox" name="show_labels" checked>&nbsp;&nbsp;Node labels      -->
-          <!--</li>-->
-        <!--</ul>-->
-      <!--</div>-->
-      
-    <!--</div>-->
-    
+        
   </div>
   
   <div class='row'>
@@ -96,23 +85,8 @@
   
 </div>
 
-{% include "network_editor_modals.html" %}
-
-<script>
-$.fn.bootstrapSwitch.defaults.size = 'mini';
-$("[name='show_labels']").bootstrapSwitch();
-var showLabels = $("[name='show_labels']").bootstrapSwitch("state");
-</script>
+{% include "network-editor-modals.html" %}
 
 <script src="{{ url_for('network_editor.static', filename='js/network-editor.js') }}"></script>
-
-<script>
-$( document ).ready( function() {
-  $('input[name="show_labels"]').on('switchChange.bootstrapSwitch', function(event, state) {
-    showLabels = state;
-    refreshCurrentItems();
-  });
-});
-</script>
 
 {% endblock %}

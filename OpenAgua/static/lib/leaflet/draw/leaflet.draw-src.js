@@ -1134,8 +1134,6 @@ L.Draw.Marker = L.Draw.Feature.extend({
 
 L.Edit = L.Edit || {};
 
-var closestLayerSnap = L.GeometryUtil.closestLayerSnap; // DER
-
 L.Edit.Marker = L.Handler.extend({
 	initialize: function (marker, options) {
 		this._marker = marker;
@@ -1146,8 +1144,6 @@ L.Edit.Marker = L.Handler.extend({
 		var marker = this._marker;
 
 		marker.dragging.enable();
-		marker.on('dragstart', this._onDragStart, marker); // DER
-		marker.on('drag', this._onDrag, marker); // DER
 		marker.on('dragend', this._onDragEnd, marker);
 		this._toggleMarkerHighlight();
 	},
@@ -1156,8 +1152,6 @@ L.Edit.Marker = L.Handler.extend({
 		var marker = this._marker;
 
 		marker.dragging.disable();
-		marker.off('dragstart', this._onDragStart, marker); // DER
-		marker.off('drag', this._onDrag, marker); // DER
 		marker.off('dragend', this._onDragEnd, marker);
 		this._toggleMarkerHighlight();
 	},
