@@ -163,7 +163,8 @@ $(function() {
             map.setView([0, 0], 2);
             notify('info', 'Welcome!', 'Your network is empty. Please add features.');
         }
-        map.addLayer(currentItems);
+        map.addLayer(currentItems);       
+        
         map.spin(false);
     });
 });
@@ -647,7 +648,8 @@ function purgeFeature(e) {
             //$("body").append(canvas);
         //},
         //allowTaint: true,
-        //useCORS: true
+        //useCORS: true,
+        //logging: true
     //});
 //});
 
