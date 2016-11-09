@@ -635,14 +635,14 @@ def create_hydrauser(db,
                      hydra_url, encrypt_key,
                      hydra_admin_username, hydra_admin_password,
                      hydra_user_username, hydra_user_password):
-    hydraurl = HydraUrl.query.filter(HydraUrl.hydra_url == hydra_url).first()
+    hydraurl = HydraUrl.query.filter(HydraUrl.url == hydra_url).first()
 
     if hydraurl is None: # this should be done via manage.py, not here
-        hydraurl = HydraUrl(hydra_url=hydra_url)
+        hydraurl = HydraUrl(url=hydra_url)
         db.session.add(hydraurl)
         db.session.commit()
 
-        hydraurl = HydraUrl.query.filter(HydraUrl.hydra_url == hydra_url).first()
+        hydraurl = HydraUrl.query.filter(HydraUrl.url == hydra_url).first()
 
     # create new Hydra user account
     hydra_user_pw_encrypted = encrypt(hydra_user_password, encrypt_key)        
@@ -695,7 +695,7 @@ def load_hydrauser():
         hydraurl = HydraUrl.query.filter(HydraUrl.id==hydrauser.hydra_url_id).first()
     
         session['hydra_user_id'] = hydrauser.id
-        session['hydra_url'] = hydraurl.hydra_url
+        session['hydra_url'] = hydraurl.url
         session['hydra_userid'] = hydrauser.hydra_userid
         session['hydra_username'] = hydrauser.hydra_username
         session['hydra_password'] = hydrauser.hydra_password # it's encrypted

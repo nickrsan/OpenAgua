@@ -26,12 +26,13 @@ class Role(db.Model, RoleMixin):
 
 class UserRoles(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    User_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
-    Role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
+    role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
     
 # Hydra user objects
 
 class HydraUser(db.Model):
+    __tablename__ = 'hydra_user'
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
     hydra_url_id = db.Column(db.Integer(), db.ForeignKey('hydra_url.id', ondelete='CASCADE'))
@@ -41,10 +42,12 @@ class HydraUser(db.Model):
     hydra_sessionid = db.Column(db.String(255), nullable=False, server_default='')
 
 class HydraUrl(db.Model):
+    __tablename__ = 'hydra_url'
     id = db.Column(db.Integer(), primary_key=True)
-    hydra_url = db.Column(db.String(255), nullable=False)
+    url = db.Column(db.String(255), nullable=False)
     
 class Study(db.Model):
+    __tablename__ = 'study'
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255), nullable=False, server_default='')
     hydra_user_id = db.Column(db.Integer(), db.ForeignKey('hydra_user.id', ondelete='CASCADE'))
@@ -60,6 +63,7 @@ class Study(db.Model):
 # User-saved objects
 
 class Chart(db.Model):
+    __tablename__ = 'chart'
     id = db.Column(db.Integer(), primary_key=True)
     study_id = db.Column(db.Integer(), db.ForeignKey('study.id', ondelete='CASCADE'))
     name = db.Column(db.String(80), nullable=False)
@@ -69,6 +73,7 @@ class Chart(db.Model):
     setup = db.Column(db.Text(), nullable=False)
     
 class InputSetup(db.Model):
+    __tablename__ = 'input_setup'
     id = db.Column(db.Integer(), primary_key=True)
     study_id = db.Column(db.Integer(), db.ForeignKey('study.id', ondelete='CASCADE'))
     name = db.Column(db.String(80), nullable=False)
