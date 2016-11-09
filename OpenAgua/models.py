@@ -26,8 +26,8 @@ class Role(db.Model, RoleMixin):
 
 class UserRoles(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    User_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
-    Role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
+    user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
+    role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
     
 # Hydra user objects
 
