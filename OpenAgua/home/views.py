@@ -98,7 +98,6 @@ def load_study():
             network = conn.get_network(network_id=network_id)
             add_study(db,
                       name = 'Base study for {}'.format(network.name),
-                      user_id = current_user.id,
                       hydra_user_id = session['hydra_user_id'],
                       project_id = session['project_id'],
                       network_id = session['network_id'],
