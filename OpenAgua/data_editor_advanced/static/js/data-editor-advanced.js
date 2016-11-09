@@ -1,10 +1,24 @@
 var pivotOutput,
-  type_attrs = [];
+  hot = null,
+  type_attrs = [],
+  aggregators;
 
 $( document ).ready( function() {
   pivotOutput = $("#pivot");
 
   var attr_id;
+  
+  $('#favorites').on('click','.delete', function(e) {
+    e.stopPropagation();
+    var setupId = $(this).data('id');
+    var setupName = $(this).val();
+    deleteSetup(setupId, setupName);
+  });
+  
+  $('#favorites').on('click', 'a', function(e) {
+    var setupId = $('#favorites select option:selected').data('id');
+    loadPivot(setupId);
+  });
 
   $('#filterby').on('changed.bs.select', function (e) {
     var selected = $('#filterby option:selected');
@@ -25,17 +39,17 @@ $( document ).ready( function() {
 
   $('#res_type_filter').on('changed.bs.select', function(e) {
     var idx, ttype_id, type_attrs;
-    var type_attrs = [];
+    var type_attrs = null;
     filterParams.ttype_ids = [];
     var selected_ttypes = $('#res_type_filter option:selected');
 
     if (selected_ttypes.length) {
       $.each(selected_ttypes, function(key, selected_ttype) {
         ttype_id = Number(selected_ttype.dataset.id);
-        if (type_attrs.length) {
-          type_attrs = _.intersectionBy(type_attrs, ttypes[ttype_id].typeattrs, 'attr_id');
-        } else {
+        if (type_attrs === null) {
           type_attrs = ttypes[ttype_id].typeattrs;
+        } else {
+          type_attrs = _.intersectionBy(type_attrs, ttypes[ttype_id].typeattrs, 'attr_id');
         }
         filterParams.ttype_ids.push(ttype_id);
       });
@@ -62,65 +76,76 @@ $( document ).ready( function() {
   });
 
   $("#load_options").click( function() {
-    loadPivot();
+    loadPivot(0); // load filters with no favorite
   });
-
+  
+  $("#pivot").arrive('.ht_clone_top_left_corner', function(){
+    resizePivot();
+  });
+  
+  aggregators = _.pick($.pivotUtilities.aggregators, ['Sum', 'Average']);
+  
 });
 
-function loadPivot() {
-  spinOn('Data loading...');
+function loadPivot(setup_id) {
+  spinOn('Loading data...');
+
+  var data = {filters: filterParams, setup_id: setup_id}
   
-  // Get JSON-formatted data from the server
-  var opts = {}, defaultVals;
+  $.ajax({
+    type: "POST",
+    url: '_load_input_data',
+    data: JSON.stringify(data),
+    contentType: 'application/json',
+    success: function(resp) {
+      var pivotData = resp.data;
+      var pivotOptions = extendOptions(resp.setup);
+      pivotOutput.pivotUI( pivotData, pivotOptions, true );
+      $('.pvtAttr:contains("value")').closest('li').hide();
+      types = $('.pvtAttr:contains("feature type")');
+      addTheme();
+      spinOff();
+    }
+  });
+}
 
-  //opts.onEditValues = function (changes) {
-    ////$(".changesOutput").html(JSON.stringify(changes))
-    //$(".changesOutput").text('Changes not saved.')
-  //};
-  //opts.onDrawTable = function (htTable) {
-    //$(".changesOutput").empty()
-  //};
-
+function extendOptions(options) {
   // default options if they are not provided
-  if ( Object.keys(pivotOptions).length === 0 ) {
-    pivotOptions = {
+  if ( Object.keys(options).length === 0 ) {
+    options = {
       vals: ['value'],
+      cols: [],
+      rows: ["year", "month"],
       aggregatorName: "Average",
     };
   }
 
   // renderers and options not saved with chart
-  $.extend(pivotOptions, {
+  $.extend(options, {
     renderers: $.extend({}, $.pivotUtilities.novix_renderers),
     rendererOptions: {
       showTotals: false
     },
-    rendererName: 'Input Table'
+    rendererName: 'Input Table',
+    aggregators: aggregators
   });
 
-  pivotOptions.cols = [];
-  pivotOptions.rows = ["year", "month"];
-  
-  pivotOptions.onRefresh = function(config) {
+  options.onRefresh = function(config) {
     pivotConfig = JSON.parse(JSON.stringify(config));
-    //delete some values which are functions
     delete pivotConfig["aggregators"];
     delete pivotConfig["renderers"];
-    //delete some bulky default values
     delete pivotConfig["rendererOptions"];
     delete pivotConfig["localeStrings"];
   }
-
-  $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
-    var pivotData = resp.data;
-    //makePivot(pivotOutput, pivotData, pivotOptions, true);
-    pivotOutput.pivotUI( pivotData, pivotOptions, true );
-    //$('.pvtRenderer').hide().css('position','absolute');
-    //$('.pvtAttrDropdown').hide().css('position','absolute');
-    $('.pvtAttr:contains("scenario")').closest('li').hide();
-    addTheme();
-    spinOff();
-  });
+  
+  //opts.onEditValues = function (changes) {
+  ////$(".changesOutput").html(JSON.stringify(changes))
+  //$(".changesOutput").text('Changes not saved.')
+  //};
+  //opts.onDrawTable = function (htTable) {
+    //$(".changesOutput").empty()
+  //};
+  return options;
 }
 
 //// add the pivot area
@@ -139,10 +164,10 @@ function addTheme() {
 
 // RESIZE FUNCTIONS
 
-//$(function () {
-  //$(window).on('resize', resizePivot);
-  //$('#menu-toggle').on('click', resizePivotDelay);
-//});
+$(function () {
+  $(window).on('resize', resizePivot);
+  $('#menu-toggle').on('click', resizePivotDelay);
+});
 
 function resizePivotDelay() {
   setTimeout(resizePivot, 500);
@@ -150,7 +175,10 @@ function resizePivotDelay() {
 
 function resizePivot() {
   if ($('.novixPivot').length) {
-    resizeHot();
+    hot.updateSettings({
+      height: getPivotHeight(),
+      width: getPivotWidth()
+    });
   }
 }
 
@@ -166,18 +194,6 @@ function resizePlotly() {
   Plotly.redraw(plotlyDiv);
 }
 
-function resizeHotDelay() {
-  var timeout = setTimeout(resizeHot, 500);
-}
-
-function resizeHot() {
-  $('.novixPivot').height(getPivotHeight());
-  //var hot = $('.novixPivot').handsontable('getInstance');
-  //hot.updateSettings({
-    //height: getPivotHeight()
-  //});
-}
-
 var getPivotWidth = function() {
   return window.innerWidth - getWidthOffset();
 }
@@ -187,34 +203,40 @@ var getPivotHeight = function() {
 }
 
 function getWidthOffset() {
-  return $('#sidebar-wrapper').width() + 280;
+  return $('#sidebar-wrapper').width() + 260;
 }
 
 function getHeightOffset() {
-  return $('#navbar').height() + 250;
+  return $('#navbar').height() + 230;
 }
 
 //BOTTOM
 
 $( function() {
 
-  $('.save').click( function(e) {
+  $('.savesetup').click( function(e) {
     e.preventDefault();
     var saveType = $(this).attr('id');
     switch(saveType) {
-      case 'save':
-        //saveDialog(url, w, h);
+      case 'savesetup':
+        
         break;
-      case 'saveas':
-        //saveAsDialog(url, w, h);
+      case 'savesetupas':
+        saveSetupAsDialog();
         break;
       default:
         break;
     }
   });
+  
+  $('.savedata').click( function(e) {
+    var data = hot.getData();
+    saveData(pivotConfig, data)
+  });
+  
 });
 
-function saveDialog(url, w, h) {
+function saveSetupDialog(url, w, h) {
 
   var form = $('<form>')
   var form = $('<div>').append(thumbnail).append(form).html();
@@ -234,20 +256,20 @@ function saveDialog(url, w, h) {
       if (result) {
         var form = $('#chart_form')[0];
         var formData = new FormData(form);
-        saveChart(formData, url, false);
+        saveSetup(formData, false);
       }
     }
   });
 }
 
-function saveAsDialog(url, w, h) {
+function saveSetupAsDialog() {
 
-  var thumbnail = $('<div>')
-    .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
-    .css({'text-align': 'center'});
+  //var thumbnail = $('<div>')
+    //.append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
+    //.css({'text-align': 'center'});
 
-  var form = $('<form id="chart_form">').html(
-  '<br/><div class="form-group"> \
+  var form = $('<form id="setup_form">').html(
+  '<div class="form-group"> \
     <label for="name">Name</label> \
     <input type="text" class="form-control" id="name" name="name"> \
   </div> \
@@ -258,11 +280,11 @@ function saveAsDialog(url, w, h) {
   <p id="saveerror"></p>')
 
   var form = $('<div>')
-    .append(thumbnail)
+    //.append(thumbnail)
     .append(form)
     .html();
   bootbox.confirm({
-    title: 'Save to collection',
+    title: 'Save setup',
     message: form,
     closeButton: true,
     buttons: {
@@ -276,34 +298,80 @@ function saveAsDialog(url, w, h) {
     callback: function(result) {
       if (result) {
         var name = $('#name').val();
-        if ($.inArray(name, chartNames) === 0) {
+        if ($.inArray(name, Object.values(savedSetups)) === 0) {
           $('#saveerror').text('Name already exists.')
           return false;
         } else {
-          var form = $('#chart_form')[0];
+          var form = $('#setup_form')[0];
           var formData = new FormData(form);
-          saveChart(formData, url, true);
-          chartNames.push(name);
+          saveSetup(formData, true);
         }
       }
     }
   });
 }
 
-saveChart = function(formData, url, asnew) {
-  formData.append('thumbnail', url);
+saveSetup = function(formData, asnew) {
   formData.append('filters', JSON.stringify(filterParams));
-  formData.append('options', JSON.stringify(pivotConfig));
+  formData.append('setup', JSON.stringify(pivotConfig));
   formData.append('asnew', asnew);
   $.ajax({
     type: "POST",
-    url: '_save_chart',
+    url: '_save_setup',
     data: formData,
     cache: false,
     contentType: false,
     processData: false,
-    success: function(resp){
-      notify('success', 'Success!', 'Chart saved to Chart Collection.')
+    success: function(resp) {
+      notify('success', 'Success!', 'Setup saved.');
+      var favorites = $('#favorites select');
+      var name = formData.get('name');
+      savedSetups[resp.setup_id] = name;
+      newOption = $('<option>').attr('data-id', resp.setup_id).text(name);
+      favorites.append(newOption).selectpicker('refresh');
+      favorites.selectpicker('val', name);
+    }
+  });
+}
+
+function deleteSetup(setupId, setupName) {
+  bootbox.confirm({
+    title: 'Delete setup',
+    message: 'Delete "'+setupName+'" input setup? This will not delete any data.',
+    callback: function(confirm) {
+      if (confirm) {
+        $.ajax({
+          type: 'POST',
+          url: '/_delete_setup',
+          data: JSON.stringify({setup_id: setupId}),
+          contentType: 'application/json',
+          success: function(resp) {
+            if (resp.result === 1) {
+              notify('success', 'Success!', 'Setup deleted.');
+              $("#favorites select option[data-id='"+setupId+"']").remove();
+              $("#favorites select").selectpicker('refresh');
+            } else {
+              notify('warning', 'Uh-oh.', 'Something went wrong. Setup not deleted.');
+            }
+          }
+        });   
+      }
+    }
+  });
+}
+
+saveData = function(setup, data) {
+  $.ajax({
+    type: "POST",
+    url: '_save_data',
+    data: JSON.stringify({setup: setup, data: data}),
+    contentType: 'application/json',
+    success: function(resp) {
+      if (!resp.error) {
+        notify('success', 'Success!', 'Data saved.');
+      } else {
+        notify('warning', 'Uh-oh!', 'Something went wrong. Data not saved.')
+      }
     }
   });
 }

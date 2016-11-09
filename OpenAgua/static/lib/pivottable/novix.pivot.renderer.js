@@ -36,7 +36,7 @@ $.pivotUtilities.novix_renderers = {
 
     "Input Table": function (pvtData, opts) {
 
-        var table;
+        //var table;
         var def = {
             $el: $(document),
             showTotals: true,
@@ -469,13 +469,13 @@ $.pivotUtilities.novix_renderers = {
             };
 
             var _this = this;
-            if (table) {
-                table.destroy();
+            if (hot) {
+                hot.destroy();
             }
             var $tableArea = opts.$el.find(".novixPivot");
             $tableArea.empty();
 
-            table = new Handsontable($tableArea.get(0), {
+            hot = new Handsontable($tableArea.get(0), {
                 data: dataSource.data,
                 contextMenu: false,
                 colHeaders: false,
@@ -562,7 +562,7 @@ $.pivotUtilities.novix_renderers = {
 
                 if (currentState) {
                     if (currentState && currentState.lastRowChanged) {
-                        table.selectCell(currentState.lastRowChanged + 1, currentState.lasColChanged, currentState.lastRowChanged + 1, currentState.lasColChanged);
+                        hot.selectCell(currentState.lastRowChanged + 1, currentState.lasColChanged, currentState.lastRowChanged + 1, currentState.lasColChanged);
                         currentState.lastRowChanged = null;
                         if (currentState.scrollX && currentState.scrollX > 0) {
                             opts.$el.scrollLeft(currentState.scrollX);

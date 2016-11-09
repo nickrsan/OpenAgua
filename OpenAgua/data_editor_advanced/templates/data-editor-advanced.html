@@ -36,8 +36,8 @@ var ttypes = {{ ttypes|tojson|safe }};
 var pivotParams = {{ pivot_params|tojson|safe}}
 var filterParams = pivotParams.filters;
 var pivotOptions = pivotParams.config;
-var pivotNames = pivotParams.pivot_names;
-var pivotId = pivotParams.pivot_id;
+var savedSetups = pivotParams.setups;
+var pivotId = pivotParams.setup_id;
 </script>
 
 {% endblock %}
@@ -47,16 +47,27 @@ var pivotId = pivotParams.pivot_id;
 <div id="options_container" class="container-fluid">
     <div class="row">
         <div id="options" class="col col-sm-12 col-md-12 col-lg-12">
-            <form id="filters" class='form-inline'>
-                <div class="form-group">
+            <span id="favorites" class="inline">
+                <select class='selectpicker' data-width='auto' title='Saved setups...'>
+                    {% if pivot_params.setups|length %}
+                        {% for id, name in pivot_params.setups.items() %}
+                            <option data-id="{{ id }}" data-width="fit" data-content="<div class='load'>{{ name }}</div><button type='button' class='btn btn-sm pull-right delete' data-id='{{ id }}' value='{{ name }}'><span class='glyphicon glyphicon-trash'></span></button>">"></button>
+                        {% endfor %}
+                    {% else %}
+                        <option>Nothing saved yet</option>
+                    {% endif %}
+                </select>
+            </span>
+            <!--<form id="filters" class='form-inline'>-->
+                <span class="form-group">
                     <label for='filterby'>Filters</label>
                     <select id='filterby' class='selectpicker' data-width='auto' title='Filter by...'>
                         <option value="none">No filter</option>
                         <option value="res_type" data-subtext="Reservoir, River, etc.">Feature type</option>
                         <option value="attr" data-subtext="Storage, Flow, etc.">Variable</option>
                     </select>
-                </div>
-                <div id="res_type_filter_container" class='filter form-group' style="display:none">
+                </span>
+                <span id="res_type_filter_container" class='filter form-group' style="display:none">
                     <label for="res_type_filter">Feature type</label>
                     <select id='res_type_filter' class='selectpicker' data-width='auto' multiple title='Select a feature type...' data-actions-box="true">
                         <optgroup label="Nodes">
@@ -74,22 +85,22 @@ var pivotId = pivotParams.pivot_id;
                         {% endfor %}
                         </optgroup>
                     </select>
-                </div>
-                <div id="attr_filter_container" class='filter form-group' style='display:none'>
+                </span>
+                <span id="attr_filter_container" class='filter form-group' style='display:none'>
                     <select id='attr_filter' class='selectpicker' data-width='auto' multiple title='Select a variable...' data-selected-text-format="count > 2" data-actions-box="true">
                         {% for ttid in ttypes %}
                             <option data-id="{{ ttid }}">{{ ttypes[ttid].name }}</option>
                         {% endfor %}
                     </select>
-                </div>
-                <div id="secondary_filter_container" class='filter form-group' style='display:none'>
+                </span>
+                <span id="secondary_filter_container" class='filter form-group' style='display:none'>
                     <select id='secondary_filter' class='selectpicker' data-width='auto' multiple data-selected-text-format="count > 2" data-actions-box="true">
                     </select>
-                </div>
-                <div class="form-group">
+                </span>
+                <span class="form-group">
                     <button id='load_options' type="button" class='btn btn-primary'>Load</button>
-                </div>
-            </form>
+                </span>
+            <!--</form>-->
         </div>
     </div>
 </div>
@@ -97,15 +108,19 @@ var pivotId = pivotParams.pivot_id;
 <div id="pivot_panel" class="container-fluid">
     <div class="row">
         <div class="col col-sm-12 col-md-12 col-lg-12">
-            <div id="pivot" class="pane" style="width:100%"></div>
+            <div id="pivot" class="pane" style="width:100%">
+                <span class="glyphicon glyphicon-arrow-up"></span>
+                <strong>Basic instructions:</strong> Load data by selecting a saved setup on the left, or by using the data filters on the right.
+            </div>
             <span class="changesOutput" ></span>
         </div>    
     </div>
 </div>
 
 <footer class="footer">
-    <button id="save" type="button" class='save btn btn-primary'>Save</button>
-    <button id="saveas" type="button" class='save btn btn-default'>Save as...</button>
+    <button id="savedata" type="button" class='savedata btn btn-primary'>Save data</button>
+    <button id="savesetup" type="button" class='savesetup btn btn-default'>Save setup</button>
+    <button id="savesetupas" type="button" class='savesetup btn btn-default'>Save setup as...</button>
 </footer>
 
 {% endblock %}

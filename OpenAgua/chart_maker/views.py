@@ -57,7 +57,7 @@ def load_chart():
     session['chart_id'] = request.args.get('chart_id', type=int)
     return jsonify(redirect=url_for('chart_maker.main'))
 
-@chart_maker.route('/_load_pivot_data')
+@chart_maker.route('/_load_chart_data')
 @login_required
 def load_pivot_data():
     load_hydrauser() # do this at the top of every page
@@ -138,7 +138,7 @@ def save_chart():
     
     if request.method == 'POST':
         
-        hydrastudy_id = session['study_id']
+        study_id = session['study_id']
         
         thumbnail = request.form['thumbnail']
         name = request.form['name']
@@ -159,7 +159,7 @@ def save_chart():
         with open(thumbnailabspath, "wb") as f:
             f.write(base64.decodestring(imgstr))
                 
-        add_chart(db, hydrastudy_id, name, description, filename, filters, setup)
+        add_chart(db, study_id, name, description, filename, filters, setup)
     
         return jsonify(result = 0)
     
