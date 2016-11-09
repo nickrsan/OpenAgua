@@ -42,7 +42,7 @@ class HydraUser(db.Model):
 
 class HydraUrl(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    hydra_url = db.Column(db.String(255), nullable=False)
+    url = db.Column(db.String(255), nullable=False)
     
 class Study(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
