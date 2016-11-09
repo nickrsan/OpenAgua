@@ -1,6 +1,6 @@
 {% extends "layout.html" %}
 
-{% block title %} - Home{% endblock %}
+{% block title %} - home{% endblock %}
 
 {% block head_master %}
 
@@ -9,7 +9,7 @@
 
 {% endblock %}    
     
-{% block main %}
+{% block body %}
 
 <script>
     var active_project_id = {{ session['project_id'] }};
@@ -72,11 +72,11 @@
   
 {% include "home-modals.html" %}
   
-<script src="{{ url_for('home.static', filename='js/functions.js') }}"></script>
-<script src="{{ url_for('home.static', filename='js/network-actions.js') }}"></script>
+<script src="{{ url_for('.static', filename='js/functions.js') }}"></script>
+<script src="{{ url_for('.static', filename='js/network-actions.js') }}"></script>
 
 {% if session['user_level']=="pro" %}
-<script src="{{ url_for('home.static', filename='js/project-actions.js') }}"></script>
+<script src="{{ url_for('.static', filename='js/project-actions.js') }}"></script>
 {% endif %}
 
 {% endblock %}

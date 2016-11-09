@@ -14,6 +14,37 @@
     padding: 10px;
 }
 
+#options .form-group {
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: inline-block;
+}
+
+#favorites a {
+    padding-right: 40px;
+}
+
+#favorites button.delete {
+    /*display: inline;*/
+    position: absolute;
+    top: 1px;
+    right: 5px;
+    color: #336699;
+    background: whitesmoke;
+    height: 24px;
+    width: 24px;
+    padding: 3px;
+}
+
+#favorites div.load {
+    background: transparent;
+    /*height: 26px;*/
+}
+
+#favorites .dropdown-toggle .delete {
+    display: none;
+}
+
 #submit {
     /*float: right;*/
 }
@@ -41,20 +72,29 @@
 
 /*PIVOT AREA*/
 
-/*novix pivot (table) */
+.pvtUi td {
+    /*border-width: 0;*/
+}
 
-.novixPivot {
-    min-height: 400px;
-    width: 100%;
-    color: #336699;
-    z-index: 0;
+.pvtUnused {
+    background-color: whitesmoke;
+    height: 40px;
+}
+
+.pvtCols {
+    height: 40px;
+}
+
+.pvtRendererArea {
+    background-color: #ddd;
+    border: black solid thin;
 }
 
 /*generic*/
 
 #pivot_panel {
     padding: 0;
-    margin: 20px;
+    margin: 10px;
 }
 
 #pivot {
@@ -86,10 +126,6 @@
     text-align: left;
 }
 
-.pvtAttr {
-    font-size: medium;
-}
-
 /*.pvtSearch > .form-control {*/
     /*margin-top: 5px;*/
 /*}*/
@@ -97,6 +133,46 @@
 .pvtSearch > .pvtSearchOk {
     margin-bottom: 0px;
 }
+
+/*hide some controls*/
+.pvtRenderer {
+    display: none;
+    position: absolute;
+}
+
+.pvtAttrDropdown {
+    display: none;
+    position: absolute;
+}
+
+#pivot .pvtAttr {
+    font-size: medium;
+    padding: 5px 0px 5px 8px;
+}
+
+.pvtTriangle {
+    color: grey;
+    border-left: darkgray solid thin;
+    margin-left: 7px;
+    padding: 3px 7px 3px 3px;
+}
+
+/*Novix pivot*/
+
+.novixPivot {
+    color: #336699;
+    z-index: 0;    
+}
+
+.novixPivot td.header {
+    background-color: #ddd;
+    color: black;
+}
+
+#pivot .novixPivot td, #pivot td.header.htDimmed {
+    border-width: 2px;
+}
+
 
 /*BOTTOM CONTROLS*/
 

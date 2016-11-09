@@ -9,7 +9,7 @@
 
 {% block body %}
 
-<div id="wrapper">   
+<div id="wrapper">
 
     <!--Sidebar content-->
     <div id="sidebar-wrapper" class="sidebar">
@@ -18,8 +18,9 @@
 
     <!-- Page content -->
     <div id="page-content-wrapper">
-    <div id="spinnner"></div>
+    
         {{ macros.messages()}}
+        
         {% block content %}{% endblock %}
         
     </div>
@@ -27,22 +28,20 @@
 </div>
 
 <script>
+
 $(function () {
-
-<!-- Menu Toggle Script -->
-$("#menu-toggle").click(function(e) {
-    e.preventDefault();
-    $("#wrapper").toggleClass("toggled");
-        });
-
-    $('ul.sidebar-nav a').filter(function () {
-        return this.href == window.location;
-    }).parent().addClass('active').parent().parent().addClass('active');
-
-});
-
-var spinDiv = document.getElementById('spinner');
-var spinner = new Spinner()
+    
+    <!-- Menu Toggle Script -->
+    $("#menu-toggle").click(function(e) {
+        e.preventDefault();
+        $("#wrapper").toggleClass("toggled");
+            });
+    
+        $('ul.sidebar-nav a').filter(function () {
+            return this.href == window.location;
+        }).parent().addClass('active').parent().parent().addClass('active');
+    
+    });
 
 </script>
 

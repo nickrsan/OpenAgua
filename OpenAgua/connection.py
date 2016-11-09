@@ -11,7 +11,7 @@ from attrdict import AttrDict
 import logging
 
 from .utils import hydra_timeseries, empty_hydra_timeseries, eval_data, encrypt, decrypt
-from .models import User, HydraUser, HydraUrl, HydraStudy, Chart
+from .models import User, HydraUser, HydraUrl, Study, Chart, InputSetup
 from . import app, db # delete later
 
 log = logging.getLogger(__name__)
@@ -78,7 +78,7 @@ class connection(object):
         if username is None:
             err = 'Error. Username not provided.'
         resp = self.call('get_user_by_name', {'username': username})        
-        return resp
+        return resp    
     
     def get_project(self, project_id=None):
         return self.call('get_project', {'project_id': project_id})
@@ -132,6 +132,32 @@ class connection(object):
     
     def get_link(self, link_id=None):
         return self.call('get_link',{'link_id':link_id})
+
+    def add_template_from_json(template, basename, version):
+        new_tpl = AttrDict(template.copy())
+        new_tpl.name = '{} Vers. {}'.format(basename, version)
+        
+        # copy old template directory
+        tpl_dir = app.config['UPLOADED_TEMPLATES_DEST']
+        src = os.path.join(tpl_dir, template.name)
+        dst = os.path.join(tpl_dir, new_tpl.name)
+        shutil.copytree(src, dst)
+        #old_tpl = os.path.join(tpl_dir, 'template', 'template.xml')
+        #if os.path.exists(old_tpl):
+            #os.remove(old_tpl) # old xml is obsolete
+        
+        # genericize the template
+        def visit(path, key, value):
+            if key in set(['cr_date']):
+                return False
+            elif key in set(['id', 'template_id', 'type_id', 'attr_id']):
+                return key, None            
+            return key, value
+        new_tpl = remap(dict(new_tpl), visit=visit)
+        
+        new_template = self.call('add_template', {'tmpl': new_tpl})
+        
+        return new_template
     
     def purge_replace_node(self, gj=None):
         
@@ -208,8 +234,8 @@ class connection(object):
         attrs = {}
         for t in self.template.types:
             for ta in t.typeattrs:
-                attrs[ta.attr_id] = {'name': ta.attr_name, 'is_var': ta.is_var}
-        return attrs
+                attrs[ta.attr_id] = ta.copy()
+        return AttrDict(attrs)
     
     def get_res_attrs(self):
         attrs = self.get_attrs()
@@ -217,11 +243,9 @@ class connection(object):
         for f in self.network.nodes + self.network.links:
             ttype = [t.name for t in f.types if t.template_id==self.template.id][0]
             for ra in f.attributes:
-                res_attrs[ra.id] = AttrDict({
-                    'res_name': f.name,
-                    'res_type': ttype,
-                    'attr_name': attrs[ra.attr_id]['name'],
-                    'is_var': attrs[ra.attr_id]['is_var']})
+                res_attr = {'res_name': f.name, 'res_type': ttype}
+                res_attr.update(attrs[ra.attr_id])
+                res_attrs[ra.id] = AttrDict(res_attr)
         return res_attrs
         
     
@@ -453,10 +477,7 @@ class connection(object):
     
     def load_active_study(self, load_from_hydra=True, include_data=False):
         
-        study = HydraStudy.query \
-            .filter(HydraStudy.user_id == current_user.id) \
-            .filter(HydraStudy.active == 1) \
-            .first()
+        study = Study.query.filter_by(hydra_user_id=session['hydra_user_id'], active=1).first()
 
         session['ti'] = app.config['TEMP_TI'] # get from study db
         session['tf'] = app.config['TEMP_TF'] # get from study db
@@ -544,7 +565,7 @@ def make_connection(login=False):
                        password=decrypt(session['hydra_password'],
                                         app.config['SECRET_ENCRYPT_KEY']))
             session['hydra_sessionid'] = conn.session_id
-            update_hydrauser(db=db, hydrauser_id=session['hydrauser_id'], hydra_sessionid=conn.session_id)
+            update_hydrauser(db=db, hydra_user_id=session['hydra_user_id'], hydra_sessionid=conn.session_id)
     
     return conn
 
@@ -557,7 +578,8 @@ def save_data(conn, old_data_type, cur_data_type, res_attr, res_attr_data, new_v
         new_value = json.dumps(empty_hydra_timeseries())
     else:
         new_data_type = cur_data_type
-        metadata['function'] = ''
+        metadata.pop('function', None)
+        
 
     ##has the data type changed? - obsolete
     #if new_data_type != old_data_type:
@@ -656,9 +678,9 @@ def create_hydrauser(db,
     session['hydra_password'] = hydrauser.hydra_password
 
 def update_hydrauser(db=None,
-                     hydrauser_id=None,
+                     hydra_user_id=None,
                      **kwargs):
-    hydrauser = HydraUser.query.filter(HydraUser.id == hydrauser_id).first()
+    hydrauser = HydraUser.query.filter(HydraUser.id == hydra_user_id).first()
     for kw in kwargs:
         exec('hydrauser.{} = "{}"'.format(kw, kwargs[kw]))
     db.session.commit()
@@ -672,7 +694,7 @@ def load_hydrauser():
     else:
         hydraurl = HydraUrl.query.filter(HydraUrl.id==hydrauser.hydra_url_id).first()
     
-        session['hydrauser_id'] = hydrauser.id
+        session['hydra_user_id'] = hydrauser.id
         session['hydra_url'] = hydraurl.hydra_url
         session['hydra_userid'] = hydrauser.hydra_userid
         session['hydra_username'] = hydrauser.hydra_username
@@ -683,27 +705,37 @@ def load_hydrauser():
 def activate_study(db, **kwargs):
     
     # deactivate other studies
-    HydraStudy.query.filter(HydraStudy.user_id == current_user.id).update({'active': False})
+    Study.query.filter(Study.hydra_user_id == session['hydra_user_id']).update({'active': False})
     db.session.commit()
+    
+    hydra_user_id = kwargs['hydra_user_id']
+    project_id = kwargs['project_id']
+    network_id = kwargs['network_id']
+    template_id = kwargs['template_id']
     
     # activate current study
     if 'study_id' in kwargs:
-        study = HydraStudy.query.filter(HydraStudy.id == kwargs['study_id']).first()
+        study = Study.query.filter(Study.id == kwargs['study_id']).first()
     else:
-        study = HydraStudy.query.filter(HydraStudy.hydrauser_id==kwargs['hydrauser_id']) \
-                                .filter(HydraStudy.network_id==kwargs['network_id']) \
-                                .filter(HydraStudy.template_id==kwargs['template_id']) \
+        study = Study.query.filter(Study.hydra_user_id==hydra_user_id) \
+                                .filter(Study.network_id==network_id) \
+                                .filter(Study.template_id==template_id) \
                                 .first()
-    study.active = True
         
-    db.session.commit()
+    if study is None: # somehow a study was not created for this network
+        study = add_study(db, kwargs['study_name'], hydra_user_id, project_id, network_id, template_id)
+    
+    else:
+        study.active = True
+        db.session.commit()
+    
+    return study
 
-def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_id, activate=True):
+def add_study(db, name, hydra_user_id, project_id, network_id, template_id, activate=True):
 
-    study = HydraStudy()
+    study = Study()
     study.name = name
-    study.user_id = user_id
-    study.hydrauser_id = hydrauser_id
+    study.hydra_user_id = hydra_user_id
     study.project_id = project_id
     study.network_id = network_id
     study.template_id = template_id
@@ -711,12 +743,14 @@ def add_study(db, name, user_id, hydrauser_id, project_id, network_id, template_
     db.session.add(study)
     db.session.commit()
     if activate:
-        activate_study(db, study_id = study.id)
+        Study.query.filter(Study.hydra_user_id == hydra_user_id).update({'active': False})
+        db.session.commit()        
+    return study
 
-def add_chart(db, hydrastudy_id, name, description, thumbnail, filters, setup):
+def add_chart(db, study_id, name, description, thumbnail, filters, setup):
     
     chart = Chart()
-    chart.hydrastudy_id = hydrastudy_id
+    chart.study_id = study_id
     chart.name = name
     chart.description = description
     chart.thumbnail = thumbnail
@@ -729,11 +763,11 @@ def add_chart(db, hydrastudy_id, name, description, thumbnail, filters, setup):
     return 0
 
 def get_study_charts(study_id):
-    charts = Chart.query.filter(Chart.hydrastudy_id==study_id)
+    charts = Chart.query.filter(Chart.study_id==study_id)
     return charts
 
 def get_study_chart(study_id, chart_id):
-    chart = Chart.query.filter(Chart.hydrastudy_id==study_id).filter(Chart.id == chart_id).first()
+    chart = Chart.query.filter_by(study_id=study_id, id=chart_id).first()
     return chart
     
 def get_study_chart_names(study_id):
@@ -742,8 +776,41 @@ def get_study_chart_names(study_id):
     
 def delete_study_chart(db, study_id, chart_id):
     try:
-        Chart.query.filter_by(hydrastudy_id=study_id, id=chart_id).delete()
+        Chart.query.filter_by(study_id=study_id, id=chart_id).delete()
         db.session.commit()
         return 1
     except:
         return -1
+
+#reverse pivot input setups
+
+def add_input_setup(db, study_id, name, description, filters, setup):
+    
+    pinput = InputSetup()
+    pinput.study_id = study_id
+    pinput.name = name
+    pinput.description = description
+    pinput.filters = filters
+    pinput.setup = setup
+    
+    db.session.add(pinput)
+    db.session.commit()
+    
+    return pinput.id
+
+def get_input_setups(study_id):
+    setups = InputSetup.query.filter_by(study_id=study_id)
+    return {setup.id: setup.name for setup in setups}
+
+def get_input_setup(study_id, setup_id):
+    input_setup = InputSetup.query.filter_by(study_id=study_id, id=setup_id).first()
+    return input_setup
+
+def delete_input_setup(db, study_id, chart_id):
+    try:
+        InputSetup.query.filter_by(study_id=study_id, id=chart_id).delete()
+        db.session.commit()
+        return 1
+    except:
+        return -1
+    

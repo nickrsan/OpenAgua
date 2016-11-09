@@ -144,7 +144,7 @@ $( document ).ready( function() {
 });
 
 function loadPivot(chartRendererName, width, height, pivotOptions={}) {
-  spinner.spin(spinDiv);
+  //spinOn('Loading data...');
   // Get JSON-formatted data from the server
   var chartRenderers, nCharts, opts, defaultVals;
   
@@ -211,7 +211,7 @@ function loadPivot(chartRendererName, width, height, pivotOptions={}) {
       chartSetup.renderer = chartRendererName
   }
   
-  $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
+  $.getJSON("/_load_chart_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
       var pivotData = resp.data;      
       pivotOutput.pivotUI(
         pivotData,
@@ -221,10 +221,10 @@ function loadPivot(chartRendererName, width, height, pivotOptions={}) {
       addOptGroups(nCharts);
       prettifyPivot(chartSetup.config.rendererName);
       updateResizeListener(chartRendererName);
+      
+      //spinOff();
 
   });
-  
-  spinner.spin(false);
 }
 
 function addOptGroups(nCharts) {

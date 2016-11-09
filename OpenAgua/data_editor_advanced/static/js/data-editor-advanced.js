@@ -1,23 +1,24 @@
 var pivotOutput,
-  type_attrs = [], 
-  plotlyDiv = 'plotlyArea',
-  inputLabel = 'Input',
-  previewLabel = 'Preview',
-  pivotOptions,
-  pvtTypeOld;
-var pvtTypeOld = 'Input';
+  hot = null,
+  type_attrs = [],
+  aggregators;
 
 $( document ).ready( function() {
   pivotOutput = $("#pivot");
-  pivotOptions = pivotSetup.config;
-
-  loadPivot(
-    pivotSetup.renderer,
-    getPivotWidth(),
-    getPivotHeight()
-  );  
 
   var attr_id;
+  
+  $('#favorites').on('click','.delete', function(e) {
+    e.stopPropagation();
+    var setupId = $(this).data('id');
+    var setupName = $(this).val();
+    deleteSetup(setupId, setupName);
+  });
+  
+  $('#favorites').on('click', 'a', function(e) {
+    var setupId = $('#favorites select option:selected').data('id');
+    loadPivot(setupId);
+  });
 
   $('#filterby').on('changed.bs.select', function (e) {
     var selected = $('#filterby option:selected');
@@ -36,19 +37,19 @@ $( document ).ready( function() {
     }
   });
 
-  $('#res_type_filter').on('hidden.bs.select', function(e) {
+  $('#res_type_filter').on('changed.bs.select', function(e) {
     var idx, ttype_id, type_attrs;
-    var type_attrs = [];
+    var type_attrs = null;
     filterParams.ttype_ids = [];
     var selected_ttypes = $('#res_type_filter option:selected');
 
     if (selected_ttypes.length) {
       $.each(selected_ttypes, function(key, selected_ttype) {
         ttype_id = Number(selected_ttype.dataset.id);
-        if (type_attrs.length) {
-          type_attrs = _.intersectionBy(type_attrs, ttypes[ttype_id].typeattrs, 'attr_id');
-        } else {
+        if (type_attrs === null) {
           type_attrs = ttypes[ttype_id].typeattrs;
+        } else {
+          type_attrs = _.intersectionBy(type_attrs, ttypes[ttype_id].typeattrs, 'attr_id');
         }
         filterParams.ttype_ids.push(ttype_id);
       });
@@ -75,136 +76,83 @@ $( document ).ready( function() {
   });
 
   $("#load_options").click( function() {
-    loadPivot(
-      chartRendererName=$("#chart_renderer").val(),
-      width=getPivotWidth(),
-      height=getPivotHeight()
-    );
+    loadPivot(0); // load filters with no favorite
   });
-
+  
+  $("#pivot").arrive('.ht_clone_top_left_corner', function(){
+    resizePivot();
+  });
+  
+  aggregators = _.pick($.pivotUtilities.aggregators, ['Sum', 'Average']);
+  
 });
 
-function loadPivot(chartRendererName, width, height) {
-  spinner.spin(spinDiv);
-  // Get JSON-formatted data from the server
-  var chartRenderers, nCharts, opts, defaultVals;
+function loadPivot(setup_id) {
+  spinOn('Loading data...');
 
-  switch(chartRendererName) {
-    case 'plotly':
-      chartRenderers = $.pivotUtilities.plotly_renderers;
-      opts = {
-        width: getPivotWidth,
-        height: getPivotHeight,
-        divname: plotlyDiv
-      }
-      nCharts = 6;
-      break;
-    case 'gchart':
-      chartRenderers = $.pivotUtilities.gchart_renderers;
-      google.charts.load("visualization", "1", {packages:["corechart", "charteditor"]});
-      opts = {gchart: {width: width, height: height}}
-      nCharts = 5;
-      break;
-    case 'c3':
-      chartRenderers = $.pivotUtilities.c3_renderers;
-      opts = {c3: {size: {width: width, height: height}}};
-      nCharts = 5;
-      break;
-    default:
-      break;
-  }
+  var data = {filters: filterParams, setup_id: setup_id}
   
-  var nTables = 2;
+  $.ajax({
+    type: "POST",
+    url: '_load_input_data',
+    data: JSON.stringify(data),
+    contentType: 'application/json',
+    success: function(resp) {
+      var pivotData = resp.data;
+      var pivotOptions = extendOptions(resp.setup);
+      pivotOutput.pivotUI( pivotData, pivotOptions, true );
+      $('.pvtAttr:contains("value")').closest('li').hide();
+      types = $('.pvtAttr:contains("feature type")');
+      addTheme();
+      spinOff();
+    }
+  });
+}
 
-  opts.onEditValues = function (changes) { $(".changesOutput").html(JSON.stringify(changes)) };
-  opts.onDrawTable = function (htTable) { $(".changesOutput").empty() };
-
-  // handsontable
-  opts.showTotals = false;
-
-  activeRenderer = chartRendererName;
-
-  var defaultVals
-  if (Object.keys(filterParams).length === 0) {
-    defaultVals = ['value']
-  } else {
-    defaultVals = []
-  }
-
+function extendOptions(options) {
   // default options if they are not provided
-  if ( Object.keys(pivotOptions).length === 0 ) {
-    pivotOptions = {
-      vals: defaultVals,
+  if ( Object.keys(options).length === 0 ) {
+    options = {
+      vals: ['value'],
+      cols: [],
+      rows: ["year", "month"],
       aggregatorName: "Average",
     };
   }
 
   // renderers and options not saved with chart
-  $.extend(pivotOptions, {
-    renderers: $.extend({}, $.pivotUtilities.novix_renderers, chartRenderers),
-    rendererName: "Input Table",
-    rendererOptions: opts,
+  $.extend(options, {
+    renderers: $.extend({}, $.pivotUtilities.novix_renderers),
+    rendererOptions: {
+      showTotals: false
+    },
+    rendererName: 'Input Table',
+    aggregators: aggregators
   });
 
-  pivotOptions.cols = [];
-  pivotOptions.rows = ["year", "month"];
+  options.onRefresh = function(config) {
+    pivotConfig = JSON.parse(JSON.stringify(config));
+    delete pivotConfig["aggregators"];
+    delete pivotConfig["renderers"];
+    delete pivotConfig["rendererOptions"];
+    delete pivotConfig["localeStrings"];
+  }
   
-  pivotOptions.onRefresh = function(config) {
-    //pivotConfig = JSON.parse(JSON.stringify(config));
-    pivotSetup.config = JSON.parse(JSON.stringify(config));
-    //delete some values which are functions
-    delete pivotSetup.config["aggregators"];
-    delete pivotSetup.config["renderers"];
-    //delete some bulky default values
-    delete pivotSetup.config["rendererOptions"];
-    delete pivotSetup.config["localeStrings"];
-    pivotSetup.renderer = chartRendererName
-  }
-
-  $.getJSON("/_load_pivot_data", {filters: JSON.stringify(filterParams)}, function( resp ) {
-    var pivotData = resp.data;
-    makePivot(pivotOutput, pivotData, pivotOptions, true, nTables)
-    //addAutoTranspose(pivotData, nTables);
-  });
-
-  spinner.spin(false);
+  //opts.onEditValues = function (changes) {
+  ////$(".changesOutput").html(JSON.stringify(changes))
+  //$(".changesOutput").text('Changes not saved.')
+  //};
+  //opts.onDrawTable = function (htTable) {
+    //$(".changesOutput").empty()
+  //};
+  return options;
 }
 
-// add the pivot area
-function makePivot(container, data, options, overwrite, nTables) {
-    container.pivotUI( data, options, overwrite );
-    addOptGroups(nTables);
-    addTheme(options.rendererName);
-    addAutoTranspose(data, nTables); // delete data and get from within function
-}
+//// add the pivot area
+//function makePivot(container, data, options, overwrite) {
+//}
 
-function addOptGroups(nTables) {
-  //add optgroups
-  var select = $(".pvtRenderer");
-  var selections = select.find('option');
-  var tables = $('<optgroup>').attr('label', inputLabel);
-  var charts = $('<optgroup>').attr('label', previewLabel);
-  //select.empty();
-  select.append(tables);
-  select.append(charts);
-  selections.each(function(i, option) {
-    if ( i < nTables) {
-      $(this).appendTo(tables);
-    } else {
-      $(this).appendTo(charts);
-    }
-  });
-}
-
-function addTheme(originalVal) {
-  // prettify the pivotUI (including with Bootstrap classes)
-  $('#pivot tbody').children('tr:first').children('td:first').addClass('pvtSelect');
-  //$(".pvtSelect select")
-  var pvtRenderer = $(".pvtSelect select").addClass('selectpicker').attr({'id':'pvtSelect', 'data-style': 'btn-primary'})
-  if (originalVal === undefined || originalVal.length === 0) {
-    pvtRenderer.attr('title', 'Chart or table...');
-  }
-  pvtRenderer.selectpicker('refresh');
+function addTheme() {
   $(".pvtAggregator").addClass('selectpicker').attr({'data-style': 'btn-default'}).selectpicker('refresh');
   $(".pvtAttrDropdown").addClass('selectpicker').selectpicker('refresh');
   $("#pivot button:contains('Select')").addClass('btn btn-default');
@@ -212,28 +160,6 @@ function addTheme(originalVal) {
     .parent().addClass('pvtSearchOk');
   $("#pivot input.pvtSearch").addClass('form-control').css('margin-top', '5px');
   $('table tr td:nth-child(2)').css('width','100%');
-  //$("<div>").attr('id', 'plotArea').css({width: "100%", height: "100%"})
-    //.appendTo($('body'));
-  //$('.pvtAttrDropdown option').first().text('[no attribute]');
-  //$('.pvtSelect').selectpicker('val', originalVal);
-  $('.pvtSelect').selectpicker('refresh');
-}
-
-// swap rows & columns when switching between input and preview
-function addAutoTranspose(pivotData, nTables) {
-  var select = $('#pvtSelect');
-  select.on('hidden.bs.select', function() {
-    var pvtType = $(this).find("option:selected").parent().attr('label');
-    if (pvtType !== pvtTypeOld) {
-      var rendererName = $(this).find("option:selected").val();
-      pivotOptions.rendererName = rendererName;
-      pivotOptions.cols = pivotSetup.config.rows;
-      pivotOptions.rows = pivotSetup.config.cols;
-      // need a line to get pivotData from table (i.e., as modified)
-      makePivot(pivotOutput, pivotData, pivotOptions, true, nTables)
-    }
-    pvtTypeOld = pvtType;
-  });
 }
 
 // RESIZE FUNCTIONS
@@ -248,11 +174,11 @@ function resizePivotDelay() {
 }
 
 function resizePivot() {
-  var rArea = $('.pvtRendererArea');
-  if (rArea.find('#plotlyArea').length) {
-    resizePlotly();
-  } else if (rArea.find('.novixPivot').length) {
-    resizeHot();
+  if ($('.novixPivot').length) {
+    hot.updateSettings({
+      height: getPivotHeight(),
+      width: getPivotWidth()
+    });
   }
 }
 
@@ -268,18 +194,6 @@ function resizePlotly() {
   Plotly.redraw(plotlyDiv);
 }
 
-function resizeHotDelay() {
-  var timeout = setTimeout(resizeHot, 500);
-}
-
-function resizeHot() {
-  $('.novixPivot').height(getPivotHeight());
-  //var hot = $('.novixPivot').handsontable('getInstance');
-  //hot.updateSettings({
-    //height: getPivotHeight()
-  //});
-}
-
 var getPivotWidth = function() {
   return window.innerWidth - getWidthOffset();
 }
@@ -289,66 +203,45 @@ var getPivotHeight = function() {
 }
 
 function getWidthOffset() {
-  return $('#sidebar-wrapper').width() + 280;
+  return $('#sidebar-wrapper').width() + 260;
 }
 
 function getHeightOffset() {
-  return $('#navbar').height() + 250;
+  return $('#navbar').height() + 230;
 }
 
 //BOTTOM
 
 $( function() {
 
-  $('.save').click( function(e) {
+  $('.savesetup').click( function(e) {
     e.preventDefault();
-    var saveType = $(this).attr('id'),
-      div = $('#'+plotlyDiv),
-      //dw = div.width(),
-      //dh = div.height(),
-      w, h;
-    var dw = 900;
-    //var dh = dw * 6 / 9;
-    var dh = dw * 1 / 2;
-    if ( dw >= dh ) {
-      w = 300;
-      h = dh * w / dw;
-    } else {
-      h = 300;
-      w = dw * h / dh;
+    var saveType = $(this).attr('id');
+    switch(saveType) {
+      case 'savesetup':
+        
+        break;
+      case 'savesetupas':
+        saveSetupAsDialog();
+        break;
+      default:
+        break;
     }
-    Plotly.toImage(div[0], {
-      format: 'png',
-      height: dh,
-      width: dw,
-    })
-    .then(function(url){
-
-      switch(saveType) {
-        case 'save':
-          saveDialog(url, w, h);
-          break;
-        case 'saveas':
-          saveAsDialog(url, w, h);
-          break;
-        default:
-          break;
-      }
-
-    });
   });
+  
+  $('.savedata').click( function(e) {
+    var data = hot.getData();
+    saveData(pivotConfig, data)
+  });
+  
 });
 
-function saveDialog(url, w, h) {
-
-  var thumbnail = $('<div>')
-    .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
-    .css({'text-align': 'center'});
+function saveSetupDialog(url, w, h) {
 
   var form = $('<form>')
   var form = $('<div>').append(thumbnail).append(form).html();
   bootbox.confirm({
-    title: 'Overwrite existing chart?',
+    title: 'Overwrite existing setup?',
     message: form,
     closeButton: true,
     buttons: {
@@ -363,20 +256,20 @@ function saveDialog(url, w, h) {
       if (result) {
         var form = $('#chart_form')[0];
         var formData = new FormData(form);
-        saveChart(formData, url, false);
+        saveSetup(formData, false);
       }
     }
   });
 }
 
-function saveAsDialog(url, w, h) {
+function saveSetupAsDialog() {
 
-  var thumbnail = $('<div>')
-    .append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
-    .css({'text-align': 'center'});
+  //var thumbnail = $('<div>')
+    //.append($('<img>').attr('src', url).height(h).width(w).css('border', 'thin solid grey'))
+    //.css({'text-align': 'center'});
 
-  var form = $('<form id="chart_form">').html(
-  '<br/><div class="form-group"> \
+  var form = $('<form id="setup_form">').html(
+  '<div class="form-group"> \
     <label for="name">Name</label> \
     <input type="text" class="form-control" id="name" name="name"> \
   </div> \
@@ -387,11 +280,11 @@ function saveAsDialog(url, w, h) {
   <p id="saveerror"></p>')
 
   var form = $('<div>')
-    .append(thumbnail)
+    //.append(thumbnail)
     .append(form)
     .html();
   bootbox.confirm({
-    title: 'Save to collection',
+    title: 'Save setup',
     message: form,
     closeButton: true,
     buttons: {
@@ -405,34 +298,80 @@ function saveAsDialog(url, w, h) {
     callback: function(result) {
       if (result) {
         var name = $('#name').val();
-        if ($.inArray(name, chartNames) === 0) {
+        if ($.inArray(name, Object.values(savedSetups)) === 0) {
           $('#saveerror').text('Name already exists.')
           return false;
         } else {
-          var form = $('#chart_form')[0];
+          var form = $('#setup_form')[0];
           var formData = new FormData(form);
-          saveChart(formData, url, true);
-          chartNames.push(name);
+          saveSetup(formData, true);
         }
       }
     }
   });
 }
 
-saveChart = function(formData, url, asnew) {
-  formData.append('thumbnail', url);
+saveSetup = function(formData, asnew) {
   formData.append('filters', JSON.stringify(filterParams));
-  formData.append('setup', JSON.stringify(pivotSetup));
+  formData.append('setup', JSON.stringify(pivotConfig));
   formData.append('asnew', asnew);
   $.ajax({
     type: "POST",
-    url: '_save_chart',
+    url: '_save_setup',
     data: formData,
     cache: false,
     contentType: false,
     processData: false,
-    success: function(resp){
-      notify('success', 'Success!', 'Chart saved to Chart Collection.')
+    success: function(resp) {
+      notify('success', 'Success!', 'Setup saved.');
+      var favorites = $('#favorites select');
+      var name = formData.get('name');
+      savedSetups[resp.setup_id] = name;
+      newOption = $('<option>').attr('data-id', resp.setup_id).text(name);
+      favorites.append(newOption).selectpicker('refresh');
+      favorites.selectpicker('val', name);
+    }
+  });
+}
+
+function deleteSetup(setupId, setupName) {
+  bootbox.confirm({
+    title: 'Delete setup',
+    message: 'Delete "'+setupName+'" input setup? This will not delete any data.',
+    callback: function(confirm) {
+      if (confirm) {
+        $.ajax({
+          type: 'POST',
+          url: '/_delete_setup',
+          data: JSON.stringify({setup_id: setupId}),
+          contentType: 'application/json',
+          success: function(resp) {
+            if (resp.result === 1) {
+              notify('success', 'Success!', 'Setup deleted.');
+              $("#favorites select option[data-id='"+setupId+"']").remove();
+              $("#favorites select").selectpicker('refresh');
+            } else {
+              notify('warning', 'Uh-oh.', 'Something went wrong. Setup not deleted.');
+            }
+          }
+        });   
+      }
+    }
+  });
+}
+
+saveData = function(setup, data) {
+  $.ajax({
+    type: "POST",
+    url: '_save_data',
+    data: JSON.stringify({setup: setup, data: data}),
+    contentType: 'application/json',
+    success: function(resp) {
+      if (!resp.error) {
+        notify('success', 'Success!', 'Data saved.');
+      } else {
+        notify('warning', 'Uh-oh!', 'Something went wrong. Data not saved.')
+      }
     }
   });
 }

@@ -16,9 +16,8 @@ class User(db.Model, UserMixin):
     lastname = db.Column(db.String(50))
     organization = db.Column(db.String(50))
     
-    # roles
-    roles = db.relationship('Role', secondary='user_roles',
-                            backref=db.backref('users', lazy='dynamic'))  
+    # relationships
+    roles = db.relationship('Role', secondary='user_roles', backref=db.backref('users', lazy='dynamic'))
 
 class Role(db.Model, RoleMixin):
     id = db.Column(db.Integer(), primary_key=True)
@@ -27,44 +26,53 @@ class Role(db.Model, RoleMixin):
 
 class UserRoles(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
-    role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
+    User_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
+    Role_id = db.Column(db.Integer(), db.ForeignKey('role.id', ondelete='CASCADE'))
     
-# Hydra Server settings
-
-class HydraUrl(db.Model):
-    __tablename__ = 'hydraurl'
-    id = db.Column(db.Integer(), primary_key=True)
-    hydra_url = db.Column(db.String(255), nullable=False)
+# Hydra user objects
 
 class HydraUser(db.Model):
-    __tablename__ = 'hydrauser'
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
-    hydra_url_id = db.Column(db.Integer(), db.ForeignKey('hydraurl.id', ondelete='CASCADE'))
+    hydra_url_id = db.Column(db.Integer(), db.ForeignKey('hydra_url.id', ondelete='CASCADE'))
     hydra_userid = db.Column(db.Integer(), nullable=False)
     hydra_username = db.Column(db.String(50), nullable=False)
     hydra_password = db.Column(db.String(255), nullable=False)
     hydra_sessionid = db.Column(db.String(255), nullable=False, server_default='')
+
+class HydraUrl(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    hydra_url = db.Column(db.String(255), nullable=False)
     
-class HydraStudy(db.Model):
-    __tablename__ = 'hydrastudy'
+class Study(db.Model):
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(255), nullable=False, server_default='')
-    user_id = db.Column(db.Integer(), db.ForeignKey('user.id', ondelete='CASCADE'))
-    hydrauser_id = db.Column(db.Integer(), db.ForeignKey('hydrauser.id', ondelete='CASCADE'))
+    hydra_user_id = db.Column(db.Integer(), db.ForeignKey('hydra_user.id', ondelete='CASCADE'))
     project_id = db.Column(db.Integer(), nullable=False)
     network_id = db.Column(db.Integer(), nullable=False)
     template_id = db.Column(db.Integer(), nullable=False)
     active = db.Column(db.Boolean(), nullable=False)
+    
+    # relationships
+    charts = db.relationship('Chart', backref='study', lazy='dynamic')
+    inputsetups = db.relationship('InputSetup', backref='study', lazy='dynamic')
+    
+# User-saved objects
 
 class Chart(db.Model):
-    __tablename__ = 'chart'
     id = db.Column(db.Integer(), primary_key=True)
-    hydrastudy_id = db.Column(db.Integer(), db.ForeignKey('hydrastudy.id', ondelete='CASCADE'))
+    study_id = db.Column(db.Integer(), db.ForeignKey('study.id', ondelete='CASCADE'))
     name = db.Column(db.String(80), nullable=False)
     description = db.Column(db.String(255), server_default='')
     thumbnail = db.Column(db.String(255), nullable=False)
+    filters = db.Column(db.Text(), nullable=False)
+    setup = db.Column(db.Text(), nullable=False)
+    
+class InputSetup(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    study_id = db.Column(db.Integer(), db.ForeignKey('study.id', ondelete='CASCADE'))
+    name = db.Column(db.String(80), nullable=False)
+    description = db.Column(db.String(255), server_default='')
     filters = db.Column(db.Text(), nullable=False)
     setup = db.Column(db.Text(), nullable=False)
     

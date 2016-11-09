@@ -15,22 +15,6 @@ from OpenAgua import app, db
 templates = UploadSet('templates', ARCHIVES)
 configure_uploads(app, templates)
 
-@home.route('/_account_setup')
-@login_required
-def account_setup():
-
-    create_hydrauser(db=db,
-                     user_id=current_user.id,
-                     hydra_url=app.config['HYDRA_URL'],
-                     encrypt_key=app.config['SECRET_ENCRYPT_KEY'],
-                     hydra_admin_username=app.config['HYDRA_ROOT_USERNAME'],
-                     hydra_admin_password=app.config['HYDRA_ROOT_PASSWORD'],
-                     hydra_user_username=current_user.email,
-                     hydra_user_password='password') # to be set by user    
-    load_hydrauser()
-        
-    return(redirect(url_for('home.home_main')))
-
 @home.route('/home')
 @login_required
 def home_main():
@@ -77,6 +61,23 @@ def home_main():
     
     return render_template('home.html', templates=openagua_tpls)
 
+@home.route('/_account_setup')
+@login_required
+def account_setup():
+
+    create_hydrauser(db=db,
+                     user_id=current_user.id,
+                     hydra_url=app.config['HYDRA_URL'],
+                     encrypt_key=app.config['SECRET_ENCRYPT_KEY'],
+                     hydra_admin_username=app.config['HYDRA_ROOT_USERNAME'],
+                     hydra_admin_password=app.config['HYDRA_ROOT_PASSWORD'],
+                     hydra_user_username=current_user.email,
+                     hydra_user_password='password') # to be set by user    
+    load_hydrauser()
+        
+    return(redirect(url_for('home.home_main')))
+
+
 @home.route('/_load_study', methods=['GET', 'POST'])
 @login_required
 def load_study():
@@ -89,8 +90,8 @@ def load_study():
         network_id = request.json['network_id']
         network = conn.get_network(network_id=network_id, include_data=False)
         template_id = [tpl.template_id for tpl in network.types][0]
-        #project_id = request.json['project_id']
-        activate_study(db, hydrauser_id=session['hydrauser_id'], network_id=network_id, template_id=template_id)
+        activate_study(db, study_name=network.name, hydra_user_id=session['hydra_user_id'],
+                       project_id=session['project_id'], network_id=network_id, template_id=template_id)
         conn.load_active_study()
         if conn.invalid_study:
             # create a new study with the just-selected network + default scenario
@@ -98,9 +99,9 @@ def load_study():
             add_study(db,
                       name = 'Base study for {}'.format(network.name),
                       user_id = current_user.id,
-                      hydrauser_id = session['hydrauser_id'],
-                      project_id = project_id,
-                      network_id = network_id,
+                      hydra_user_id = session['hydra_user_id'],
+                      project_id = session['project_id'],
+                      network_id = session['network_id'],
                       template_id = session['template_id'],
                       activate = True)
             conn.load_active_study()    
@@ -162,7 +163,7 @@ def add_network():
         add_study(db = db,
                   name = 'Base study for {}'.format(network.name),
                   user_id = current_user.id,
-                  hydrauser_id = session['hydrauser_id'],
+                  hydra_user_id = session['hydra_user_id'],
                   project_id = session['project_id'],
                   network_id = network.id,
                   template_id = tpl_id,
@@ -187,7 +188,7 @@ def purge_project():
         status_code = 1
         if session['project_id'] == project_id:
             session['project_name'] = None
-            session['project_id'] = None        
+            session['project_id'] = None
     else:
         status_code = -1
     return jsonify(result={'status_code': status_code})
