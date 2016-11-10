@@ -11,7 +11,7 @@ OpenAgua connects to Hydra Platform. So, Hydra Platform needs to be available, e
 **IMPORTANT**: For the time being, even a local setup requires an internet connection, to load externally-hosted JavaScript libraries. This will change in the future.
 
 ## Hydra Platform
-* [general Hydra Platform information] (www.hydraplatform.org),
+* [general Hydra Platform information] (http://www.hydraplatform.org),
 * [download from GitHub] (https://github.com/UMWRG/HydraPlatform), or
 * [set up on Windows] (http://umwrg.github.io/HydraPlatform/tutorials/getting-started/server.html)
 * **IMPORTANT**: Hydra Platform requires Python 2.7, but OpenAgua requires Python 3.5. This needs to be accounted for, either by changing batch file scripts used to run the respective applications, or setting up virtual environments. On Windows, for example, if Python 3.5 is your main Python, you can change the second-to-last line of *run_server.bat* (found in `/Hydra Platform/Hydra Server/`) to something like `C:\python27\python server.py`, depending on where Python 2.7 is installed.
