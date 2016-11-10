@@ -24,6 +24,9 @@ def main():
     chartspath = os.path.join(app.config['USER_FILES'], str(current_user.id), thumbnailspath)
     src = os.path.join(app.config['APP_ROOT'], chartspath)
     
+    if not os.path.exists(src): # no charts have been created yet
+        os.makedirs(src)
+    
     # THIS SHOULD BE UPDATED!!!
     dst = os.path.join(app.config['APP_ROOT'], 'OpenAgua', 'static', chartspath)
     
