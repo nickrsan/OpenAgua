@@ -73,12 +73,13 @@ def upload_template():
         new_xml = ET.tostring(root).decode()
            
         resp = conn.call('upload_template_xml', {'template_xml': new_xml}) 
-        members = zf.namelist()
         
-        zf.extractall(dst_dir)
-        src = os.path.join(dst_dir, base_tpl_name)
+        tmp_dir = os.path.join(dst_dir, 'tmp')
+        zf.extractall(tmp_dir)
+        src = os.path.join(tmp_dir, base_tpl_name)
         dst = os.path.join(dst_dir, tpl_name)
         os.rename(src, dst)
+        shutil.rmtree(tmp_dir, ignore_errors=True)
         
         flash('Template %s uploaded successfully' % tpl_name, category='info')
     else:
@@ -95,8 +96,8 @@ def save_as_new_template():
         template = AttrDict(request.json['template'])
         
         # rename template
-        if ' Vers. ' in template.name:
-            basename, version = template.name.split(' Vers. ')
+        if '_v' in template.name:
+            basename, version = template.name.split('_v')
             version = int(version) + 1
         else:
             basename = template.name
