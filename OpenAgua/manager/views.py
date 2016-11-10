@@ -3,11 +3,14 @@ import shutil
 import zipfile
 from boltons.iterutils import remap
 
+# import element tree
+import xml.etree.ElementTree as ET
+
 from flask import render_template, redirect, url_for, request, session, json, \
      jsonify, flash
 from flask_security import login_required, current_user
 
-from flask_uploads import UploadSet, configure_uploads, ARCHIVES
+from flask_uploads import UploadSet, configure_uploads, ARCHIVES, secure_filename
 
 from attrdict import AttrDict
 
@@ -43,20 +46,41 @@ def upload_template():
         
         conn = make_connection()
         
-        template = request.files['template']
+        file = request.files['template']
         
-        filename = templates.save(template)
+        filename = secure_filename(file.filename)
+        dst_dir = app.config['UPLOADED_TEMPLATES_DEST']
+        base_tpl_name = filename[:-4]
+        versions = []
+        for dirname in os.listdir(dst_dir):
+            dirpath = os.path.join(dst_dir, dirname)
+            if os.path.isdir(dirpath) and base_tpl_name + '_v' in dirname:
+                versions.append(int(dirname.split('_v')[-1].strip()))
+        max_version = max(versions)
+        tpl_name = '{}_v{}'.format(base_tpl_name, max_version + 1)
+        
+        #file.save(os.path.join(dst_dir, template_name + '.zip'))
 
-        zf  = zipfile.ZipFile(template.stream)
+        zf  = zipfile.ZipFile(file.stream)
         
         # load template
         template_xml_path = zf.namelist()[0]
         template_xml = zf.read(template_xml_path).decode('utf-8')
-        resp = conn.call('upload_template_xml', {'template_xml': template_xml}) 
-        zf.extractall(path=app.config['UPLOADED_TEMPLATES_DEST'])
+
+        root = ET.fromstring(template_xml)
+        for name in root.iter('template_name'):
+            name.text = tpl_name
+        new_xml = ET.tostring(root).decode()
+           
+        resp = conn.call('upload_template_xml', {'template_xml': new_xml}) 
+        members = zf.namelist()
         
-        template_name = template_xml_path.split('/')[0]
-        flash('Template %s uploaded successfully' % template_name, category='info')
+        zf.extractall(dst_dir)
+        src = os.path.join(dst_dir, base_tpl_name)
+        dst = os.path.join(dst_dir, tpl_name)
+        os.rename(src, dst)
+        
+        flash('Template %s uploaded successfully' % tpl_name, category='info')
     else:
         flash('Something went wrong.')
         

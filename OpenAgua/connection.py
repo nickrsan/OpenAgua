@@ -135,7 +135,7 @@ class connection(object):
 
     def add_template_from_json(template, basename, version):
         new_tpl = AttrDict(template.copy())
-        new_tpl.name = '{} Vers. {}'.format(basename, version)
+        new_tpl.name = '{}_v{}'.format(basename, version)
         
         # copy old template directory
         tpl_dir = app.config['UPLOADED_TEMPLATES_DEST']
