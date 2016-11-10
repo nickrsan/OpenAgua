@@ -56,7 +56,10 @@ def upload_template():
             dirpath = os.path.join(dst_dir, dirname)
             if os.path.isdir(dirpath) and base_tpl_name + '_v' in dirname:
                 versions.append(int(dirname.split('_v')[-1].strip()))
-        max_version = max(versions)
+        if versions:
+            max_version = max(versions)
+        else:
+            max_version = 0
         tpl_name = '{}_v{}'.format(base_tpl_name, max_version + 1)
         
         #file.save(os.path.join(dst_dir, template_name + '.zip'))
