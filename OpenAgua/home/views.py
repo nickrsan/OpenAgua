@@ -161,7 +161,6 @@ def add_network():
         # create a default study consisting of the project, network, and scenario
         add_study(db = db,
                   name = 'Base study for {}'.format(network.name),
-                  user_id = current_user.id,
                   hydra_user_id = session['hydra_user_id'],
                   project_id = session['project_id'],
                   network_id = network.id,

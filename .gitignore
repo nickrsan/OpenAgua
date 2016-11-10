@@ -6,6 +6,7 @@ instance/
 
 migrations/
 userfiles/
+OpenAgua/static/hydra/templates/*
 
 # pycharm folder
 .idea/
