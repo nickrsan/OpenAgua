@@ -325,11 +325,19 @@ saveSetup = function(formData, asnew) {
     success: function(resp) {
       notify('success', 'Success!', 'Setup saved.');
       var favorites = $('#favorites select');
-      var name = formData.get('name');
-      savedSetups[resp.setup_id] = name;
-      newOption = $('<option>').attr('data-id', resp.setup_id).text(name);
-      favorites.append(newOption).selectpicker('refresh');
-      favorites.selectpicker('val', name);
+      var favoriteName = formData.get('name');
+      savedSetups[resp.setup_id] = favoriteName;
+      
+      favorites.empty();
+      $.each(savedSetups, function(id, name) {
+        var option = $('<option>').attr({
+          "data-id": id,
+          "data-content": "<div class='load'>"+name+"</div><button type='button' class='btn btn-sm pull-right delete' data-id='"+id+"' value='"+name+"'><span class='glyphicon glyphicon-trash'/></button>"
+        });
+        favorites.append(option);
+      })
+      //favorites.selectpicker('refresh');
+      //favorites.selectpicker('val', favoriteName);
     }
   });
 }
@@ -348,6 +356,7 @@ function deleteSetup(setupId, setupName) {
           success: function(resp) {
             if (resp.result === 1) {
               notify('success', 'Success!', 'Setup deleted.');
+              delete savedSetups[setupId];
               $("#favorites select option[data-id='"+setupId+"']").remove();
               $("#favorites select").selectpicker('refresh');
             } else {

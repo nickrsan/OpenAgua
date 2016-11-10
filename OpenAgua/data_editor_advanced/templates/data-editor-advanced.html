@@ -48,13 +48,13 @@ var pivotId = pivotParams.setup_id;
     <div class="row">
         <div id="options" class="col col-sm-12 col-md-12 col-lg-12">
             <span id="favorites" class="inline">
-                <select class='selectpicker' data-width='auto' title='Saved setups...'>
+                <select class='selectpicker' data-width='fit' title='Saved setups...'>
                     {% if pivot_params.setups|length %}
                         {% for id, name in pivot_params.setups.items() %}
-                            <option data-id="{{ id }}" data-width="fit" data-content="<div class='load'>{{ name }}</div><button type='button' class='btn btn-sm pull-right delete' data-id='{{ id }}' value='{{ name }}'><span class='glyphicon glyphicon-trash'></span></button>">"></button>
+                            <option data-id="{{ id }}" data-content="<div class='load'>{{ name }}</div><button type='button' class='btn btn-sm pull-right delete' data-id='{{ id }}' value='{{ name }}'><span class='glyphicon glyphicon-trash'></span></button>"></option>
                         {% endfor %}
                     {% else %}
-                        <option>Nothing saved yet</option>
+                        <option disabled>Nothing saved yet</option>
                     {% endif %}
                 </select>
             </span>

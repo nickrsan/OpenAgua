@@ -61,8 +61,6 @@ def upload_template():
         else:
             max_version = 0
         tpl_name = '{}_v{}'.format(base_tpl_name, max_version + 1)
-        
-        #file.save(os.path.join(dst_dir, template_name + '.zip'))
 
         zf  = zipfile.ZipFile(file.stream)
         
